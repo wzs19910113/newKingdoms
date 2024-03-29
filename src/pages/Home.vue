@@ -1,270 +1,105 @@
 <template>
-    <div class="main" v-if="game.flagList">
-        home
+    <div class="main" v-if="game.campList">
+        <!--系统操作-->
+        <nut-drag direction="y" :style="{right:'0px',top:'24px'}">
+            <a class="touch-dom" @click="showSystemMenu=true">系统<br/>菜单</a>
+        </nut-drag>
+        <!--作弊-->
+        <nut-drag direction="y" :style="{right:'0px',top:'75px'}" v-if="DEBUG">
+            <a class="touch-dom" @click="onTapCheat">CHEAT</a>
+        </nut-drag>
+        <!--页面内容-->
+        <div class="panel">
+            <div class="tab-panel" v-show="state==1">
+                <div class='map'>
+                    <div class="maprow" :class="{'oddrow':index%2!=0}" v-for="(row,index) in game.map">
+                        <a class="btn btn-mapcell" v-for="cell in row" :style="{'background-color':cell.color,}">
+                            {{cell.id}}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!--城市-->
+            <div class="tab-panel" v-show="state==2">
+                城市
+            </div>
+            <!--将臣-->
+            <div class="tab-panel" v-show="state==3">
+                将臣
+            </div>
+            <!--求贤-->
+            <div class="tab-panel" v-show="state==4">
+                求贤
+            </div>
+            <!--报表-->
+            <div class="tab-panel" v-show="state==99">
+                <div class="row no-margin">
+                    <h2 class="room-name">势力报表</h2>
+                    <div class="my-name">当前第 <b>{{day}}</b> 日</div>
+                </div>
+                <div class="row log">
+                    <nut-timeline>
+                        <nut-timelineitem v-for="(item,index) in game.logList" :key="index">
+                            <div class="title" slot="title">{{item.title}}</div>
+                            <div class="sub-title btn" @click="onTapLog(item.id)">{{item.subTitle}}</div>
+                        </nut-timelineitem>
+                    </nut-timeline>
+                </div>
+            </div>
+        </div>
+        <!--底部导航-->
+        <div class="tab-wrap">
+            <a class="btn btn-tab" :class="{'active':state==1}" @click="onTapTab(1)">地图</a>
+            <a class="btn btn-tab" :class="{'active':state==2}" @click="onTapTab(2)">城市</a>
+            <a class="btn btn-tab" :class="{'active':state==3}" @click="onTapTab(3)">将臣</a>
+            <a class="btn btn-tab" :class="{'active':state==4}" @click="onTapTab(4)">求贤</a>
+            <a class="btn btn-tab" :class="{'active':state==99}" @click="onTapTab(99)">报表</a>
+        </div>
+        <!--脚部-->
+        <div class="footer">
+            <div class="fact">
+                <div class="fact-item">总资金：{{numFormat(game.campList[0].money)}} $</div>
+                <div class="fact-item">总粮草：{{game.campList[0].food}}</div>
+            </div>
+            <nut-button class="btn btn-go" @click="onTapGo"><small>第 {{day}} 天</small><p>结束本日</p></nut-button>
+        </div>
+        <!--弹出层-->
+        <nut-popup class="pop pop-system-menu" :round="true" v-model="showSystemMenu">
+            <!-- <div class="switch">
+                <label>自动存档</label>
+                <nut-switch :active.sync="autoSave" @change="onChangeAutoSave"></nut-switch>
+            </div> -->
+            <a class="menu-item" @click="onTapDrag(1)">存档</a>
+            <a class="menu-item" @click="onTapDrag(2)">删档</a>
+            <a class="menu-item" @click="onTapDrag(3)">新手指导</a>
+            <a class="menu-item" @click="onTapDrag(5)">返回初始界面</a>
+        </nut-popup>
     </div>
 </template>
 
 <script>
 import List from '../components/List';
 import Bar from '../components/Bar';
-import { query, r, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, getListByID, getMatchList, removeFromList, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomRoom, genRandomWorker, genRandomTerminal, releaseAllByJob } from '../tools/utils';
+import { query, r, exptr, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, removeFromList, } from '../tools/utils';
 import { DEBUG, CONFIG, CACHE, } from '../config/config';
 export default {
     name: 'Home',
     data(){
         return {
             loading: false,
-            dragActive: false,
             state: 1,
+
             day: 0,
-            dayLimit: 0,
             game: {},
-            filter: 1, // 人员列表页过滤器
-            marketType: 1, // 市场页搜索类型
-            tipList: [], // 提示条目
-            popTip: '', // 弹窗说明
+
             tempData: {
-                myFactoryList: [],
-                // 首页
-                myRoomList: [],
-                myRoomList2: [],
-                myRoomList3: [],
-                imageAgent: {},
-                resourceManager: {},
-                viewType: 0,
-                propMoneyPct: 0,
-
-                // 房间页
-                room: null,
-                myPopRoomList: [],
-                assignPowerPct: 0,
-                myTerminalList: [],
-                myRoomWorkerList: [],
-                powerLevelUpCost: 0,
-                digLevelUpCost: 0,
-                tradeLevelUpCost: 0,
-
-                // 终端页
-                terminal: null,
-
-                // 员工页
-                myWorkerList: [],
-
-                // 员工详情弹窗
-                myWorker: null,
-
-                // 弹窗员工列表
-                myPopWorkerList: [],
-
-                // 市场
-                marketRoomList: [],
-                marketWorkerList: [],
-                myRRList: [],
-                myHRList: [],
-                buyRoom: null,
-                buyWorker: null,
-                totalCost: 0,
-
-                // 外交
-                relationList: [],
-                relation: null,
-
-                // 工厂
-                factory: null,
-                joint: null,
-                mySpyList: [],
-                factoryRoomList: [],
-                factoryWorkerList: [],
-                stealRoom: null,
-                stealWorker: null,
-                investMoney: '',
-                studyWorker: null,
-
-                // 报表
-                log: {},
-
-                workListPopMode: 0,
+                log: [],
             },
-            config: CONFIG,
 
-            searchingRoomID: '', // 当前搜索的房间ID
-            searchingTerminalID: '', // 当前搜索的终端ID
-            searchingWorkerID: '', // 当前搜索的人员ID
-            searchingFactoryID: '', // 当前搜索的工厂ID
-
-            autoSave: false,
-            tip1: false,
-            tip2: false,
-            tip3: false,
-
-            // 弹出层
             showSystemMenu: false,
-            showEditFactoryName: false,
-            showEditRoom: false,
-            showAssignPower: false,
-            showEditTerminal: false,
-            showWorkerList: false,
-            showJobPop: false,
-            showWorkerPop: false,
-            showConfirmSellRoom: false,
-            showConfirmSellWorker: false,
-            showConfirmBuyRoom: false,
-            showConfirmBuyWorker: false,
-            showConfirmBuyAllWorker: false,
-            showConfirmBuyFactory: false,
-            showEditFactory: false,
-            showStealRoom: false,
-            showStealWorker: false,
-            showInvest: false,
-            showSanction: false,
-            showConfirmDamage: false,
-            showConfirmSanction: false,
-            showLog: false,
-            showKeyborad: false,
-            showConfirmGo: false,
-            showEditWorkerPage: false,
-            showProp: false,
-            showRule: false,
             showGuide: false,
-            showSpyTargets: false,
-            showTasks: false,
-
-            // const
-            ROOM_LIST_COLUMN: [ // 首页房间列表基本情况
-                {name:'name',title:'房间名',width:'35%',format:(name,room)=>`${room.order} ${name}`,},
-                {name:'power',title:'电力',isPower:true,width:'12%',},
-                {name:'basicImage',title:'门面',width:'10%',},
-                {name:'durab',title:'老化',isRoomDurab:true,width:'12%',format:v=>`${percent(v,CONFIG.max_durab)}%`,},
-                {name:'risk',title:'策略',isMode:true,width:'8%',format:v=>`${CONFIG.risk_name_map[v-1]}`,},
-                {name:'auto',title:'自动化',isAuto:true,width:'13%',format:v=>`${percent(v,CONFIG.max_auto)}%`,},
-                {name:'level',title:'等级',isLevel:true,width:'10%',format:v=>`LV.${v}`,},
-            ],
-            ROOM_LIST_2_COLUMN: [ // 市场页房间列表
-                {name:'id',title:'ID',width:'0',},
-                {name:'name',title:'房间名',width:'25%',},
-                {name:'basicImage',title:'基础门面',width:'25%',},
-                {name:'durab',title:'老化',width:'25%',isRoomDurab:true,format:v=>`${percent(v,CONFIG.max_durab)}%`,},
-                {name:'price',title:'售价',width:'25%',format:v=>`${v} $`,},
-            ],
-            ROOM_LIST_3_COLUMN: [ // 房间页弹出房间列表
-                {name:'name',title:'房间名',width:'50%',},
-                {name:'power',title:'电力',isPower:true,width:'25%',},
-                {name:'avgPower',title:'参与分配',width:'25%',format:v=>`${v?'参与':'否'}`,},
-            ],
-            ROOM_LIST_4_COLUMN: [ // 工厂页房间列表
-                {name:'name',title:'房间名',width:'30%',},
-                {name:'power',title:'电力',isPower:true,width:'15%',},
-                {name:'basicImage',title:'门面',width:'15%',},
-                {name:'durab',title:'老化',isRoomDurab:true,width:'15%',format:v=>`${percent(v,CONFIG.max_durab)}%`,},
-                {name:'auto',title:'自动化',isAuto:true,width:'15%',format:v=>`${percent(v,CONFIG.max_auto)}%`,},
-                {name:'level',title:'等级',isLevel:true,width:'10%',format:v=>`LV.${v}`,},
-            ],
-            ROOM_LIST_5_COLUMN: [ // 首页页房间列表工位情况
-                {name:'managerName',title:'管理员',width:'16%',},
-                {name:'maintainerName',title:'维护工',width:'16%',},
-                {name:'imageAgentName',title:'门面',width:'16%',},
-                {name:'autoWorkerName',title:'工程师',width:'16%',},
-                // {name:'freeTerminalCount',title:'空置',width:'12%',},
-                // {name:'workerCount',title:'人数',width:'12%',},
-                {name:'terminalOccupies',title:'终端灯位',width:'24%',},
-                {name:'freeWorkerCount',title:'空闲',width:'12%',},
-            ],
-            ROOM_LIST_6_COLUMN: [ // 首页备用房间列表
-                {name:'name',title:'房间名',width:'29%',},
-                {name:'power',title:'电力',isPower:true,width:'12%',},
-                {name:'basicImage',title:'门面',width:'10%',},
-                {name:'durab',title:'老化',isRoomDurab:true,width:'12%',format:v=>`${percent(v,CONFIG.max_durab)}%`,},
-                {name:'imageAgentName',title:'门面',width:'14%',},
-                {name:'auto',title:'自动化',isAuto:true,width:'13%',format:v=>`${percent(v,CONFIG.max_auto)}%`,},
-                {name:'level',title:'等级',isLevel:true,width:'10%',format:v=>`LV.${v}`,},
-            ],
-            ROOM_LIST_7_COLUMN: [ // 首页自营房间列表
-                {name:'name',title:'房间名',width:'27%',},
-                {name:'power',title:'电力',isPower:true,width:'12%',},
-                {name:'basicImage',title:'门面',width:'10%',},
-                {name:'durab',title:'老化',isRoomDurab:true,width:'12%',format:v=>`${percent(v,CONFIG.max_durab)}%`,},
-                {name:'risk',title:'策略',isMode:true,width:'8%',format:v=>`${CONFIG.risk_name_map[v-1]}`,},
-                {name:'auto',title:'自动化',isAuto:true,width:'13%',format:v=>`${percent(v,CONFIG.max_auto)}%`,},
-                {name:'workerCount',title:'人数',width:'8%',},
-                {name:'level',title:'等级',isLevel:true,width:'10%',format:v=>`LV.${v}`,},
-            ],
-            TERMINAL_LIST_COLUMN: [ // 房间设备列表
-                {name:'powerLevel',title:'供电Lv',isLevel:true,width:'1.3rem',format:v=>`LV.${v}`,},
-                {name:'digLevel',title:'挖矿Lv',isLevel:true,width:'1.3rem',format:v=>`LV.${v}`,},
-                {name:'tradeLevel',title:'交易Lv',isLevel:true,width:'1.3rem',format:v=>`LV.${v}`,},
-                {name:'durab',title:'老化',width:'.7rem',isDurab:true,format:v=>`${percent(v,CONFIG.max_durab)}%`,},
-                {name:'workerName',title:'工人',width:'1rem',format:v=>`${v||'-'}`},
-                {name:'jobName',title:'运行',width:'1rem',format:v=>`${v||'-'}`},
-                {name:'str',title:'体能',width:'1rem',showAbi:true,format:v=>`${v||'-'}`},
-                {name:'int',title:'智力',width:'1rem',showAbi:true,format:v=>`${v||'-'}`},
-                {name:'com',title:'交流',width:'1rem',showAbi:true,format:v=>`${v||'-'}`},
-                {name:'img',title:'形象',width:'1rem',showAbi:true,format:v=>`${v||'-'}`},
-            ],
-            WORKER_LIST_COLUMN: [ // 弹窗人员列表
-                {name:'name',title:'名字',width:'15%',},
-                // {name:'abi-chart',title:'能力图形',width:'24%',},
-                {name:'str',title:'体能',width:'10%',},
-                {name:'int',title:'智力',width:'10%',},
-                {name:'com',title:'交流',width:'10%',},
-                {name:'img',title:'形象',width:'10%',},
-                {name:'rname',title:'房间',width:'30%',format:v=>`${v||'-'}`,},
-                {name:'job',title:'职能',width:'15%',format:v=>`${CONFIG.job_name_map[v]}`,},
-            ],
-            WORKER_LIST_2_COLUMN: [ // 人员列表
-                {name:'name',title:'名字',width:'23%',format:(name,worker)=>`${name} (${worker.gender?'男':'女'} ${worker.age})`,},
-                {name:'str',title:'体能',width:'8%',},
-                {name:'int',title:'智力',width:'8%',},
-                {name:'com',title:'交流',width:'8%',},
-                {name:'img',title:'形象',width:'8%',},
-                {name:'rname',title:'房间',width:'30%',format:v=>`${v||'-'}`,},
-                {name:'job',title:'职能',width:'15%',format:v=>`${CONFIG.job_name_map[v]}`,},
-            ],
-            WORKER_LIST_3_COLUMN: [ // 房间人员列表
-                {name:'id',title:'ID',width:'0',},
-                {name:'name',title:'名字',width:'50%',format:(name,worker)=>`${name} (${worker.gender?'男':'女'} ${worker.age})`,},
-                {name:'job',title:'职能',width:'50%',format:v=>`${CONFIG.job_name_map[v]}`,},
-            ],
-            WORKER_LIST_4_COLUMN: [ // 房间搜索人员列表
-                {name:'id',title:'ID',width:'0',},
-                {name:'name',title:'名字',width:'50%',},
-                {name:'str',title:'体能',width:'25%',},
-                {name:'int',title:'智力',width:'25%',},
-            ],
-            WORKER_LIST_5_COLUMN: [ // 人力搜索人员列表
-                {name:'id',title:'ID',width:'0',},
-                {name:'name',title:'名字',width:'50%',},
-                {name:'com',title:'交流',width:'25%',},
-                {name:'img',title:'形象',width:'25%',},
-            ],
-            WORKER_LIST_6_COLUMN: [ // 市场页人员列表
-                {name:'id',title:'ID',width:'0',},
-                {name:'name',title:'名字',width:'26%',format:(name,worker)=>`${name} (${worker.gender?'男':'女'} ${worker.age})`,},
-                {name:'str',title:'体能',width:'12%',},
-                {name:'int',title:'智力',width:'12%',},
-                {name:'com',title:'交流',width:'12%',},
-                {name:'img',title:'形象',width:'12%',},
-                {name:'price',title:'售价',width:'26%',format:v=>`${v} $`,},
-            ],
-            WORKER_LIST_7_COLUMN: [ // 工厂页人员列表
-                {name:'name',title:'名字',width:'28%',format:(name,worker)=>`${name} (${worker.gender?'男':'女'} ${worker.age})`,},
-                {name:'str',title:'体能',width:'18%',},
-                {name:'int',title:'智力',width:'18%',},
-                {name:'com',title:'交流',width:'18%',},
-                {name:'img',title:'形象',width:'18%',},
-            ],
-            WORKER_LIST_8_COLUMN: [ // 工厂页间谍列表
-                {name:'name',title:'名字',width:'50%',},
-                {name:'int',title:'智力',width:'50%',},
-            ],
-            RELATION_LIST_COLUMN: [ // 外交关系列表
-                {name:'toName',title:'工厂名',width:'15%',},
-                {name:'money',title:'总资金',width:'20%',format:v=>`${numFormat(v)} $`,},
-                {name:'image',title:'形象',width:'12.5%',},
-                {name:'invest',title:'投资',width:'15%',},
-                {name:'support',title:'支持率',width:'12.5%',format:v=>`${percent(v,CONFIG.max_support)}%`,},
-                {name:'jointName',title:'外交员',width:'12.5%',format:v=>`${v||'-'}`,},
-                {name:'spyCount',title:'间谍数',width:'12.5%',},
-            ],
+            showLog: false,
+            showConfirmGo: false,
 
             CONFIG,
             DEBUG,
@@ -275,7 +110,7 @@ export default {
         if(window.GLOBAL&&window.GLOBAL.game){
             this.game = window.GLOBAL.game;
             this.day = window.GLOBAL.day;
-            this.asynHomePage();
+            this.asynAllPages();
             if(!localStorage.getItem(CACHE.not_show_guide)){
                 this.showGuide = true;
                 localStorage.setItem(CACHE.not_show_guide,1);
@@ -374,24 +209,70 @@ export default {
             }
             this.loading.hide();
             this.loading = null;
-            /*query(DEBUG?'http://darkmirror.cn/api/monopoly_delete.php':'../../api/monopoly_delete.php',rdata=>{
-                this.loading.hide();
-                this.loading = null;
-                this.$toast.text(rdata.msg);
-                this.showSystemMenu = false;
-                localStorage.removeItem('NSG');
-            },edata=>{
-                this.loading.hide();
-                this.loading = null;
-                this.$toast.text(edata.msg);
-            },1,{
-                code,
-            });*/
         },
 
+        onTapTab(index){ // 点击【标签页码】
+            this.routeToPage(index);
+        },
+        onTapLog(id){ // 点击【报表】按钮
+            this.tempData.log = getMatchList(this.game.logList,[['id',id]])[0];
+            this.showLog = true;
+        },
+        onTapGo(){ // 点击【结束】按钮
+            this.showConfirmGo = true;
+        },
+        onTapDrag(index){ // 点击【悬浮拖拽】按钮
+            if(this.loading) return;
+            switch(index){
+                case 1: // 手动存档
+                    this.save(1);
+                break;
+                case 2: // 删除存档
+                    let _this = this;
+                    this.$dialog({
+                        title: '确定删除此存档？',
+                        content: '若误删可立即点击【存档】按钮保存当前游戏',
+                        onOkBtn: function(){
+                            _this.deleteSave();
+                            this.close();
+                        }
+                    });
+                break;
+                case 3: // 新手指导
+                    this.showSystemMenu = false;
+                    this.showGuide = true;
+                break;
+                case 5: // 退出游戏
+                    this.$router.push('/');
+                break;
+            }
+        },
+        onTapCheat(){ // 点击【作弊】按钮
+
+        },
+
+        routeToPage(state,id=0){ // 跳转到页面
+            let allowrouteToPage = true;
+            switch(state){
+                case 1: // 地图
+                break;
+                case 2: // 城市
+                break;
+                case 3: // 将臣列表
+                break;
+                case 4: // 求贤
+                break;
+                case 99: // 报表
+                break;
+            }
+            if(allowrouteToPage){
+                this.asynAllPages();
+                this.state = state;
+            }
+        },
         asynAllPages(){ // 刷新所有页面temp数据
             this.$nextTick(e=>{
-
+                this.asynHomePage();
             });
             this.save();
         },
@@ -421,17 +302,13 @@ export default {
     .panel{
         position: relative;
         width: 100%;
-        height: calc( 100% - 1.2rem );
+        height: 100%;
+        padding-bottom: 2.21rem;
+        overflow-y: scroll;
+        overflow-x: hidden;
     }
     .clr{
         clear: both;
-    }
-    .block{
-        height: 100%;
-        width: 100%;
-        overflow-x: hidden;
-        overflow-y: scroll;
-        padding-bottom: 1.5rem;
     }
     .pop{
         background-color: #fff;
@@ -553,19 +430,6 @@ export default {
         border: .02rem solid #fff;
         border-right: 0;
     }
-    .factory-name{
-        position: relative;
-        width: 100%;
-        height: 1.05rem;
-        line-height: 1.05rem;
-        text-align: left;
-        font-size: .5rem;
-    }
-    .factory-name >span{
-        display: block;
-        height: 1rem;
-        border-bottom: 1px solid #414141;
-    }
     .btn-edit{
         color: #ff4f18;
         display: inline-block;
@@ -597,7 +461,7 @@ export default {
     .tab-wrap{
         position: absolute;
         z-index: 999;
-        bottom: 0;
+        bottom: 1.2rem;
         left: 0;
         right: 0;
         width: 100%;
@@ -1078,8 +942,38 @@ export default {
         font-weight: bold;
     }
 
-    .factory-board{
+    /* new kingdoms */
+    .map{
+        position: relative;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
         width: 7rem;
-        padding: .2rem .1rem;
+        height: 4.7rem;
+        background-color: #aaa;
     }
+    .map .maprow{
+        width: 100%;
+        height: 20%;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 .6rem;
+    }
+    .map .oddrow{
+        padding: 0;
+    }
+    .map .maprow .btn-mapcell{
+        display: block;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        border: 2px solid #aaa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        font-weight: bold;
+    }
+
 </style>
