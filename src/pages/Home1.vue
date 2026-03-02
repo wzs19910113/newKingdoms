@@ -11,7 +11,14 @@
         <!--页面内容-->
         <div class="panel">
             <div class="tab-panel" v-show="state==1">
-                <div class="map-info">地图</div>
+                <div class="map-info">城市</div>
+                <div class='map'>
+                    <div class="maprow" :class="{'evenrow':index%2!=0}" v-for="(row,index) in game.map">
+                        <a class="btn btn-mapcell" v-for="cell in row" :style="{'background-color':cell.color,}">
+                            <span class="mapcell-dot">{{cell.id}}</span>
+                        </a>
+                    </div>
+                </div>
             </div>
             <!--城市-->
             <div class="tab-panel" v-show="state==2">
@@ -27,7 +34,18 @@
             </div>
             <!--报表-->
             <div class="tab-panel" v-show="state==99">
-
+                <div class="row no-margin">
+                    <h2 class="room-name">势力报表</h2>
+                    <div class="my-name">当前第 <b>{{day}}</b> 日</div>
+                </div>
+                <div class="row log">
+                    <nut-timeline>
+                        <nut-timelineitem v-for="(item,index) in game.logList" :key="index">
+                            <div class="title" slot="title">{{item.title}}</div>
+                            <div class="sub-title btn" @click="onTapLog(item.id)">{{item.subTitle}}</div>
+                        </nut-timelineitem>
+                    </nut-timeline>
+                </div>
             </div>
         </div>
         <!--底部导航-->

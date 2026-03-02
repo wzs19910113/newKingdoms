@@ -263,7 +263,7 @@ export default {
             let roleList = [];
             let data;
             // 初始化地图
-            let cellIdIndex = 0;
+            let cellIdIndex = 1;
             for(let y=0;y<CONFIG.mapHeight;y++){
                 let row = [];
                 let rowLength = CONFIG.mapWidth;

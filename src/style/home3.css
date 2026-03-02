@@ -1,0 +1,473 @@
+.main{
+    line-height: 0;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    color: #4a4a4a;
+    font-size: 16px;
+    background-color: #111;
+}
+.btn{
+    text-align: center;
+    cursor: pointer;
+}
+.btn:hover{
+    opacity: .9;
+}
+.home{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    background-color: #fff;
+}
+
+/* 顶部操作面板 */
+.top-op-p{
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    height: 108px;
+    padding: 3px;
+    width: 180px;
+    border-radius: 2px;
+    background-color: #e81313;
+    z-index: 200;
+    color: #fff;
+    font-size: 12px;
+    text-align: left;
+}
+.top-op-p .btn,
+.top-op-p .tip{
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+    font-size: 12px;
+}
+.top-op-p .btn{
+    padding: 0 6px;
+    margin-bottom: 3px;
+    color: #fff;
+    background-color: #1313a8;
+    border: 1px solid #fff;
+}
+.top-op-p .tip{
+    width: 100%;
+    white-space: nowrap;
+    word-break: keep-all;
+    text-overflow: clip;
+    color: #fff;
+}
+
+/* 卡牌操作面板 */
+.plate-op-p{
+    position: absolute;
+    left: 10px;
+    top: 650px;
+    height: 198px;
+    padding: 3px;
+    width: 190px;
+    border-radius: 4px;
+    background-color: #aaa;
+    z-index: 210;
+    text-align: left;
+    border: 4px solid #666;
+}
+.plate-op-p .btn{
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+    font-size: 12px;
+    padding: 0 6px;
+    margin-bottom: 3px;
+    color: #fff;
+    background-color: #1313a8;
+    border: 1px solid #fff;
+}
+.plate-op-p .tip{
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+.sel-plate-op-p{
+    background-color: #ADD8E6;
+}
+
+/* 地图 */
+.map{
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding-top: 30px;
+    width: 900px;
+    height: 750px;
+    border: 1px solid #a3a3a3;
+    background-image: radial-gradient(#995000, #ffe955);
+    z-index: 100;
+}
+.map .row{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    /* height: 88.6px;
+    line-height: 88.6px; */
+    height: 62px;
+    line-height: 62px;
+    margin: 0 auto;
+}
+.map .row .cell{
+    position: relative;
+    width: 70px;
+    height: 70px;
+    line-height: 35px;
+    transform: scaleY(.6);
+    border: 1px solid #aaa;
+    background-color: #eee;
+}
+.map .row .cell:not(:last-child){
+    /* margin-bottom: 78px; */
+}
+.map .row .cell .cell-dot{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    z-index: 10;
+    transform: scaleY(1.6666);
+    border-radius: 2px;
+}
+.map .row .cell .cell-dot .id{
+    position: absolute;
+    font-size: 12px;
+    left: 0;
+    top: 0;
+    color: #fff;
+}
+.map .row .cell .cell-dot .text{
+    font-weight: bold;
+    color: #fff;
+}
+.map .row .cell::before{
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    /* top: -35.12px;
+    width: 70.6px;
+    height: 70.6px; */
+    top: -24.58px;
+    width: 49.42px;
+    height: 49.42px;
+    z-index: 5;
+    transform: rotateZ(45deg);
+    border-top: 1px solid #aaa;
+    border-left: 1px solid #aaa;
+    background-color: #eee;
+    border-radius: 2px;
+}
+.map .row .cell::after{
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    /* bottom: -35.12px;
+    width: 70.6px;
+    height: 70.6px; */
+    bottom: -24.58px;
+    width: 49.42px;
+    height: 49.42px;
+    z-index: 5;
+    transform: rotateZ(45deg);
+    border-bottom: 1px solid #aaa;
+    border-right: 1px solid #aaa;
+    background-color: #eee;
+    border-radius: 2px;
+}
+/* .map .row .sel-cell,
+.map .row .sel-cell::before,
+.map .row .sel-cell::after{
+    background-color: #D3D3D3;
+} */
+
+/* 卡牌 */
+.btn-plate{
+    position: absolute;
+    width: 61px;
+    height: 61px;
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    transform: scaleY(.6);
+    border: 1px solid #666;
+    background-color: #aaa;
+    transition: all .3s;
+    box-shadow: 3px 2px 4px #232323;
+    z-index: 240;
+}
+.plate-dot{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    z-index: 10;
+    transform: scaleY(1.6666);
+    border-radius: 2px;
+}
+.btn-plate::before{
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    top: -22.52px;
+    width: 43.30px;
+    height: 43.30px;
+    z-index: 5;
+    transform: rotateZ(45deg);
+    border-top: 1px solid #666;
+    border-left: 1px solid #666;
+    background-color: #aaa;
+    border-radius: 2px;
+}
+.btn-plate::after{
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    bottom: -22.52px;
+    width: 43.30px;
+    height: 43.30px;
+    z-index: 5;
+    transform: rotateZ(45deg);
+    border-bottom: 1px solid #666;
+    border-right: 1px solid #666;
+    background-color: #aaa;
+    border-radius: 2px;
+}
+.plate-lv-1,
+.plate-lv-1::before,
+.plate-lv-1::after{
+    background-color: #3DC946;
+}
+.plate-lv-2,
+.plate-lv-2::before,
+.plate-lv-2::after{
+    background-color: #3D46C9;
+}
+.plate-lv-3,
+.plate-lv-3::before,
+.plate-lv-3::after{
+    background-color: #F1E95C;
+}
+.plate-lv-4,
+.plate-lv-4::before,
+.plate-lv-4::after{
+    background-color: #C93F46;
+}
+.sel-plate,
+.sel-plate::before,
+.sel-plate::after{
+    border-color: #e81313;
+    border-radius: 2px;
+    background-color: #f8a3a3;
+}
+.plate-on,
+.plate-on::before,
+.plate-on::after{
+    background-color: #ADD8E6;
+}
+
+/* 角色面板 */
+.role-panel{
+    position: absolute;
+    top: 10px;
+    left: 1200px;
+    width: 500px;
+    color: #fff;
+}
+.role{
+    display: inline-block;
+    width: calc( 50% - 4px );
+    height: 288px;
+    margin-bottom: 2px;
+    text-align: left;
+    padding: 0 4px;
+    margin-right: 2px;
+}
+.role input{
+    width: 41px;
+    height: 16px;
+    line-height: 16px;
+    text-align: right;
+    -webkit-appearance: none;
+    border: none;
+    border-bottom: 1px solid #131313;
+    background-color: transparent;
+    padding: 0 2px;
+    color: #fff;
+    font-weight: bold;
+    text-indent: 4px;
+}
+.role textarea{
+    -webkit-user-select: auto;
+    outline: none;
+    width: 100%;
+    padding: 3px;
+    height: 70px;
+    overflow-y: scroll;
+    background-color: rgba(213,213,213,.67);
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+.role .name{
+    height: 20px;
+    line-height: 20px;
+    border-bottom: 1px solid #fff;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+.role .talents{
+    height: 42px;
+    line-height: 20px;
+    background-color: rgba(150,150,150,.67);
+    border-radius: 6px;
+    border: 1px solid #a7ce94;
+}
+.role .row{
+    min-height: 20px;
+    line-height: 20px;
+    text-align: left;
+    font-size: 14px;
+}
+.role .weapon-1,
+.role .weapon-2{
+    display: inline-block;
+    width: calc( 50% - 4px );
+    margin-right: 2px;
+}
+.role .btn{
+    display: inline-block;
+    border-radius: 2px;
+    height: 18px;
+    line-height: 18px;
+    padding: 0 4px;
+    border: 1px solid #fff;
+}
+
+/* 棋子 */
+.btn-role-flag{
+    position: absolute;
+    width: 20px;
+    height: 40px;
+    line-height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+    border-radius: 25%;
+    border: 1px solid #000;
+    z-index: 250;
+    transition: all .3s;
+    box-shadow: 6px 4px 4px #232323;
+}
+.sel-flag{
+    border: 2px solid #fff;
+    color: #fff;
+    animation: flash2 linear .3s infinite alternate;
+}
+@keyframes flash2 {
+    to{
+        opacity: .7;
+    }
+}
+
+/* stock pop */
+.stock-pop{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 500;
+}
+.stock-pop .shadow-cover{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,.7);
+    z-index: 1;
+}
+.stock-pop .pop-main{
+    position: absolute;
+    top: 20%;
+    right: 0;
+    left: 0;
+    width: 600px;
+    height: auto;
+    margin: 0 auto;
+    background-color: #aaa;
+    z-index: 2;
+    padding: 12px 18px;
+}
+.stock-pop .pop-main .stock-weapon{
+    display: block;
+    background-color: #fff;
+    min-height: 100px;
+    line-height: 25px;
+    font-size: 16px;
+    text-align: left;
+    margin-bottom: 4px;
+    padding: 0 8px;
+    border: 1px solid #666;
+}
+.stock-pop .pop-main .stock-weapon .btn{
+    display: inline-block;
+    width: 50px;
+    height: 25px;
+    line-height: 25px;
+    background-color: orangeRed;
+    border: 1px solid #333;
+    color: #fff;
+    font-size: 12px;
+}
