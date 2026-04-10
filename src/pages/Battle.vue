@@ -2,79 +2,59 @@
     <div class="main" v-if="game">
         <!--作弊-->
         <nut-drag direction="y" :style="{right:'0px',top:'75px',zIndex:'200'}" v-if="DEBUG">
-            <a class="touch-dom" @click="onTapCheat">CHT</a>
+            <a class="touch-dom" @click="onTapCheat">cheat</a>
         </nut-drag>
         <!--页面内容-->
         <div class="panel">
-            <div class="body" v-if="state!=0">
-                <!-- 阅读板块 -->
-                <div class="role-list-container">
-                    <div class="title">回合 {{round}}</div>
-                    <div class="team-pan">
-                        <BattleRole v-for="role in enemyTeam" v-bind:key="role.id" :role="role" />
+            <div class="body" v-if="pageState!=0">
+                <!-- 战场 -->
+                <div class="battle-field">
+                    <!-- 敌方区域 -->
+                    <div class="team-pan team-pan-top">
+                        <Unit v-for="unit in enemyTeam" v-bind:key="unit.id" :unit="unit" :onTap="onTapUnit" />
                     </div>
-                    <div class="board-container" v-if="state>1">
+                    <!-- 公示信息区域 -->
+                    <div class="board-container" v-if="pageState>1">
                         <div class="board-row">
-                            <div class="board-t-2" v-if="curMoveRoles.length>0">本回合行动者（{{curMoveRoles.length}}→{{nextMoveCount}}）:
-                                <span class="board-t-2-1" v-for="(role,index) in curMoveRoles" v-if="curMoveRoles[curMoveRoleIndex]">
-                                    <span class="board-t-2-1-name" :class="`${curMoveRoles[curMoveRoleIndex].id==role.id?'cur-move':''}`">{{role.name}}</span>
-                                    <span v-if="index<curMoveRoles.length-1">→</span>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="board-row">
-                            <div class="board-t-5">{{tip}}</div>
                         </div>
                     </div>
-                    <div class="team-pan">
-                        <BattleRole v-for="role in playerTeam" v-bind:key="role.id" :role="role" />
+                    <!-- 我方区域 -->
+                    <div class="team-pan team-pan-bottom">
+                        <Unit v-for="unit in playerTeam" v-bind:key="unit.id" :unit="unit" :onTap="onTapUnit" />
                     </div>
                 </div>
                 <!-- 操作板块 -->
-                <div class="option-container" v-if="fob==0">
-                    <div class="option-menu-1" v-if="menuState==1">
+                <div class="option-container">
+                    <div class="option-menu" v-if="menuState==1">
                         <a class="btn" @click="onTapAction(1)">攻击</a>
-                        <a class="btn" @click="onTapAction(2)">恢复</a>
-                        <a class="btn" @click="onTapAction(3)">加权</a>
-                        <a class="btn" @click="onTapAction(4)">回气</a>
+                        <a class="btn" @click="onTapAction(2)">技能</a>
                         <br/>
-                        <a class="btn" @click="onTapAction(5)">力量强化</a>
-                        <a class="btn" @click="onTapAction(6)">治愈强化</a>
-                        <a class="btn" @click="onTapAction(7)">防御强化</a>
+                        <a class="btn" @click="onTapAction(3)">防御</a>
+                        <a class="btn" @click="onTapAction(4)">躲避</a>
+                        <a class="btn" @click="onTapAction(5)">休整</a>
                         <br/>
-                        <a class="btn" @click="onTapCastMenu">施放技能</a>
-                        <br/>
+                        <a class="btn" @click="onTapAction(6)">话术</a>
+                        <a class="btn" @click="onTapAction(7)">追踪</a>
                         <a class="btn" @click="onTapAction(8)">撤离</a>
-                        <a class="btn" @click="onTapAction(9)">攻心</a>
-                        <a class="btn" @click="onTapAction(10)">置后</a>
-                    </div>
-                    <div class="option-menu-2" v-if="menuState==2">
-                        <a class="btn" @click="onTapCastMenuBack">←</a>
-                        <div class="option-menu-skills" v-if="curMoveRoles[curMoveRoleIndex].skills.length<=0">
-                            无可用技能
-                        </div>
-                        <div class="option-menu-skills" v-else>
-                            <a class="btn" :class="`${curMoveRoles[curMoveRoleIndex].vig<=0?'btn-ban':''}`" v-for="skill in curMoveRoles[curMoveRoleIndex].skills" @click="onTapSkill(skill)">
-                                <span class="skill-name">{{skill.name}}</span>
-                                <span class="skill-desc">{{skill.desc}}</span>
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <a class="panel-shadow" v-if="fob==1" @click="onTapShadow">
+        <!-- <a class="panel-shadow" v-if="showOperation==1" @click="onTapShadow">
             <div class="panel-shadow-tip">
                 {{tip}}
             </div>
-        </a>
+        </a> -->
+        <Toast ref="toast" />
     </div>
 </template>
 
 <script>
-import BattleRole from '../components/BattleRole';
+import Unit from '../components/Unit';
 import List from '../components/List';
-import Bar from '../components/Bar';
+import Bar1 from '../components/Bar1';
+import Bar2 from '../components/Bar2';
+import Toast from '../components/Toast';
 import { query, r, exptr, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, removeFromList, arrContains, } from '../tools/utils';
 import { DEBUG, CONFIG, CACHE, } from '../config/config';
 
@@ -86,147 +66,228 @@ window.GLOBAL = {
             mapId: 1,
             cellId: 2,
         },
-        playerTeamIds: [1,2,],
-        enemyTeamIds: [3,4,],
+        playerTeamIds: [1,2,3,4,5,],
+        enemyTeamIds: [11,12,],
     },
-    allRoles: [{ // 全部角色
+    allUnits: [{ // 全部角色
         id: 1,
-        name: '赵日天',
-        gender: 1,
-        age: 18,
-        level: 1,
-        exp: 0,
-        stylies: [15,28,77,4,14,], // 人格 [勇猛,敏感,野心,理智,道德]
-        teamSeq: 1,
-        attrs: [5,1,2,3, 0,1,0, 3,50,4], // 基础属性 [0生命力,1攻击力,2护甲,3权重,4治愈,5力量,6防御,7体力,8精力,9智力]
-        skillIds: [],
-        equipIds: [1,2,0,], // [身体，手，装饰]
+        nm: '赵日天', // 名字
+        gd: 1, // 性别
+        age: 18, // 年龄
+        lvl: 1, // 等级
+        exp: 0, // 经验值
+        sty: [15,28,77,4,14,], // 性格[勇猛,敏感,野心,理智,道德]
+        tms: 1, // 队伍编号
+        as: [50,35,2,0, 20,14,16,17,25,10,], // 属性表 [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽]
+        ss: [], // 技能表
+        es: [1,4,0,0,5,0,0], // 装备表 [0手一,1手二,2配饰一,3配饰二,4身体,5头,6脚]
     },{
         id: 2,
-        name: '孙晓瑶',
-        gender: 2,
+        nm: '孙晓瑶大西瓜',
+        gd: 2,
         age: 16,
-        level: 2,
+        lvl: 2,
         exp: 0,
-        stylies: [44,2,89,67,0,],
-        teamSeq: 1,
-        attrs: [4,1,1,4, 1,1,0, 2,45,7],
-        skillIds: [1,],
-        equipIds: [0,0,4,],
+        sty: [44,2,89,67,0,],
+        tms: 2,
+        as: [45449,40,113,-220, 18,25,23,24,22,29,],
+        ss: [1,],
+        es: [0,0,2,0,3,0,0],
     },{
-        id: 3,
-        name: '路人甲',
-        gender: 1,
+        id: 11,
+        nm: '路人甲',
+        gd: 1,
         age: 35,
-        level: 1,
+        lvl: 1,
         exp: 0,
-        stylies: [50,2,4,7,9,],
-        teamSeq: 0,
-        attrs: [3,1,0,2, 0,0,0, 3,25,3],
-        skillIds: [],
-        equipIds: [0,0,0,],
+        sty: [50,2,4,7,9,],
+        tms: 0,
+        as: [30,22,2,0, 20,4,13,9,12,5,],
+        ss: [],
+        es: [0,0,0,0,0,0,0],
     },{
-        id: 4,
-        name: '路人乙',
-        gender: 1,
+        id: 12,
+        nm: '路人乙',
+        gd: 1,
         age: 40,
-        level: 1,
+        lvl: 1,
         exp: 0,
-        stylies: [15,16,8,19,33,],
-        teamSeq: 0,
-        attrs: [3,1,0,3, 0,0,0, 2,22,4],
-        skillIds: [],
-        equipIds: [0,0,0,],
+        sty: [15,16,8,19,33,],
+        tms: 0,
+        as: [25,25,1,0, 12,15,11,10,14,8,],
+        ss: [],
+        es: [4,0,0,0,0,0,0],
     },],
     allEquips: [{ // 全部装备
     	id: 1,
-    	level: 1,
-    	type: 1, // [1:身体|2:手|3:配饰]
-    	attrs: [[0,3],[2,2],], // 装备属性 [[属性下标,属性调整值]]
+        n: '龙虾刀',
+    	t: 1, //  [1手,2配饰,3身体,4头,5脚]
+    	a: [[4,20],[5,8],], // 装备属性 [[属性下标,属性调整值]] [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽]
     },{
     	id: 2,
-    	level: 1,
-    	type: 2, // [1:身体|2:手|3:配饰]
-    	attrs: [[1,1],[3,1],], // 装备属性 [[属性下标,属性调整值]]
+        n: '蝴蝶结',
+    	t: 2,
+    	a: [[1,5],[6,5],[7,10],[8,3],],
     },{
     	id: 3,
-    	level: 1,
-    	type: 3, // [1:身体|2:手|3:配饰]
-    	attrs: [[4,1],[9,2],], // 装备属性 [[属性下标,属性调整值]]
+        n: '夜行衣',
+    	t: 3,
+    	a: [[3,2],],
+    },{
+    	id: 4,
+        n: '铜铁铜铁铜铁锤',
+    	t: 1,
+    	a: [[4,8],],
+    },{
+    	id: 5,
+        n: '锁子甲',
+    	t: 3,
+    	a: [[3,4],],
     },],
     allSkills: [{ // 全部技能
         	id: 1,
-        	level: 1,
-        	name: '治疗术',
-        	type: [7,3,],// 技能类型
-        	buffId: [1,2,], // 添加的状态ID
-            buffLevels: [1,1,],
-        	consume: 4, // 体力消耗
-            desc: '治疗，获得1级急救和1级抵挡。',
+        	n: '治疗术',
+        	t: [7,3,],// 技能类型
+        	bid: [1,2,], // 添加的状态ID
+            bls: [1,1,], // 状态等级
+        	csm: 4, // 体力消耗
+            des: '治疗，获得1级急救和1级抵挡。',
     },],
 }
 
-// 十进制转十一进制
-function d211(num){
-    if(num === 0) return '0';
-    const digits = '0123456789A';
-    let result = '';
-    let n = num;
-    while(n > 0){
-        const remainder = n%11;
-        result = digits[remainder]+result;
-        n = Math.floor(n/11);
-    }
-    return result;
-}
-// 十一进制转十进制
-function _11td(str){
-    const digits = '0123456789A';
-    str = str.toUpperCase();
-    let result = 0;
-    for(let i=0;i<str.length;i++){
-        const char = str[i];
-        const value = digits.indexOf(char);
-        if(value==-1){
-            throw new Error(`无效的十一进制数字: ${char}`);
-        }
-        result = result*11+value;
-    }
-    return result;
-}
+// TODO
+window.GLOBAL.allUnits.push({ // 全部角色
+    id: 3,
+    nm: '赵日地', // 名字
+    gd: 1, // 性别
+    age: 18, // 年龄
+    lvl: 1, // 等级
+    exp: 0, // 经验值
+    sty: [15,28,77,4,14,], // 性格[勇猛,敏感,野心,理智,道德]
+    tms: 1, // 队伍编号
+    as: [50,35,2,0, 20,14,16,17,25,39,], // 属性表 [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽]
+    ss: [], // 技能表
+    es: [0,0,0,0,5,0,0], // 装备表 [0手一,1手二,2配饰一,3配饰二,4身体,5头,6脚]
+});
+window.GLOBAL.allUnits.push({ // 全部角色
+    id: 5,
+    nm: '赵日水', // 名字
+    gd: 1, // 性别
+    age: 18, // 年龄
+    lvl: 1, // 等级
+    exp: 0, // 经验值
+    sty: [15,28,77,4,14,], // 性格[勇猛,敏感,野心,理智,道德]
+    tms: 1, // 队伍编号
+    as: [50,35,2,-23, 20,14,16,17,25,86,],
+    ss: [], // 技能表
+    es: [4,0,0,0,5,0,0],
+});
 
-// 使用示例
-// console.log('十进制转十一进制：');
-// console.log('175489 ->', d211(175489));
-// console.log('10 ->', d211(10));         // 输出 A
-// console.log('11 ->', d211(11));         // 输出 10
-// console.log('12 ->', d211(12));         // 输出 11
+
+// // 十进制转十一进制
+// function d211(num){
+//     if(num === 0) return '0';
+//     const digits = '0123456789A';
+//     let result = '';
+//     let n = num;
+//     while(n > 0){
+//         const remainder = n%11;
+//         result = digits[remainder]+result;
+//         n = Math.floor(n/11);
+//     }
+//     return result;
+// }
+// // 十一进制转十进制
+// function _11td(str){
+//     const digits = '0123456789A';
+//     str = str.toUpperCase();
+//     let result = 0;
+//     for(let i=0;i<str.length;i++){
+//         const char = str[i];
+//         const value = digits.indexOf(char);
+//         if(value==-1){
+//             throw new Error(`无效的十一进制数字: ${char}`);
+//         }
+//         result = result*11+value;
+//     }
+//     return result;
+// }
 //
-// console.log('\n十一进制转十进制：');
-// console.log('10A936 ->', _11td('10A936'));
-// console.log('A ->', _11td('A'));           // 输出 10
-// console.log('10 ->', _11td('10'));         // 输出 11
-// console.log('11 ->', _11td('11'));         // 输出 12
-
+// // 使用示例
+// let d10 = `163842`, d11 = `10A476`;
+// // console.log(`${d10} ->`, d211(d10));
+// // console.log(`${d11} ->`, _11td(d11));
+// let isDup = str =>{
+//     for(let i=0;i<str.length;i++){
+//         let s = str[i];
+//         for(let j=0;j<str.length;j++){
+//             if(j!=i&&s==str[j]){
+//                 return true;
+//             }
+//         }
+//     }
+//     return false;
+// }
+// const RIDX1 = [0,1,2,3,4,], RIDX2 = [0,1,2,4,5];
+// let comp = str =>{
+//     let str11 = d211(str)+'';
+//     // console.log(str,str11);
+//     // console.log(str[5],str11[3]);
+//     if((str11.length==6)&&(str[5]==str11[3])){
+//         let remains = '';
+//         for(let i=0;i<RIDX1.length;i++){
+//             remains += str[RIDX1[i]];
+//         }
+//         for(let i=0;i<RIDX2.length;i++){
+//             remains += str11[RIDX2[i]];
+//         }
+//         // console.log(remains);
+//         if(str11[2]!='A'){
+//             return false;
+//         }
+//         else if(isDup(str11)){
+//             return false;
+//         }
+//         else if(isDup(remains)){
+//             return false;
+//         }
+//         else{
+//             return str11;
+//         }
+//     }
+//     else{
+//         return false;
+//     }
+// }
+// // let res = [];
+// // for(let i=163456;i<999999;i++){
+// //     let p1 = i+'';
+// //     if(!isDup(p1)){ // 不包含重复字符
+// //         let cp = comp(p1);
+// //         if(cp){
+// //             res.push(p1);
+// //         }
+// //     }
+// // }
+// // console.log(res);
+// // console.log(comp(`438091`));
+// // let stock = [`平民`,`平民`,`平民`,`平民`,`狼人`,`狼人`,`狼人`,`机械狼`,`通灵师`,`女巫`,`守卫`,`猎人`,];
+// // let unit = stock[r(0,stock.length-1)];
+// // console.log(unit);
 
 export default {
     name: 'Home',
     data(){
         return {
             loading: false,
-            state: 0, // 页面状态【0:读取数据中|1：战斗准备完成|2：回合开始|3：角色回合结束|4：玩家选择行动|5：玩家选择目标角色|6：回合结束|7：战斗结束】
-            menuState: 1, // 操作菜单级别
-            fob: 1, // 页面可操纵状态
+            pageState: 1, // 页面状态【0:读取数据中|1：战斗准备完成|2：回合开始|3：角色回合结束|4：玩家选择行动|5：玩家选择目标角色|6：回合结束|7：战斗结束】
+            menuState: 1, // 操作面板出现状态【0:不显示|1：显示基础选项|2：显示攻击选项|3：显示技能选项】
             tip: '', // 公示文字
 
             game: null,
 
-            round: 1, //回合数
             playerTeam:[],
             enemyTeam:[],
-            nextMoveCount: 0, // 下回合行动人数
-            curMoveRoles: [], // 本回合可以行动的角色数组
-            curMoveRoleIndex: 0, // 当前正在行动的角色下标
 
             CONFIG,
             DEBUG,
@@ -335,159 +396,132 @@ export default {
         init(){ // 初始化全部
             let { playerTeamIds, enemyTeamIds, } = this.game.battle;
             let playerTeam = [], enemyTeam = [];
-            let roleAction = (ids,team) => {
-                for(let roleId of ids){
-                    let role = getMatchList(this.game.allRoles,[['id',roleId]])[0];
-                    if(role){
-                        team.push(this.initRole(role));
+            let unitAction = (ids,team) => {
+                for(let unitId of ids){
+                    let unit = getMatchList(this.game.allUnits,[['id',unitId]])[0];
+                    if(unit){
+                        team.push(this.initUnit(unit));
                     }
                 }
                 return team;
             };
-            this.playerTeam = roleAction(playerTeamIds,playerTeam);
-            this.enemyTeam = roleAction(enemyTeamIds,enemyTeam);
-            this.$nextTick(_=>{
-                this.state = 1;
-            });
+
+            this.playerTeam = unitAction(playerTeamIds,playerTeam);
+            this.enemyTeam = unitAction(enemyTeamIds,enemyTeam);
         },
-        initRole(role){ // 初始化角色数据
-            let equips = [],skills = [];
-            for(let equipId of role.equipIds){
+        initUnit(unit){ // 初始化单位数据
+            let res = {};
+            let equips = [], weapons = [], skills = [], btd = {};
+            for(let equipId of unit.es){
                 let equip = getMatchList(this.game.allEquips,[['id',equipId]])[0];
                 if(equip){
-                    equips.push(equip);
+                    equips.push(cloneObj(equip));
+                    if(equip.t==1){
+                        weapons.push(cloneObj(equip));
+                    }
                 }
             }
-            for(let skillId of role.skillIds){
+            for(let skillId of unit.ss){
                 let skill = getMatchList(this.game.allSkills,[['id',skillId]])[0];
                 if(skill){
-                    skills.push(skill);
+                    skills.push(cloneObj(skill));
                 }
             }
-            let res = cloneObj(role);
-            let tempAttrs = res.attrs;
+            res = cloneObj(unit);
             for(let equip of equips){
-                let eattrs = equip.attrs||[];
+                let eattrs = equip.a||[];
                 for(let attr of eattrs){
-                    tempAttrs[attr[0]] += attr[1];
+                    res.as[attr[0]] += attr[1];
                 }
             }
-            res.hp = tempAttrs[0]; // 生命力
-            res.atk = tempAttrs[1]; // 攻击力
-            res.def = tempAttrs[2]; // 护甲
-            res.maxDef = res.def; // 最大护甲
-            res.weight = tempAttrs[3]; // 权重
-            res.heal = tempAttrs[4]; // 治愈
-            res.str = tempAttrs[5]; // 力量
-            res.dex = tempAttrs[6]; // 防御
-            res.vig = tempAttrs[7]; // 气力
-            res.tvig = tempAttrs[8]; // 精力（总体力）
-            res.int = tempAttrs[9]; // 智力
-            res.buffs = [];
-            res.skills = skills;
-            res.mentalDef = res.int*10; // 心理防御
-            res.move = 0; // 本回合行动者
-            res.alive = 1; // 存活
-            if(res.teamSeq>0){
-                res.isPlayer = 1; // 可操控角色
+            let tas = res.as; // [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力]
+            btd.name = unit.nm;
+            btd.hp = [tas[0],tas[0],]; // 血
+            btd.def = [tas[3],tas[3],], // 护甲
+            btd.eng = [tas[1],tas[1],], // 精力
+            btd.phy = [tas[2],tas[2],], // 体力
+            btd.dge = 10000-tas[9]*25; // 隐蔽
+            btd.move = 0; // 行动
+            btd.mdef = tas[8]*25; // 心理防御
+            btd.alive = 1; // 存活
+            btd.buffs = [];
+            for(let i=0;i<weapons.length;i++){
+                if(weapons[i]){
+                    if(i==0){
+                        btd.weapon1 = weapons[i].n;
+                    }
+                    else if(i==1){
+                        btd.weapon2 = weapons[i].n;
+                    }
+                }
+            }
+            if(btd.teamSeq>0){
+                btd.isPlayer = 1; // 可操控角色
+            }
+            res.btd = btd;
+            // @TODO
+            if(res.id==2){
+                res.btd.selected = 1;
+            }
+            if(res.id==3||res.id==11){
+                res.btd.alive = 0;
+            }
+            let bufflen = r(0,3);
+            for(let i=0;i<bufflen;i++){
+                let buff;
+                if(r(0,1)){
+                    buff = {
+                        id: i+1,
+            			name: '急救',
+            			desc: '每回合恢复生命力',
+            			level: r(1,3),
+                        good: 1,
+            			trendVals: [20,0,0,0],
+                    }
+                }
+                else{
+                    buff = {
+                        id: i+100,
+                        name: '破绽',
+        				desc: '受到的伤害增加',
+                        level: r(1,3),
+                        good: 0,
+            			trendVals: [0,0,20,0],
+                    }
+                }
+                btd.buffs.push(buff);
             }
             return res;
         },
-        showTip(text){ // 显示提示
-            console.log(text);
-            this.tip = text;
-        },
-        nextStep(){ // 下一步
-            let setMoveRoles = count =>{ // 随机挑选行动者数组
-                let roles = [...this.playerTeam,...this.enemyTeam];
-                let aliveRoles = [...getMatchList(this.playerTeam,[['alive',1]]),...getMatchList(this.enemyTeam,[['alive',1]])];
-                let weights = [],shuffledWeights = [],distinctWeights = [];
-                let moveRoles = [];
-                for(let role of roles){
-                    role.move = 0;
-                }
-                for(let role of roles){
-                    for(let i=0;i<role.weight;i++){
-                        weights.push(role.id);
-                    }
-                }
-                shuffledWeights = shuffle(weights);
-                // 去同
-                for(let w of shuffledWeights){
-                    if(arrContains(distinctWeights,w)==-1){
-                        distinctWeights.push(w);
-                    }
-                }
-                for(let i=0;i<count;i++){
-                    let role = getMatchList(roles,[['id',distinctWeights[i]]])[0];
-                    if(role){
-                        moveRoles.push(role);
-                    }
-                }
-                for(let i=0;i<count;i++){
-                    moveRoles[i].move = i+1;
-                }
-                this.curMoveRoles = moveRoles;
-            }
-            if(this.state==1){ // 战斗准备完成
-                let aliveRoles = [...getMatchList(this.playerTeam,[['alive',1]]),...getMatchList(this.enemyTeam,[['alive',1]])];
-                let aliveCount = aliveRoles.length;
-                this.round = 1;
-                this.nextMoveCount = r(1,aliveCount);
-                setMoveRoles(aliveCount);
-                this.curMoveRoleIndex = 0;
-                this.$nextTick(_=>{
-                    this.state = 2;
-                })
-            }
-            else if(this.state==2){ // 回合开始
-                this.showTip(`第 ${this.round} 回合开始`);
-                this.state = 3;
-            }
-            else if(this.state==3){ // 角色回合开始 @TODO
-                let curMoveRole = this.curMoveRoles[this.curMoveRoleIndex];
-                if(curMoveRole){
-                    if(curMoveRole.isPlayer){ // 可操控角色
-                        this.fob = 0;
-                    }
-                    else{ // 人机
-                        this.state = 4;
-                    }
-                    this.showTip(`轮到 ${curMoveRole.name} 行动`);
-                }
-                else{
-                    console.error(curMoveRole,`不存在`);
-                }
-            }
-            else if(this.state==4){ // 角色回合结束
-                let curMoveRole = this.curMoveRoles[this.curMoveRoleIndex];
-                this.curMoveRoleIndex += 1;
-                let nextMoveRole = this.curMoveRoles[this.curMoveRoleIndex];
-                if(nextMoveRole){
-                    this.showTip(`${curMoveRole.name} 的回合结束了`);
-                    this.state = 3;
-                }
-                else{
-                    this.showTip(`${curMoveRole.name} 的回合结束了，本回合结束`);
-                    this.state = 6;
-                }
-            }
-            else if(this.state==6){ // 回合结束
-                let aliveRoles = [...getMatchList(this.playerTeam,[['alive',1]]),...getMatchList(this.enemyTeam,[['alive',1]])];
-                this.round += 1;
-                setMoveRoles(this.nextMoveCount);
-                this.nextMoveCount = r(1,aliveRoles.length);
-                this.curMoveRoleIndex = 0;
-                this.showTip(``);
-                this.$nextTick(_=>{
-                    this.state = 2;
-                })
-            }
-            else if(this.state==7){ // 战斗结束
-                this.showTip(`战斗结束了`);
-            }
+        _alert(text){ // 显示提示
+            this.$refs.toast.trigger(text);
         },
 
+        onTapUnit(data,evt){ // 点击【单位图标】
+            let { flag, unit, buff, } = data;
+            let btd = unit.btd;
+            evt.stopPropagation();
+            evt.preventDefault();
+            if(flag==1){ // 点击单位
+                this._alert(`${btd.name}`);
+            }
+            else if(flag==2){ // 点击buff
+                this._alert(`${buff.name}（等级${buff.level}）`);
+            }
+            else if(flag==101){ // 点击血条
+                this._alert(`生命力: ${btd.hp[0]} / ${btd.hp[1]}`);
+            }
+            else if(flag==102){ // 点击精条
+                this._alert(`精力: ${btd.eng[0]} / ${btd.eng[1]}`);
+            }
+            else if(flag==103){ // 点击行动条
+                this._alert(`行动进度: ${Math.round(btd.move/100)} %`);
+            }
+            else if(flag==104){ // 点击隐蔽条
+                this._alert(`躲避率： ${Math.round(btd.dge/100)} %`);
+            }
+            return false;
+        },
         onTapCastMenu(){ // 点击【施放技能】
             this.menuState = 2;
         },
@@ -495,7 +529,7 @@ export default {
             this.menuState = 1;
         },
         onTapSkill(skill){ // 点击【技能】
-            if(this.curMoveRole.vig<=0){
+            if(this.curMoveUnit.vig<=0){
                 return;
             }
         },
@@ -504,38 +538,32 @@ export default {
         },
         onTapAction(flag){ // 点击【执行操作】
             let nextStep = _ =>{
-                this.fob = 1;
-                this.state = 4;
-                this.nextStep();
+                this.menuState = 0;
+                this.pageState = 1;
+                // this.nextStep();
             }
             if(flag==1){ // 攻击
-
-            }
-            else if(flag==2){ // 恢复
                 nextStep();
             }
-            else if(flag==3){ // 加权
+            else if(flag==2){ // 技能
                 nextStep();
             }
-            else if(flag==4){ // 回气
+            else if(flag==3){ // 防御
                 nextStep();
             }
-            else if(flag==5){ // 力量强化
+            else if(flag==4){ // 躲避
                 nextStep();
             }
-            else if(flag==6){ // 治愈强化
+            else if(flag==5){ // 恢复
                 nextStep();
             }
-            else if(flag==7){ // 防御强化
+            else if(flag==6){ // 话术
+                nextStep();
+            }
+            else if(flag==7){ // 追踪
                 nextStep();
             }
             else if(flag==8){ // 撤离
-                nextStep();
-            }
-            else if(flag==9){ // 攻心
-
-            }
-            else if(flag==10){ // 置后
                 nextStep();
             }
         },
@@ -544,9 +572,11 @@ export default {
         },
     },
     components:{
-        BattleRole,
+        Toast,
+        Unit,
         List,
-        Bar,
+        Bar1,
+        Bar2,
     },
 }
 </script>
@@ -554,11 +584,13 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
     .main{
+        position: relative;
         text-align: center;
         width: 100%;
         height: 100%;
         color: #4a4a4a;
         font-size: .24rem;
+        line-height: 0;
     }
     .orange{
         color: #ff4f18;
@@ -600,8 +632,30 @@ export default {
         line-height: .25rem;
         font-size: .32rem;
     }
+
+    /* 战场 */
+    .battle-field{
+        width: 100%;
+        height: 9rem;
+        background-color: #131313;
+    }
     .team-pan{
+        position: absolute;
+        left: 0;
+        right: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        flex-wrap: nowrap;
         height: 4rem;
+        /* box-shadow: 0 0 .1rem #fff inset; */
+    }
+    .team-pan-top{
+        top: .05rem;
+    }
+    .team-pan-bottom{
+        top: 5rem;
     }
 
     /*board*/

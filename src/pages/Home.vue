@@ -62,7 +62,7 @@
 
 <script>
 import List from '../components/List';
-import Bar from '../components/Bar';
+import Bar1 from '../components/Bar1';
 import { query, r, exptr, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, removeFromList, } from '../tools/utils';
 import { DEBUG, CONFIG, CACHE, } from '../config/config';
 export default {
@@ -265,7 +265,7 @@ export default {
     },
     components:{
         List,
-        Bar,
+        Bar1,
     },
 }
 </script>
