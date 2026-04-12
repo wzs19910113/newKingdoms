@@ -2,7 +2,7 @@
     <div class="main" v-if="game">
         <!--作弊-->
         <nut-drag direction="y" :style="{right:'0px',top:'75px',zIndex:'200'}" v-if="DEBUG">
-            <a class="touch-dom" @click="onTapCheat">cheat</a>
+            <a class="btn touch-dom" @click="onTapCheat">cheat</a>
         </nut-drag>
         <!--页面内容-->
         <div class="panel">
@@ -11,278 +11,101 @@
                 <div class="battle-field">
                     <!-- 敌方区域 -->
                     <div class="team-pan team-pan-top">
-                        <Unit v-for="unit in enemyTeam" v-bind:key="unit.id" :unit="unit" :onTap="onTapUnit" />
+                        <Unit2 v-for="unit in enemyTeam" v-bind:key="unit.id" :unit="unit" :onTap="onTapUnit" />
                     </div>
                     <!-- 公示信息区域 -->
-                    <div class="board-container" v-if="pageState>1">
-                        <div class="board-row">
-                        </div>
+                    <div class="board-container">
+                        <div class="board-row" v-if="boardTip">{{boardTip}}</div>
+                        <a class="btn btn-start" v-if="pageState==1" @click="onTapStartBattle">开 始 战 斗</a>
                     </div>
                     <!-- 我方区域 -->
                     <div class="team-pan team-pan-bottom">
-                        <Unit v-for="unit in playerTeam" v-bind:key="unit.id" :unit="unit" :onTap="onTapUnit" />
+                        <Unit2 v-for="unit in playerTeam" v-bind:key="unit.id" :unit="unit" :onTap="onTapUnit" />
                     </div>
                 </div>
                 <!-- 操作板块 -->
-                <div class="option-container">
-                    <div class="option-menu" v-if="menuState==1">
-                        <a class="btn" @click="onTapAction(1)">攻击</a>
-                        <a class="btn" @click="onTapAction(2)">技能</a>
-                        <br/>
-                        <a class="btn" @click="onTapAction(3)">防御</a>
-                        <a class="btn" @click="onTapAction(4)">躲避</a>
-                        <a class="btn" @click="onTapAction(5)">休整</a>
-                        <br/>
-                        <a class="btn" @click="onTapAction(6)">话术</a>
-                        <a class="btn" @click="onTapAction(7)">追踪</a>
-                        <a class="btn" @click="onTapAction(8)">撤离</a>
+                <div class="menu-wrap" :class="`${menuExpand?'menu-wrap-expand':''}`" v-if="menuState>0">
+                    <a class="btn btn-help" @click="onTapMenuHelp">?</a>
+                    <a class="btn btn-expand" @click="onTapMenuExpand">{{menuExpand?`▽`:`△`}}</a>
+                    <div class="menu">
+                        <p class="menu-tip">{{menuTip}}</p>
+                        <div class="menu-tag" v-if="menuState==1">
+                            <a class="btn menu-block menu-btn menu-btn-1" @click="onTapMenu(1)">攻击</a>
+                            <a class="btn menu-block menu-btn menu-btn-2" @click="onTapMenu(2)">技能</a>
+                            <div class="menu-block menu-block-lg">
+                                <a class="btn" @click="onTapMenu(3)">防御️</a>
+                                <a class="btn" @click="onTapMenu(4)">躲避</a>
+                                <a class="btn" @click="onTapMenu(5)">追踪</a>
+                                <a class="btn" @click="onTapMenu(6)">呼吸</a>
+                                <a class="btn" @click="onTapMenu(7)">集气</a>
+                                <a class="btn" @click="onTapMenu(8)">爆气</a>
+                                <a class="btn" @click="onTapMenu(9)">劝降</a>
+                                <a class="btn" @click="onTapMenu(10)">撤离</a>
+                            </div>
+                        </div>
+                        <div class="menu-tag" v-if="menuState>1">
+                            <div class="menu-row"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- <a class="panel-shadow" v-if="showOperation==1" @click="onTapShadow">
-            <div class="panel-shadow-tip">
-                {{tip}}
+        <!-- 弹窗 -->
+        <Pop v-if="viewingUnit" title="角色面板" :onTap="onTapPop">
+            <div class="unit-info-pop">
+                <Unit1 :unit="viewingUnit" :mode="2" />
             </div>
-        </a> -->
+        </Pop>
+        <Pop v-if="showMenuGuide" title="战斗操作说明" :onTap="onTapPop">
+            <div class="guide-menu">
+                <p class="guide-menu-row" v-for="(item,index) in menuGuids">
+                    <label class="guide-name">{{item.name}}：</label><label class="guide-desc">{{item.desc}}。</label>
+                </p>
+            </div>
+        </Pop>
         <Toast ref="toast" />
     </div>
 </template>
 
 <script>
-import Unit from '../components/Unit';
-import List from '../components/List';
+import Unit1 from '../components/Unit1';
+import Unit2 from '../components/Unit2';
+import Equip from '../components/Equip';
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
+import Pop from '../components/Pop';
 import Toast from '../components/Toast';
-import { query, r, exptr, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, removeFromList, arrContains, } from '../tools/utils';
+import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
+import * as common from '../tools/common';
 import { DEBUG, CONFIG, CACHE, } from '../config/config';
-
-//@TODO
-window.GLOBAL = {
-    battle:{
-        mode: 1, // 战斗模式【1:普通|2：BOSS|3：切磋】
-        envirs: {
-            mapId: 1,
-            cellId: 2,
-        },
-        playerTeamIds: [1,2,3,4,5,],
-        enemyTeamIds: [11,12,],
-    },
-    allUnits: [{ // 全部角色
-        id: 1,
-        nm: '赵日天', // 名字
-        gd: 1, // 性别
-        age: 18, // 年龄
-        lvl: 1, // 等级
-        exp: 0, // 经验值
-        sty: [15,28,77,4,14,], // 性格[勇猛,敏感,野心,理智,道德]
-        tms: 1, // 队伍编号
-        as: [50,35,2,0, 20,14,16,17,25,10,], // 属性表 [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽]
-        ss: [], // 技能表
-        es: [1,4,0,0,5,0,0], // 装备表 [0手一,1手二,2配饰一,3配饰二,4身体,5头,6脚]
-    },{
-        id: 2,
-        nm: '孙晓瑶大西瓜',
-        gd: 2,
-        age: 16,
-        lvl: 2,
-        exp: 0,
-        sty: [44,2,89,67,0,],
-        tms: 2,
-        as: [45449,40,113,-220, 18,25,23,24,22,29,],
-        ss: [1,],
-        es: [0,0,2,0,3,0,0],
-    },{
-        id: 11,
-        nm: '路人甲',
-        gd: 1,
-        age: 35,
-        lvl: 1,
-        exp: 0,
-        sty: [50,2,4,7,9,],
-        tms: 0,
-        as: [30,22,2,0, 20,4,13,9,12,5,],
-        ss: [],
-        es: [0,0,0,0,0,0,0],
-    },{
-        id: 12,
-        nm: '路人乙',
-        gd: 1,
-        age: 40,
-        lvl: 1,
-        exp: 0,
-        sty: [15,16,8,19,33,],
-        tms: 0,
-        as: [25,25,1,0, 12,15,11,10,14,8,],
-        ss: [],
-        es: [4,0,0,0,0,0,0],
-    },],
-    allEquips: [{ // 全部装备
-    	id: 1,
-        n: '龙虾刀',
-    	t: 1, //  [1手,2配饰,3身体,4头,5脚]
-    	a: [[4,20],[5,8],], // 装备属性 [[属性下标,属性调整值]] [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽]
-    },{
-    	id: 2,
-        n: '蝴蝶结',
-    	t: 2,
-    	a: [[1,5],[6,5],[7,10],[8,3],],
-    },{
-    	id: 3,
-        n: '夜行衣',
-    	t: 3,
-    	a: [[3,2],],
-    },{
-    	id: 4,
-        n: '铜铁铜铁铜铁锤',
-    	t: 1,
-    	a: [[4,8],],
-    },{
-    	id: 5,
-        n: '锁子甲',
-    	t: 3,
-    	a: [[3,4],],
-    },],
-    allSkills: [{ // 全部技能
-        	id: 1,
-        	n: '治疗术',
-        	t: [7,3,],// 技能类型
-        	bid: [1,2,], // 添加的状态ID
-            bls: [1,1,], // 状态等级
-        	csm: 4, // 体力消耗
-            des: '治疗，获得1级急救和1级抵挡。',
-    },],
-}
-
-// TODO
-window.GLOBAL.allUnits.push({ // 全部角色
-    id: 3,
-    nm: '赵日地', // 名字
-    gd: 1, // 性别
-    age: 18, // 年龄
-    lvl: 1, // 等级
-    exp: 0, // 经验值
-    sty: [15,28,77,4,14,], // 性格[勇猛,敏感,野心,理智,道德]
-    tms: 1, // 队伍编号
-    as: [50,35,2,0, 20,14,16,17,25,39,], // 属性表 [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽]
-    ss: [], // 技能表
-    es: [0,0,0,0,5,0,0], // 装备表 [0手一,1手二,2配饰一,3配饰二,4身体,5头,6脚]
-});
-window.GLOBAL.allUnits.push({ // 全部角色
-    id: 5,
-    nm: '赵日水', // 名字
-    gd: 1, // 性别
-    age: 18, // 年龄
-    lvl: 1, // 等级
-    exp: 0, // 经验值
-    sty: [15,28,77,4,14,], // 性格[勇猛,敏感,野心,理智,道德]
-    tms: 1, // 队伍编号
-    as: [50,35,2,-23, 20,14,16,17,25,86,],
-    ss: [], // 技能表
-    es: [4,0,0,0,5,0,0],
-});
-
-
-// // 十进制转十一进制
-// function d211(num){
-//     if(num === 0) return '0';
-//     const digits = '0123456789A';
-//     let result = '';
-//     let n = num;
-//     while(n > 0){
-//         const remainder = n%11;
-//         result = digits[remainder]+result;
-//         n = Math.floor(n/11);
-//     }
-//     return result;
-// }
-// // 十一进制转十进制
-// function _11td(str){
-//     const digits = '0123456789A';
-//     str = str.toUpperCase();
-//     let result = 0;
-//     for(let i=0;i<str.length;i++){
-//         const char = str[i];
-//         const value = digits.indexOf(char);
-//         if(value==-1){
-//             throw new Error(`无效的十一进制数字: ${char}`);
-//         }
-//         result = result*11+value;
-//     }
-//     return result;
-// }
-//
-// // 使用示例
-// let d10 = `163842`, d11 = `10A476`;
-// // console.log(`${d10} ->`, d211(d10));
-// // console.log(`${d11} ->`, _11td(d11));
-// let isDup = str =>{
-//     for(let i=0;i<str.length;i++){
-//         let s = str[i];
-//         for(let j=0;j<str.length;j++){
-//             if(j!=i&&s==str[j]){
-//                 return true;
-//             }
-//         }
-//     }
-//     return false;
-// }
-// const RIDX1 = [0,1,2,3,4,], RIDX2 = [0,1,2,4,5];
-// let comp = str =>{
-//     let str11 = d211(str)+'';
-//     // console.log(str,str11);
-//     // console.log(str[5],str11[3]);
-//     if((str11.length==6)&&(str[5]==str11[3])){
-//         let remains = '';
-//         for(let i=0;i<RIDX1.length;i++){
-//             remains += str[RIDX1[i]];
-//         }
-//         for(let i=0;i<RIDX2.length;i++){
-//             remains += str11[RIDX2[i]];
-//         }
-//         // console.log(remains);
-//         if(str11[2]!='A'){
-//             return false;
-//         }
-//         else if(isDup(str11)){
-//             return false;
-//         }
-//         else if(isDup(remains)){
-//             return false;
-//         }
-//         else{
-//             return str11;
-//         }
-//     }
-//     else{
-//         return false;
-//     }
-// }
-// // let res = [];
-// // for(let i=163456;i<999999;i++){
-// //     let p1 = i+'';
-// //     if(!isDup(p1)){ // 不包含重复字符
-// //         let cp = comp(p1);
-// //         if(cp){
-// //             res.push(p1);
-// //         }
-// //     }
-// // }
-// // console.log(res);
-// // console.log(comp(`438091`));
-// // let stock = [`平民`,`平民`,`平民`,`平民`,`狼人`,`狼人`,`狼人`,`机械狼`,`通灵师`,`女巫`,`守卫`,`猎人`,];
-// // let unit = stock[r(0,stock.length-1)];
-// // console.log(unit);
 
 export default {
     name: 'Home',
     data(){
         return {
             loading: false,
-            pageState: 1, // 页面状态【0:读取数据中|1：战斗准备完成|2：回合开始|3：角色回合结束|4：玩家选择行动|5：玩家选择目标角色|6：回合结束|7：战斗结束】
-            menuState: 1, // 操作面板出现状态【0:不显示|1：显示基础选项|2：显示攻击选项|3：显示技能选项】
-            tip: '', // 公示文字
+            pageState: 0, // 页面状态【0:读取数据中|1：战斗准备完成|2：累积行动条|3：战斗-操作中|4：动画|5：buff编辑|99：离开】
+
+            menuState: 0, // 操作面板出现状态【0:不显示|1：基础选项|2：攻击选项|3：技能选项|4：选择单位|5：选择属性】
+            boardTip: '', // 战场公示文字
+            menuTip: '', // 菜单公示文字
+            menuExpand: 0, // 菜单展开标识
+
+            curUnits: [], // 本帧行动单位数组
+            curUnitsIndex: -1, // 本帧行动单位数组下标
+
+            viewingUnit: null, // 正在查看的单位
+
+            showMenuGuide: 0, // 显示操作菜单指导
+            menuGuids: [
+                {name:'防御',desc:'恢复防御力到满值'},
+                {name:'躲避',desc:'降低自己的存在感'},
+                {name:'追踪',desc:'提升敌方单位10%的存在感，该单位为存在感最高的敌人'},
+                {name:'呼吸',desc:'恢复体力到满值'},
+                {name:'集气',desc:'提升潜能'},
+                {name:'爆气',desc:'消耗自己全部潜能，选择自己的某项属性按百分比提升'},
+                {name:'劝降',desc:'降低敌人的心理防御，有概率让敌人脱离战斗并回到村落'},
+            ],
 
             game: null,
 
@@ -295,6 +118,45 @@ export default {
 
     },
     mounted(){
+        // TODO
+        let _nus = [];
+        _nus.push(common.genUnit({id:1,name:'赵日天',age:20,gender:1,level:5,tms:1,rel:100,game:this.game,}));
+        _nus.push(common.genUnit({id:2,gender:2,level:6,tms:2,rel:100,game:this.game,}));
+        _nus.push(common.genUnit({id:3,tms:3,level:7,rel:80,game:this.game,}));
+        _nus.push(common.genUnit({id:4,tms:4,level:8,rel:50,game:this.game,}));
+        _nus.push(common.genUnit({id:11,gender:1,level:1,game:this.game,}));
+        _nus.push(common.genUnit({id:12,gender:1,level:2,game:this.game,}));
+        _nus.push(common.genUnit({id:13,gender:1,level:3,game:this.game,}));
+        _nus.push(common.genUnit({id:14,gender:1,level:9,game:this.game,}));
+        window.GLOBAL = {};
+        window.GLOBAL.battle = {
+            mode: 1, // 战斗模式【1:普通|2：BOSS|3：切磋】
+            envirs: {
+                mapId: 1,
+                cellId: 2,
+            },
+            playerTeamIds: [1,2,3,4,],
+            enemyTeamIds: [11,12,13,14,],
+        }
+        _nus[1].es[0] = 1;
+        _nus[1].es[1] = 4;
+        _nus[2].es[0] = 4;
+        window.GLOBAL.allUnits = _nus;
+        window.GLOBAL.allEquips = [];
+        window.GLOBAL.allEquips.push(common.genEquip({id:1,game:{},level:r(9,9),type:r(1,1)}));
+        window.GLOBAL.allEquips.push(common.genEquip({id:2,game:{},level:r(9,9),type:r(1,5)}));
+        window.GLOBAL.allEquips.push(common.genEquip({id:3,game:{},level:r(9,9),type:r(1,5)}));
+        window.GLOBAL.allSkills =  [{ // 全部技能
+            	id: 1,
+            	n: '治疗术',
+            	t: [7,3,],// 技能类型
+            	bid: [1,2,], // 添加的状态ID
+                bls: [1,1,], // 状态等级
+            	csm: 4, // 体力消耗
+                des: '治疗，获得1级急救和1级抵挡。',
+        },];
+
+
         if(window.GLOBAL&&window.GLOBAL.battle){ // TODO
             this.game = window.GLOBAL;
             this.init();
@@ -306,93 +168,6 @@ export default {
         }
     },
     methods: {
-        save(tip){ // 存档
-            if(this.loading) return;
-            let code = localStorage.getItem(CACHE.code)||'';
-            if(!code){
-                this.$toast.text('获取存档代码错误');
-                return ;
-            }
-            this.loading = true;
-            this.loading = this.$toast.loading();
-            window.GLOBAL.game = this.game;
-            window.GLOBAL.day = this.day;
-            let _storageList = localStorage.getItem(CACHE.list)||'[]';
-            let storageList = JSON.parse(_storageList);
-            // 遍历存档
-            let savedStorage;
-            for(let storage of storageList){
-                if(storage.code==code){
-                    savedStorage = storage;
-                    break;
-                }
-            }
-            if(savedStorage){ // 已有存档
-                try{
-                    savedStorage.data = window.GLOBAL;
-                    _storageList = JSON.stringify(storageList);
-                    localStorage.setItem(CACHE.list,_storageList);
-                    tip&&this.$toast.text('存储成功');
-                }
-                catch(err){
-                    tip&&this.$toast.text(`存储失败（${err}）`);
-                }
-            }
-            else{ // 没有该存档
-                try{
-                    let newStorage = {
-                        code,
-                        data: window.GLOBAL,
-                    }
-                    storageList.push(newStorage);
-                    _storageList = JSON.stringify(storageList);
-                    localStorage.setItem(CACHE.list,_storageList);
-                    tip&&this.$toast.text('存储成功');
-                }
-                catch(err){
-                    tip&&this.$toast.text(`存储失败（${err}）`);
-                }
-            }
-            this.loading.hide();
-            this.loading = null;
-        },
-        deleteSave(){ // 删除存档
-            if(this.loading) return;
-            let code = localStorage.getItem(CACHE.code)||'';
-            if(!code){
-                this.$toast.text('获取存档代码错误');
-                return ;
-            }
-            this.loading = true;
-            this.loading = this.$toast.loading();
-            let _storageList = localStorage.getItem(CACHE.list)||'[]';
-            let storageList = JSON.parse(_storageList);
-            // 遍历存档
-            let savedStorage;
-            for(let storage of storageList){
-                if(storage.code==code){
-                    savedStorage = storage;
-                    break;
-                }
-            }
-            if(savedStorage){
-                try{
-                    let newStorageList = removeFromList(code,'code',storageList);
-                    _storageList = JSON.stringify(newStorageList);
-                    localStorage.setItem(CACHE.list,_storageList);
-                    this.$toast.text('存档已删除');
-                }
-                catch(err){
-                    this.$toast.text(`存档删除失败（${err}）`);
-                }
-            }
-            else{
-                this.$toast.text('存档代码失效，找不到该存档');
-            }
-            this.loading.hide();
-            this.loading = null;
-        },
-
         init(){ // 初始化全部
             let { playerTeamIds, enemyTeamIds, } = this.game.battle;
             let playerTeam = [], enemyTeam = [];
@@ -400,7 +175,10 @@ export default {
                 for(let unitId of ids){
                     let unit = getMatchList(this.game.allUnits,[['id',unitId]])[0];
                     if(unit){
-                        team.push(this.initUnit(unit));
+                        let btd = common.getUnitBtd(unit,this.game); // 获取单位战斗数据
+                        let _unit = cloneObj(unit);
+                        _unit.btd = btd;
+                        team.push(_unit);
                     }
                 }
                 return team;
@@ -408,102 +186,113 @@ export default {
 
             this.playerTeam = unitAction(playerTeamIds,playerTeam);
             this.enemyTeam = unitAction(enemyTeamIds,enemyTeam);
+
+            this.$nextTick(_=>{
+                this.goPageState(1);
+            });
         },
-        initUnit(unit){ // 初始化单位数据
-            let res = {};
-            let equips = [], weapons = [], skills = [], btd = {};
-            for(let equipId of unit.es){
-                let equip = getMatchList(this.game.allEquips,[['id',equipId]])[0];
-                if(equip){
-                    equips.push(cloneObj(equip));
-                    if(equip.t==1){
-                        weapons.push(cloneObj(equip));
-                    }
+        goPageState(flag){ // 进入页面状态
+            let allUnits = [...this.playerTeam,...this.enemyTeam];
+            this.pageState = flag;
+            this.$nextTick(_=>{
+                switch(flag){
+                    case 1: // 战斗开始
+
+                    break;
+                    case 2: // 行动力推进
+                        for(let unit of allUnits){
+                            unit.btd.cur = 0;
+                        }
+                        this.menuState = 0;
+                        this.movementProcess();
+                    break;
+                    case 3: // 进行操作
+                        this.curUnitsIndex = 0;
+                        this.exeCurUnit();
+                    break;
+                    case 4: // 动画
+
+                    break
+                    case 5: // buff编辑
+
+                    break
+                    case 99: // 战斗结束
+
+                    break
                 }
-            }
-            for(let skillId of unit.ss){
-                let skill = getMatchList(this.game.allSkills,[['id',skillId]])[0];
-                if(skill){
-                    skills.push(cloneObj(skill));
-                }
-            }
-            res = cloneObj(unit);
-            for(let equip of equips){
-                let eattrs = equip.a||[];
-                for(let attr of eattrs){
-                    res.as[attr[0]] += attr[1];
-                }
-            }
-            let tas = res.as; // [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力]
-            btd.name = unit.nm;
-            btd.hp = [tas[0],tas[0],]; // 血
-            btd.def = [tas[3],tas[3],], // 护甲
-            btd.eng = [tas[1],tas[1],], // 精力
-            btd.phy = [tas[2],tas[2],], // 体力
-            btd.dge = 10000-tas[9]*25; // 隐蔽
-            btd.move = 0; // 行动
-            btd.mdef = tas[8]*25; // 心理防御
-            btd.alive = 1; // 存活
-            btd.buffs = [];
-            for(let i=0;i<weapons.length;i++){
-                if(weapons[i]){
-                    if(i==0){
-                        btd.weapon1 = weapons[i].n;
-                    }
-                    else if(i==1){
-                        btd.weapon2 = weapons[i].n;
-                    }
-                }
-            }
-            if(btd.teamSeq>0){
-                btd.isPlayer = 1; // 可操控角色
-            }
-            res.btd = btd;
-            // @TODO
-            if(res.id==2){
-                res.btd.selected = 1;
-            }
-            if(res.id==3||res.id==11){
-                res.btd.alive = 0;
-            }
-            let bufflen = r(0,3);
-            for(let i=0;i<bufflen;i++){
-                let buff;
-                if(r(0,1)){
-                    buff = {
-                        id: i+1,
-            			name: '急救',
-            			desc: '每回合恢复生命力',
-            			level: r(1,3),
-                        good: 1,
-            			trendVals: [20,0,0,0],
-                    }
-                }
-                else{
-                    buff = {
-                        id: i+100,
-                        name: '破绽',
-        				desc: '受到的伤害增加',
-                        level: r(1,3),
-                        good: 0,
-            			trendVals: [0,0,20,0],
-                    }
-                }
-                btd.buffs.push(buff);
-            }
-            return res;
+            });
         },
-        _alert(text){ // 显示提示
-            this.$refs.toast.trigger(text);
+        movementProcess(){ // 行动条进展
+            let allUnits = [...this.playerTeam,...this.enemyTeam];
+            let allAliveUnits = getSubMatchList(allUnits,[['alive',1]],'btd');
+            let stop = 0, tickCount = 0;
+            let curUnits = []; // 可行动单位数组
+            let calcTickCount = _ =>{
+                let smallestTickCount = Infinity; // 最先行动者的所需行动步数
+                // 计算每个人的【所需行动步数】和【超出行动力】
+                for(let unit of allAliveUnits){
+                    let speed = unit.btd.speed; // 3
+                    let diff= 10000-unit.btd.move; // 10
+                    let divisor = Math.ceil(diff/speed); // 除数=4
+                    unit.tickCount = divisor; // 需要 4 步才能行动
+                    unit.overflowMove = speed*divisor-diff; // 超出的行动力为 2
+                }
+                // 计算最先行动者需要的步数
+                for(let unit of allAliveUnits){
+                    if(unit.tickCount<smallestTickCount){
+                        smallestTickCount = unit.tickCount;
+                    }
+                }
+                // 所有人推进行动条
+                for(let unit of allAliveUnits){
+                    unit.btd.move += smallestTickCount*unit.btd.speed;
+                }
+                // 得出最小行动步数为 3，筛选出本帧行动者
+                for(let unit of allAliveUnits){
+                    if(unit.tickCount<=smallestTickCount){
+                        curUnits.push(unit);
+                    }
+                }
+                // 根据超出行动力，对本帧行动者数组进行逆向排序
+                curUnits = bulbsort(curUnits,'overflowMove',1);
+                this.curUnits = curUnits;
+            }
+            calcTickCount();
+            for(let unit of curUnits){ // 所有本帧行动者行动条归零
+                unit.btd.move = 0;
+            }
+            this.$nextTick(_=>{
+                this.goPageState(3);
+                // for(let u of this.curUnits){ console.log(u.nm); }
+            });
+        },
+        exeCurUnit(){ // 执行本帧行动者的动作
+            let curUnit = this.curUnits[this.curUnitsIndex];
+            this.$nextTick(_=>{
+                let _n = curUnit.btd.name;
+                curUnit.btd.name = 'JK';
+                curUnit.btd.name = _n;
+                curUnit.btd.cur = true;
+                if(curUnit.btd.isPlayer){ // 玩家
+                    this.menuState = 1;
+                    this.menuTip = `${curUnit.btd.name}行动：`;
+                }
+                else{ // 人机
+                    this.goPageState(4);
+                }
+            })
         },
 
+        onTapStartBattle(){ // 点击【开始战斗】
+            this.goPageState(2);
+        },
         onTapUnit(data,evt){ // 点击【单位图标】
             let { flag, unit, buff, } = data;
             let btd = unit.btd;
             evt.stopPropagation();
             evt.preventDefault();
             if(flag==1){ // 点击单位
-                this._alert(`${btd.name}`);
+                // this._alert(`${btd.name}`);
             }
             else if(flag==2){ // 点击buff
                 this._alert(`${buff.name}（等级${buff.level}）`);
@@ -517,30 +306,32 @@ export default {
             else if(flag==103){ // 点击行动条
                 this._alert(`行动进度: ${Math.round(btd.move/100)} %`);
             }
-            else if(flag==104){ // 点击隐蔽条
-                this._alert(`躲避率： ${Math.round(btd.dge/100)} %`);
+            else if(flag==104){ // 点击气条
+                this._alert(`潜力累积： ${Math.round(btd.ptc/100)} %`);
+            }
+            else if(flag==105){ // 点击躲避条
+                this._alert(`存在感： ${Math.round(btd.dge/100)} %`);
+            }
+            else if(flag==106){ // 点击头像
+                let _unit = cloneObj(getMatchList(this.game.allUnits,[['id',unit.id]])[0]);
+                _unit.btd = common.getUnitBtd(unit,this.game);
+                this.viewingUnit = _unit;
             }
             return false;
         },
-        onTapCastMenu(){ // 点击【施放技能】
-            this.menuState = 2;
+        onTapPop(){ // 点击【弹窗-关闭】
+            this.viewingUnit = null;
+            this.showMenuGuide = 0;
         },
-        onTapCastMenuBack(){ // 点击【菜单-返回】
-            this.menuState = 1;
+        onTapMenuHelp(){ // 点击【菜单-？】
+            this.showMenuGuide = !this.showMenuGuide;
         },
-        onTapSkill(skill){ // 点击【技能】
-            if(this.curMoveUnit.vig<=0){
-                return;
-            }
+        onTapMenuExpand(){ // 点击【菜单-展开】
+            this.menuExpand = !this.menuExpand;
         },
-        onTapShadow(){ // 点击【幕布】
-            this.nextStep();
-        },
-        onTapAction(flag){ // 点击【执行操作】
+        onTapMenu(flag){ // 点击【执行操作】 0不显示 1基础选项 2攻击选项 3技能选项 4选择单位 5选择属性
             let nextStep = _ =>{
-                this.menuState = 0;
-                this.pageState = 1;
-                // this.nextStep();
+                this.goPageState(2);
             }
             if(flag==1){ // 攻击
                 nextStep();
@@ -567,14 +358,21 @@ export default {
                 nextStep();
             }
         },
-        onTapCheat(){ // 点击【作弊】按钮
 
+        _alert(text){ // 显示提示
+            this.$refs.toast.trigger(text);
+        },
+
+        onTapCheat(){ // 点击【作弊】按钮
+            this.goPageState(2);
         },
     },
     components:{
         Toast,
-        Unit,
-        List,
+        Unit1,
+        Unit2,
+        Equip,
+        Pop,
         Bar1,
         Bar2,
     },
@@ -591,28 +389,35 @@ export default {
         color: #4a4a4a;
         font-size: .24rem;
         line-height: 0;
-    }
-    .orange{
-        color: #ff4f18;
+        background-color: #140425;
+        background-image: url('./../assets/bg-battle.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        box-shadow: 0 0 1.35rem #000 inset;
     }
     .panel{
         position: relative;
         width: 100%;
         height: 100%;
-        padding-bottom: 2.21rem;
         overflow-y: scroll;
         overflow-x: hidden;
     }
-    .pop{
-        background-color: #fff;
-        width: 3rem;
+    .body{
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 13.75rem;
     }
     .btn{
-        background-color: #ff4f18;
+        background-color: transparent;
         display: inline-block;
         color: #fff;
         text-align: center;
         cursor: pointer;
+        border-radius: .01rem;
+        border: .02rem solid #2F4F4F;
+        box-shadow: 0 0 .14rem #2F4F4F inset;
     }
 
     .panel-shadow{
@@ -623,7 +428,6 @@ export default {
         bottom: 0;
         width: 100%;
         height: 100%;
-        box-shadow: 0 0 .35rem #000 inset;
         z-index: 100;
     }
     .panel-shadow-tip{
@@ -636,34 +440,200 @@ export default {
     /* 战场 */
     .battle-field{
         width: 100%;
-        height: 9rem;
-        background-color: #131313;
+        height: 11.2rem;
+        padding-top: .13rem;
+        /* box-shadow: 0 0 .24rem #fff inset; */
     }
     .team-pan{
-        position: absolute;
-        left: 0;
-        right: 0;
-        width: 100%;
         display: flex;
         justify-content: space-around;
         align-items: flex-start;
         flex-wrap: nowrap;
-        height: 4rem;
+        height: 5rem;
         /* box-shadow: 0 0 .1rem #fff inset; */
     }
     .team-pan-top{
         top: .05rem;
     }
     .team-pan-bottom{
-        top: 5rem;
+        top: 6rem;
+    }
+    .board-container{
+        position: relative;
+        width: 100%;
+        height: 1rem;
+        line-height: 1rem;
+        z-index: 1050;
+    }
+    .battle-field .board-container .board-row{
+        font-size: .24rem;
+        color: #fff;
+    }
+    .board-container .btn-start{
+        display: block;
+        margin: 0 auto;
+        width: 4rem;
+        height: 1rem;
+        line-height: 1rem;
+        text-align: center;
+        font-size: .4rem;
+        font-weight: bold;
+        color: #8ae4f1;
+        box-shadow: 0 0 .5rem .2rem #2F4F4F inset;
+        animation: startBtn 1.33s ease-in-out infinite alternate;
+    }
+    @keyframes startBtn{
+        to{
+            transform: scale(1.05);
+        }
     }
 
-    /*board*/
-    .board{
-
+    /* 菜单 */
+    .menu-wrap{
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 2.5rem;
+        background-color: #2F4F4F;
+        background-image: url('./../assets/bg-menu.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        overflow-y: auto;
+        z-index: 2000;
+        box-shadow: 0 -.03rem .04rem #8ae4f1;
+        transition: all .2s;
     }
-    .board-t-2-1 .cur-move{
-        color: #e81313;
+    .menu-wrap-expand{
+        height: 100%;
+    }
+    .menu-wrap .btn-help,
+    .menu-wrap .btn-expand{
+        display: inline-block;
+        position: absolute;
+        top: .14rem;
+        height: .3rem;
+        line-height: .3rem;
+        font-size: .2rem;
+        font-weight: bold;
+    }
+    .menu-wrap .btn-help{
+        width: .3rem;
+        right: .16rem;
+        border-radius: 50%;
+    }
+    .menu-wrap .btn-expand{
+        width: 3rem;
+        right: .56rem;
+        text-align: right;
+        border: none;
+        box-shadow: none;
+        padding-right: .2rem;
+        color: #8ae4f1;
+    }
+    .menu{
+        width: 100%;
+        height: 100%;
+        padding: .2rem .35rem;
+    }
+    .menu .menu-tip{
+        height: .44rem;
+        line-height: .44rem;
+        margin-bottom: .12rem;
+        width: 100%;
+        font-size: .24rem;
+        color: #fff;
+        text-align: left;
+    }
+    .menu-tag{
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        width: 100%;
+        height: 100%;
+    }
+    /* 菜单 block */
+    .menu-block{
+        width: 22%;
+        height: 1.5rem;
+        /* box-shadow: 0 0 2px #fff inset; */
+    }
+    .menu-btn{
+        line-height: 1.5rem;
+        font-size: .4rem;
+        text-align: center;
+    }
+    .menu-block-lg{
+        width: 50%;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+    .menu-block-lg .btn{
+        display: inline-block;
+        width: .75rem;
+        height: .7rem;
+        line-height: .7rem;
+        margin-right: .1rem;
+        margin-bottom: .1rem;
+    }
+    /* 菜单 row */
+    .menu .menu-row{
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        height: .75rem;
+        line-height: .75rem;
+    }
+    .menu .menu-row .btn{
+        display: inline-block;
+        width: .8rem;
+        height: .6rem;
+        line-height: .6rem;
+        margin-right: .1rem;
+    }
+    .menu .menu-row .btn-lg{
+        width: 2rem;
+    }
+
+    /* pop */
+    .unit-info-pop{
+        width: 100%;
+        padding: .14rem .22rem;
+    }
+    .guide-menu{
+        width: 100%;
+        padding: .32rem .18rem;
+        font-weight: normal;
+    }
+    .guide-menu-row{
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        min-height: .4rem;
+        line-height: .4rem;
+        text-align: left;
+        font-size: .3rem;
+    }
+    .guide-menu-row .guide-name{
+        display: inline-block;
+        text-align: right;
+        width: 1.2rem;
+    }
+    .guide-menu-row .guide-desc{
+        display: inline-block;
+        width: calc( 100% - 1.2rem );
+    }
+
+    /* 侧边按钮 */
+    .touch-dom{
+        width: 1.4rem;
+        height: .76rem;
+        line-height: .76rem;
+        background-color: #2F4F4F;
     }
 
 </style>

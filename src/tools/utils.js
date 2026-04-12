@@ -9,9 +9,37 @@ export function r(min,max){
 export function rr(r1,r2,r3){ // 双随机：以1/r1的概率生成一个(r2-r3)的随机数值
     return r(0,r1-1)?0:r(r2,r3);
 }
-export function exptr(min,max,exp){ // 指数随机
-    let v = r(min,max-1);
-    return Math.round((v-min)*Math.pow(v/(max-min),exp||1)+min);
+// export function exptr(min,max,exp){ // 指数随机
+//     if(min>max-1){
+//         return min;
+//     }
+//     // let v = r(min,max-1);
+//     let v = max-1;
+//     return Math.round((v-min)*Math.pow(v/(max-min),exp||1)+min);
+// }
+export function exptr(min,max,bias=2) { // 偏向参数，>1 时偏向小数，=1 时均匀，<1 时偏向大数
+    if(!Number.isInteger(min)||!Number.isInteger(max)){
+        return false;
+    }
+    if(min>=max){
+        return false;
+    }
+    if(bias<=0){
+        return false;
+    }
+    const range = max-min+1;
+    let biasedRandom = Math.pow(Math.random(),bias);
+    // let biasedRandom = Math.pow(1,bias);
+    return min+Math.floor(biasedRandom*range);
+}
+export function setInRange(val,min,max){ // 锁定数值的范围
+    if(val<min){
+        val = min;
+    }
+    else if(val>max){
+        val = max;
+    }
+    return val;
 }
 /*
   冒泡排序
@@ -196,6 +224,22 @@ export function getMatchList(arr,matchList){ // 根据匹配获取列表 matchLi
         let isMatch = true;
         for(let m of matchList){
             if(inst[m[0]]!=m[1]){
+                isMatch = false;
+                break;
+            }
+        }
+        if(isMatch){
+            res.push(inst);
+        }
+    });
+    return res;
+}
+export function getSubMatchList(arr,matchList,subname){ // 根据匹配获取列表 matchList = [['id',1],['job',2]]
+    let res = [];
+    Array.from(arr,inst=>{
+        let isMatch = true;
+        for(let m of matchList){
+            if(inst[subname][m[0]]!=m[1]){
                 isMatch = false;
                 break;
             }

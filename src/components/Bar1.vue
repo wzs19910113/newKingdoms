@@ -2,9 +2,12 @@
     <a class="bar-wrap" @click="onTap">
         <div class="bar">
             <div class="bar-full" :class="{'bar-hp':type==1,'bar-phy':type==2}" :style="{width:`${calcBarLength()}%`}"></div>
-            <div class="label">
-                <span class="txt">{{title}}</span>
-                <span class="num">
+            <div class="bar-label">
+                <span class="txt" v-if="title">{{title}}</span>
+                <span class="num" v-if="mode==1">
+                    <span class="crt">{{Math.round(this.crt)}}</span>
+                </span>
+                <span class="num" v-if="mode==2">
                     <span class="crt">{{Math.round(this.crt)}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(this.max)}}</span>
                 </span>
             </div>
@@ -18,9 +21,16 @@ export default {
     props:{
         title: String,
         type: Number, // [1：生命值|2：精力]
+        mode: { // 模式 1简约 2详细
+            type: Number,
+            default: 1,
+        },
         crt: Number,
         max: Number,
-        onTap: Function, // 点击事件
+        onTap: { // 点击事件
+            type: Function,
+            default: function(){},
+        },
     },
     data() {
         return {
@@ -49,7 +59,6 @@ export default {
         justify-content: flex-start;
         align-items: center;
         width: 100%;
-        background-color: #eee;
     }
     .bar{
         position: relative;
@@ -58,7 +67,7 @@ export default {
         height: .4rem;
         width: 100%;
         overflow: hidden;
-        background-image: radial-gradient(closest-side at 90% 50%, #EFEFEF 2%, #AAA 400%);
+        background-image: radial-gradient(closest-side at 90% 50%, rgba(188,188,188,.8) 2%, rgba(255,255,255,.9) 400%);
     }
     .bar-full{
         position: absolute;
@@ -95,7 +104,7 @@ export default {
     .bar-phy{
         background-image: radial-gradient(closest-corner, #6495ED 0%, #6A5ACD 100%);
     }
-    .label{
+    .bar-label{
         position: absolute;
         display: flex;
         justify-content: flex-start;
@@ -103,24 +112,26 @@ export default {
         width: 100%;
         height: .3rem;
         line-height: .28rem;
+        padding-left: .04rem;
         white-space: nowrap;
         word-break: keep-all;
         color: #090909;
         z-index: 3;
+        font-weight: bold;
         text-shadow: 0 0 .08rem #fff;
     }
-    .label .txt{
+    .bar-label .txt{
         display: inline-block;
         font-size: .25rem;
-        margin-right: .1rem;
+        margin-right: .15rem;
     }
-    .label .num{
+    .bar-label .num{
         display: inline-block;
     }
-    .label .num .crt{
+    .bar-label .num .crt{
         font-size: .28rem;
     }
-    .label .num .max{
+    .bar-label .num .max{
         font-size: .24rem;
     }
 </style>

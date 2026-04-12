@@ -1,10 +1,11 @@
 <template>
     <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'}`" @click="onTap({flag:1,unit,},$event)">
         <div class="avatar-wrap" :class="`${!unit.btd.alive?'dead':''}`">
-            <b class="avatar" :class="">{{unitNameFormat(unit.btd.name)}}</b>
-            <div class="cur" v-if="unit.btd.selected&&unit.btd.alive"></div>
+            <a class="avatar" :class="" @click="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
+            <div class="cur" v-show="unit.btd.cur&&unit.btd.alive"></div>
             <Bar2 class="cir1" :current="unit.btd.move" :type="1" :onTap="onTap.bind(this,{flag:103,unit,})" />
-            <Bar2 class="cir2" :current="unit.btd.dge" :type="2" :onTap="onTap.bind(this,{flag:104,unit,})" />
+            <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" :onTap="onTap.bind(this,{flag:104,unit,})" />
+            <Bar2 class="cir3" :current="unit.btd.dge" :type="3" :onTap="onTap.bind(this,{flag:105,unit,})" />
         </div>
         <div class="weapon-row" :class="`${!unit.btd.alive?'dead':''}`">
             <div class="weapon" v-if="unit.btd.weapon1">{{unit.btd.weapon1}}</div>
@@ -13,13 +14,13 @@
         <div class="stat-row" :class="`${!unit.btd.alive?'dead':''}`">
             <Bar1 class="bar" title="" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" :onTap="onTap.bind(this,{flag:101,unit,})" />
             <div class="sub-mark def">
-                防:<span class="sub-crt" :class="`${unit.btd.def[0]<0?'sub-red':''}`">{{Math.round(unit.btd.def[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.def[1])}}</span>
+                <span class="sub-crt" :class="`${unit.btd.def[0]<0?'sub-red':''}`">{{Math.round(unit.btd.def[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.def[1])}}</span>
             </div>
         </div>
         <div class="stat-row" :class="`${!unit.btd.alive?'dead':''}`">
             <Bar1 class="bar" title="" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" :onTap="onTap.bind(this,{flag:102,unit,})" />
             <div class="sub-mark phy">
-                气:<span class="sub-crt">{{Math.round(unit.btd.phy[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.phy[1])}}</span>
+                <span class="sub-crt">{{Math.round(unit.btd.phy[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.phy[1])}}</span>
             </div>
         </div>
         <div class="buff-wrap" :class="`${!unit.btd.alive?'dead':''}`">
@@ -60,8 +61,11 @@ import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genR
 import { DEBUG, CONFIG } from '../config/config';
 export default {
     props:{
-        unit: Object, // 角色战斗数据
-        onTap: Function, // 点击事件
+        unit: Object, // 角色数据
+        onTap: { // 点击事件
+            type: Function,
+            default: function(){},
+        },
     },
     data() {
         return {
@@ -126,6 +130,7 @@ export default {
         width: 1rem;
         height: 1rem;
         line-height: .3rem;
+        font-weight: bold;
         background-image: linear-gradient(to right bottom, #666 0%, #fff 40%, #888 100%);
         /* background-image: radial-gradient(closest-corner, #fff 10%, #aaa 100%); */
         color: #000;
@@ -152,22 +157,32 @@ export default {
             opacity: .5;
         }
     }
-    .cir1{
+    .cir1{ /* 行动 */
         position: absolute;
         z-index: 103;
         width: .4rem;
         height: .4rem;
-        top: .2rem;
-        right: .1rem;
+        top: -.12rem;
+        right: .16rem;
         background-color: #000;
         border-radius: .4rem;
     }
-    .cir2{
+    .cir2{ /* 气 */
         position: absolute;
         z-index: 103;
         width: .4rem;
         height: .4rem;
-        top: .6rem;
+        top: .26rem;
+        right: .08rem;
+        background-color: #000;
+        border-radius: .4rem;
+    }
+    .cir3{ /* 隐蔽 */
+        position: absolute;
+        z-index: 103;
+        width: .4rem;
+        height: .4rem;
+        top: .66rem;
         right: .16rem;
         background-color: #000;
         border-radius: .4rem;
@@ -220,6 +235,7 @@ export default {
     }
     .stat-row .phy{
         background-image: radial-gradient(closest-corner, #00BFFF 10%, #008B8B 100%);
+        text-shadow: 0 0 .1rem #000;
     }
     .stat-row .sub-mark .sub-red{
         color: #80A;
@@ -241,14 +257,13 @@ export default {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 0;
-        top: 0;
+        top: 8%;
         margin: auto;
         display: flex;
         justify-content: center;
         align-items: center;
         width: 80%;
-        height: 80%;
+        height: 50%;
         color: #fff;
         font-size: .6rem;
         font-weight: bold;
@@ -257,5 +272,6 @@ export default {
         line-height: 1.2rem;
         text-shadow: 0 0 .2rem #000;
         z-index: 1000;
+        opacity: .5;
     }
 </style>

@@ -1,16 +1,24 @@
 <template>
-    <a class="buff" :class="`${buff.good?'buff-good':'buff-bad'}`" @click="onTap">
+    <a class="buff" :class="`${buff.good?'buff-good':'buff-bad'} ${[`buff-sm`,`buff-lg`][mode-1]}`" @click="onTap">
         <span class="buff-bg" :style="`opacity:${buffBg(buff)}`"></span>
-        <span class="buff-name" :style="`opacity:${buffText(buff)}`">{{buff.name}}</span>
+        <span class="buff-name" :style="`opacity:${buffText(buff)}`">{{buff.name+(mode==2?`${buff.level}`:'')}}</span>
     </a>
 </template>
 <script>
 import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
 import { DEBUG, CONFIG } from '../config/config';
 export default {
+    name: "Buff",
     props:{
         buff: Object,
-        onTap: Function, // 点击事件
+        mode: { // 模式 1简约 2详细
+            type: String,
+            default: '1',
+        },
+        onTap: { // 点击事件
+            type: Function,
+            default: function(){},
+        },
     },
     data() {
         return {
@@ -38,10 +46,6 @@ export default {
     .buff{
         display: inline-block;
         position: relative;
-        width: 30%;
-        height: .3rem;
-        line-height: .3rem;
-        font-size: .18rem;
         color: #fff;
         background-color: transparent;
         overflow: hidden;
@@ -50,6 +54,18 @@ export default {
         word-break: keep-all;
         margin: .01rem .022rem;
         border-radius: .04rem;
+    }
+    .buff-sm{
+        width: 30%;
+        height: .3rem;
+        line-height: .3rem;
+        font-size: .18rem;
+    }
+    .buff-lg{
+        width: .86rem;
+        height: .4rem;
+        line-height: .4rem;
+        font-size: .24rem;
     }
     .buff .buff-bg,
     .buff .buff-name{

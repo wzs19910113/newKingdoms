@@ -132,9 +132,10 @@ export default {
     line-height: .3rem;
     border-top-right-radius: .08rem;
     border-bottom-right-radius: .08rem;
-    border: #fff .01rem solid;
+    border: .01rem solid #8ae4f1;
     border-left: none;
-    background-image: linear-gradient(to right, rgba(95,95,95,.5) 0%, rgba(0,0,0,.8) 95%, rgba(0,0,0,.7) 100% );
+    box-shadow: 0 0 .05rem #2F4F4F;
+    background-image: linear-gradient(to right, rgba(47,79,79,.4) 0%, rgba(47,79,79,.8) 65%, rgba(47,79,79,.3) 100% );
     backdrop-filter: blur(.1rem);
     color: #fff;
     font-size: .24rem;

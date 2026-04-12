@@ -1,0 +1,90 @@
+// // 十进制转十一进制
+// function d211(num){
+//     if(num === 0) return '0';
+//     const digits = '0123456789A';
+//     let result = '';
+//     let n = num;
+//     while(n > 0){
+//         const remainder = n%11;
+//         result = digits[remainder]+result;
+//         n = Math.floor(n/11);
+//     }
+//     return result;
+// }
+// // 十一进制转十进制
+// function _11td(str){
+//     const digits = '0123456789A';
+//     str = str.toUpperCase();
+//     let result = 0;
+//     for(let i=0;i<str.length;i++){
+//         const char = str[i];
+//         const value = digits.indexOf(char);
+//         if(value==-1){
+//             throw new Error(`无效的十一进制数字: ${char}`);
+//         }
+//         result = result*11+value;
+//     }
+//     return result;
+// }
+//
+// // 使用示例
+// let d10 = `163842`, d11 = `10A476`;
+// // console.log(`${d10} ->`, d211(d10));
+// // console.log(`${d11} ->`, _11td(d11));
+// let isDup = str =>{
+//     for(let i=0;i<str.length;i++){
+//         let s = str[i];
+//         for(let j=0;j<str.length;j++){
+//             if(j!=i&&s==str[j]){
+//                 return true;
+//             }
+//         }
+//     }
+//     return false;
+// }
+// const RIDX1 = [0,1,2,3,4,], RIDX2 = [0,1,2,4,5];
+// let comp = str =>{
+//     let str11 = d211(str)+'';
+//     // console.log(str,str11);
+//     // console.log(str[5],str11[3]);
+//     if((str11.length==6)&&(str[5]==str11[3])){
+//         let remains = '';
+//         for(let i=0;i<RIDX1.length;i++){
+//             remains += str[RIDX1[i]];
+//         }
+//         for(let i=0;i<RIDX2.length;i++){
+//             remains += str11[RIDX2[i]];
+//         }
+//         // console.log(remains);
+//         if(str11[2]!='A'){
+//             return false;
+//         }
+//         else if(isDup(str11)){
+//             return false;
+//         }
+//         else if(isDup(remains)){
+//             return false;
+//         }
+//         else{
+//             return str11;
+//         }
+//     }
+//     else{
+//         return false;
+//     }
+// }
+// // let res = [];
+// // for(let i=163456;i<999999;i++){
+// //     let p1 = i+'';
+// //     if(!isDup(p1)){ // 不包含重复字符
+// //         let cp = comp(p1);
+// //         if(cp){
+// //             res.push(p1);
+// //         }
+// //     }
+// // }
+// // console.log(res);
+// // console.log(comp(`438091`));
+// // let stock = [`平民`,`平民`,`平民`,`平民`,`狼人`,`狼人`,`狼人`,`机械狼`,`通灵师`,`女巫`,`守卫`,`猎人`,];
+// // let unit = stock[r(0,stock.length-1)];
+// // console.log(unit);

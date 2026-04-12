@@ -32,18 +32,21 @@ export default{
             type: Number,
             default: 15
         },
-        onTap: Function, // 点击事件
+        onTap: { // 点击事件
+            type: Function,
+            default: function(){},
+        },
     },
     data(){
         return{
-            pColor: ['','#00a800','#FFA500'][this.type],
-            bgColor: ['','#666','#666'][this.type],
+            pColor: ['','#00a800','#8B008B','#FFA500'][this.type],
+            bgColor: ['','#666','#666','#666'][this.type],
         }
     },
     computed: {
         percentage(){ // 计算百分比（0-100）
             const percent = (this.current / 10000) * 100;
-            return Math.min(100, Math.max(0, Math.round(percent)));
+            return Math.min(100, Math.max(0, Math.floor(percent)));
         },
         circumference(){ // 圆环周长（半径45，周长=2*PI*45 ≈ 282.74）
             const radius = 45;
