@@ -54,16 +54,15 @@ export default {
                 day: 0, // 日期-天
                 hour: 0, // 日期-小时
                 currentMapID: 101, // 当前所在地图ID
-                lastMap: {}, // 最后所在的地区
                 luck: 0, // 夺宝能力
 
-                allRoles: [], // 角色
+                allUnits: [], // 角色
+                unitIndex: 101, // 角色 ID 索引
                 allEquips: [], // 装备
                 equipIndex: 101, // 装备 ID 索引
                 allSkills: [], // 技能
                 skillIndex: 101, // 技能 ID 索引
                 allMaps: [], // 地图
-                allBannedMapPos: [], // 无法通行的地图坐标数组
             },
 
             storage: null,
@@ -134,10 +133,11 @@ export default {
             // 生成角色
             // 生成装备
             for(let i=0;i<40;i++){
-                this.genEquip(r(1,1),r(1,5));
+                this.genEquip(9,1);
             }
-            for(let i=0;i<40;i++){
-                this.genSkill(r(1,9),0);
+            for(let i=0;i<9;i++){
+                // this.genSkill(r(1,9),1);
+                this.genSkill(i+1,0);
             }
         },
         genEquip(level,type){ // 生成一个装备

@@ -10,13 +10,10 @@
             <span class="desc" v-html="getSkillTip()"></span>
         </div>
         <div class="row atk-wrap" v-if="atkEffectIndex!=-1">
-            <div class="wrap-item atk" v-for="(atk,index) in skill.el[atkEffectIndex].d">
-                +
-                <a class="atk-dmg">伤害{{atk.d}}</a>
-                <a class="atk-r1" v-if="atk.r1" @click="onTap({flag:3,text:`力量补正：力量带来的伤害提升`},$event)">（ 力补：{{common.genRXString(atk.r1)}} ）</a>
-                <a class="atk-r2" v-if="atk.r2" @click="onTap({flag:3,text:`精准补正：精准带来的伤害提升`},$event)">（ 精补：{{common.genRXString(atk.r2)}} ）</a>
-                <!-- <span class="atk-r1" v-if="atk.r1">（力补{{atk.r1}}%）</span>
-                <span class="atk-r2" v-if="atk.r2">（准补{{atk.r2}}%）</span> -->
+            <div class="wrap-item atk">
+                <a class="atk-dmg">伤害{{skill.el[atkEffectIndex].d.d}}</a>
+                <a class="atk-r1" v-if="skill.el[atkEffectIndex].d.r1" @click="onTap({flag:3,text:`力量补正：力量带来的伤害提升`},$event)">（ 力补：{{common.genRXString(skill.el[atkEffectIndex].d.r1)}} ）</a>
+                <a class="atk-r2" v-if="skill.el[atkEffectIndex].d.r2" @click="onTap({flag:3,text:`精准补正：精准带来的伤害提升`},$event)">（ 精补：{{common.genRXString(skill.el[atkEffectIndex].d.r2)}} ）</a>
             </div>
         </div>
         <div class="row buff-wrap" v-if="buffEffectIndex!=-1">

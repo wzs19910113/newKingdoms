@@ -36,7 +36,7 @@ const REJUST_LEVELS_MAP = [ // 补正等级描述表
 ];
 
 function cl(n){
-    return Math.floor(n);
+    return Math.ceil(n);
 }
 function pow(n,p=2){
     return Math.pow(n,p);
@@ -189,63 +189,78 @@ export function genRandomAge(){ // 随机生成年龄
     }
     return age;
 };
-export function genAttack({level=1,melee=1,name=''}){ // 生成一个攻击方式
-    let newAtk;
-    let atkAll = !r(0,4); // 是否为全体攻击
-    let r1Ratio = 0, r2Ratio = 0;
-    let minAtk = CONFIG.atkRangeMap[level-1][0], maxAtk = CONFIG.atkRangeMap[level-1][1];
+export function genAttack({level=1,melee=1,name='',isSkill=0}){ // 生成一个攻击方式
+    let newAtk = {};
+    let atkAll = 0; // 是否为全体攻击
+    let r1Ratio = 0, r2Ratio = 0, rAllRatio = 0;
+    let minAtk, maxAtk;
+    if(isSkill){ // 用于技能
+        minAtk = CONFIG.skillAtkRangeMap[level-1][0];
+        maxAtk = CONFIG.skillAtkRangeMap[level-1][1];
+        rAllRatio = 1;
+    }
+    else{ // 用于武器
+        minAtk = CONFIG.weaponAtkRangeMap[level-1][0];
+        maxAtk = CONFIG.weaponAtkRangeMap[level-1][1];
+        atkAll = !r(0,4);
+        rAllRatio = .25;
+    }
     if(melee==1){ // 近战
         if(r(1,10)<=3){ // 纯近战
-            r1Ratio = 1;
+            r1Ratio = 2;
             r2Ratio = 0;
         }
         else{
-            r1Ratio = .5;
-            r2Ratio = .5;
+            r1Ratio = 1;
+            r2Ratio = 1;
         }
     }
     else{ // 远程
         if(r(1,10)<=9){ // 纯远程
             r1Ratio = 0;
-            r2Ratio = 1;
+            r2Ratio = 2;
         }
         else{
-            r1Ratio = .2;
-            r2Ratio = .8;
+            r1Ratio = .4;
+            r2Ratio = 1.6;
         }
     }
     newAtk = {
         n: name,
         d: cl(exptr(minAtk,maxAtk,1))+1,
-        r1: cl(genRx(level)*r1Ratio),
-        r2: cl(genRx(level)*r2Ratio),
+        r1: cl(genRx(level)*r1Ratio*rAllRatio),
+        r2: cl(genRx(level)*r2Ratio*rAllRatio),
         b: [],
         bl: [],
         s: 0,
         sl: 0,
         a: atkAll,
     };
-    if(!atkAll){ // 如果不是全体攻击
-        // 添加buff
-        let buffCount = exptr(0,2,3);
-        let sfdBuffs = shuffle(CONFIG.badBuffs);
-        for(let i=0;i<buffCount;i++){
-            let buffId = sfdBuffs[i].id;
-            let buffLvl = r(1,level);
-            newAtk.b.push(buffId);
-            newAtk.bl.push(buffLvl);
+    if(!isSkill){ // 用于武器
+        if(!atkAll){ // 如果不是全体攻击
+            // 添加buff
+            let buffCount = exptr(0,2,3);
+            let sfdBuffs = shuffle(CONFIG.badBuffs);
+            for(let i=0;i<buffCount;i++){
+                let buffId = sfdBuffs[i].id;
+                let buffLvl = r(1,level);
+                newAtk.b.push(buffId);
+                newAtk.bl.push(buffLvl);
+            }
+            // 添加特殊效果
+            if(r(1,10)<=3){
+                newAtk.s = r(1,6);
+                newAtk.sl = r(1,level);
+            }
         }
-        // 添加特殊效果
-        if(r(1,10)<=3){
-            newAtk.s = r(1,5);
-            newAtk.sl = r(1,level);
+        else if(atkAll){ // 全体攻击，减少攻击力
+            newAtk.d -= cl(newAtk.d*.6);
+            newAtk.r1 -= cl(newAtk.r1*.6);
+            newAtk.r2 -= cl(newAtk.r2*.6);
         }
     }
-    let atkValue = calcAtkValue(newAtk);
-    newAtk.c = cl(atkValue*.1); // 攻击体耗
-    if(newAtk.c<1){
-        newAtk.c = 1;
-    }
+    newAtk.c = calcWeaponAtkConsume(newAtk); // 攻击体耗
+    newAtk.c = setInRange(newAtk.c,1,Infinity);
     return newAtk;
 }
 
@@ -328,19 +343,15 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
         switch(attr){
             case 0: // 血量
                 res = cl(exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],4)/5)+3;
-                // res.value = cl(res.result*.7);
             break;
             case 1: // 精力
                 res = cl(exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],4)/5)+2;
-                // res.value = cl(res.result*1.1);
             break;
             case 2: // 体力
                 res = cl(r(1,pow(level)+2));
-                // res.value = cl(res.result*350);
             break;
             case 3: // 防御
                 res = cl(exptr(CONFIG.defRangeMap[level-1][0],CONFIG.defRangeMap[level-1][1],4))+1;
-                // res.value = cl(res.result*175);
             break;
             case 4: // 属性
             case 5:
@@ -350,7 +361,6 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
             case 9:
             case 10:
                 res = cl(exptr(CONFIG.attrRangeMap[level-1][0],CONFIG.attrRangeMap[level-1][1],3)/6)+1;
-                // res.value = cl(res.result*60);
             break;
         }
         return res;
@@ -374,11 +384,12 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
     }
     else if(type==3){ // 身体
         aRange = [0,3,8,9,];
-        rRange = [1,2,7,10,];
+        rRange = [1,2,6,7,10,];
         dRange = [20,450];
     }
     else if(type==4){ // 配饰
-        rRange = [1,2,3,4,5,6,7,8,9,10,];
+        aRange = [2,];
+        rRange = [3,4,5,6,7,8,9,10,];
         dRange = [1,40];
     }
     else if(type==5){ // 脚
@@ -395,7 +406,10 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
         res.a.push(newAttr);
     }
     // 设置可有属性
-    let rCount = exptr(0,4,3);
+    let rCount = exptr(0,5,1);
+    if(type==4){
+        rCount = exptr(0,7,1);
+    }
     let shufRRange = shuffle(rRange);
     for(let i=0;i<rCount;i++){
         let newAttr = [0,0,];
@@ -416,12 +430,22 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
     // 武器添加攻击方式
     if(type==1){
         let atkCount = exptr(1,3,3); // 攻击方式的数量
+        // let atkCount = 3; // 攻击方式的数量
         let atkNames = shuffle(melee==1?NAMES.ATTACK_NAME_MELEE_LIST:NAMES.ATTACK_NAME_RANGE_LIST);
         res.k = [];
         for(let i=0;i<atkCount;i++){ // 循环生成攻击方式
             let name = atkNames[i];
             let newAtk = genAttack({level,melee,name,});
             res.k.push(newAtk);
+        }
+        // 调整每个攻击方式的体力消耗
+        let sortedK = bulbsort(res.k,'c',1);
+        if(sortedK.length==3){
+            sortedK[0].c += cl(sortedK[0].c*.3);
+            sortedK[1].c += cl(sortedK[1].c*.15);
+        }
+        else if(sortedK.length==2){
+            sortedK[0].c += cl(sortedK[0].c*.15);
         }
     }
 
@@ -444,7 +468,7 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
 	t: 1, // 1自己 2我方单体 3敌方单体
 	el: [{
         t: 3, // 技能效果数组【 1攻击 2添加状态 3减弱一个状态 4恢复生命 5改变护甲 6改变潜能 7改变心防 8改变存在感 】
-        d: 7, // 攻击方式数组[{d:5,r1:24,r2:17}]，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，固疗和百分疗 { h:100, rx:35},心防固伤和智力补正 { d:100, rx:35 }
+        d: 7, // 攻击方式{d:5,r1:24,r2:17}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，固疗和百分疗 { h:100, rx:35},心防固伤和智力补正 { d:100, rx:35 }
     },],
 	c: 6, // 体力消耗
 	d: 1200, // 存在感
@@ -502,11 +526,10 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
             sfdSkillEffectList.push(e);
         }
     }
-    // console.log(sfdSkillEffectList);
 
     // TODO
     eCount = 1;
-    sfdSkillEffectList = [7];
+    sfdSkillEffectList = [1]; // 【 1攻击 2添加状态 3减弱一个状态 4恢复生命 5改变护甲 6改变潜能 7改变心防 8改变存在感 】
 
     let hasAttack = 0;
     for(let i=0;i<eCount;i++){ // 逐个添加效果
@@ -515,17 +538,16 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
         }
         switch(sfdSkillEffectList[i]){ // 【 1攻击 2添加状态 3减弱一个状态 4恢复生命 5改变护甲 6改变潜能 7改变心防 8改变存在感 】
             case 1: // 攻击
-                hasAttack = 1;
-                newEffect.d = [];
-                let atkCount = exptr(1,3,3); // 攻击方式数量
-                for(let j=0;j<atkCount;j++){
-                    let newAtk = genAttack({level,melee});
-                    newEffect.d.push({
-                        d: newAtk.d+level*10,
-                        r1: newAtk.r1,
-                        r2: newAtk.r2,
-                    });
+                let d=0, r1=0, r2=0;
+                let atkCount = 1;
+                for(let i=0;i<atkCount;i++){
+                    let newAttack = genAttack({level,melee,isSkill:1});
+                    d += newAttack.d;
+                    r1 += newAttack.r1;
+                    r2 += newAttack.r2;
                 }
+                newEffect.d = { d, r1, r2, };
+                hasAttack = 1;
             break;
             case 2: // 添加状态
                 newEffect.d = { b:[], bl:[],};
@@ -786,21 +808,37 @@ export function genRXString(val){ // 生成补正等级描述文本
 
 export function calcAtkValue(atk){ // 计算攻击方式的价值
     let score = 100, res = 0;
-    score += atk.d*10;
-    score += atk.r1*60;
-    score += atk.r2*60;
+    score += cl(pow(atk.d,1.34)*33);
+    score += cl(pow(atk.r1,1.34)*65);
+    score += cl(pow(atk.r2,1.34)*65);
+
     for(let i=0;i<atk.bl.length;i++){
-        score += atk.bl[i]*500;
+        score += cl(pow(atk.bl[i],1.34)*1500);
     }
-    score += atk.sl*1000;
+    score += cl(pow(atk.sl,1.34)*2500);
     if(atk.a){
         score *= 1.5;
     }
-    res = cl(score/32);
-    if(res<1){
-        res = 1;
-    }
+    res = cl(score/2);
+    res = setInRange(res,1,Infinity);
     return res;
+}
+export function calcWeaponAtkConsume(atk){ // 计算武器攻击方式的体力消耗
+    let score = 0, res = 0;
+    score += cl(pow(atk.d,1)*7.5);
+    score += cl(pow(atk.r1,1)*8);
+    score += cl(pow(atk.r2,1)*8);
+
+    for(let i=0;i<atk.bl.length;i++){
+        score += cl(pow(atk.bl[i],1.44)*50);
+    }
+    score += cl(pow(atk.sl,1.44)*30);
+    if(atk.a){
+        score *= 1.5;
+    }
+    res = 2+cl(score/100);
+    res = setInRange(res,1,Infinity);
+    return res
 }
 export function calcSkillValue(skill){ // 计算技能价值
     /*id: 11,
@@ -809,7 +847,7 @@ export function calcSkillValue(skill){ // 计算技能价值
 	t: 1, // 1自己 2我方单体 3敌方单体
 	el: [{
         t: 3, // 技能效果数组【 1攻击 2添加状态 3减弱一个状态 4恢复生命 5改变护甲 6改变潜能 7改变心防 8改变存在感 】
-        d: 7, // 攻击方式数组[{d:5,r1:24,r2:17}]，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，固疗和百分疗 { h:100, rx:35},
+        d: 7, // 攻击方式{d:5,r1:24,r2:17}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，固疗和百分疗 { h:100, rx:35},心防固伤和智力补正 { d:100, rx:35 }
     },],
 	c: 6, // 体力消耗
 	d: 1200, // 存在感
@@ -824,12 +862,9 @@ export function calcSkillValue(skill){ // 计算技能价值
         let { t, d, } = effect;
         switch(t){ // 【 1攻击 2添加状态 3减弱一个状态 4恢复生命 5改变护甲 6改变潜能 7改变心防 8改变存在感 】
             case 1: // 攻击
-                for(let j=0;j<d.length;j++){
-                    res += 200;
-                    res += d[j].d*25;
-                    res += d[j].r1*140;
-                    res += d[j].r2*140;
-                }
+                res += cl(pow(d.d,1.15))*26;
+                res += cl(pow(d.r1,1.15))*22;
+                res += cl(pow(d.r2,1.15))*22;
             break;
             case 2: // 添加状态
                 for(let j=0;j<d.bl.length;j++){
@@ -842,11 +877,16 @@ export function calcSkillValue(skill){ // 计算技能价值
             break;
             case 4: // 治疗
                 res += 100 + d.h*20; // 固定值
-                res += d.rx*350; // 补正
+                res += d.rx*75; // 补正
             break;
             case 6: // 改变潜能
-                res += cl(pow(Math.abs(d.d)/1000,1.33)*5000); // 固定值
-                res += cl(pow(Math.abs(d.rx),1.44)*65); // 补正
+                if(beni){ // 技能倾向为利好
+                    res += cl(pow(Math.abs(d.d)/1000,1.33)*2500); // 固定值
+                    res += cl(pow(Math.abs(d.rx),1.44)*19); // 补正
+                }
+                else{ // 技能倾向为伤害
+                    res += cl(pow(Math.abs(d.d)/1000,1.33)*2000); // 固定值
+                }
             break;
             case 7: // 改变心防
                 res += cl(pow(Math.abs(d.d),1.39)*42); // 固定值
@@ -907,10 +947,10 @@ export function calcEquipValue(equip){ // 计算装备的价值
             score += calcAtkValue(atk);
         }
     }
-    let awaReduce = cl(equip.d/10);
-    if(awaReduce<score){
-        score -= awaReduce;
-    }
+    // let awaReduce = cl(equip.d/10);
+    // if(awaReduce<score){
+    //     score -= awaReduce;
+    // }
     return score;
 }
 export function calcUnitScore(unit,game){ // 计算单位战力 TODO

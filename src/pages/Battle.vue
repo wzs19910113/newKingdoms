@@ -130,10 +130,10 @@ export default {
         _nus.push(common.genUnit({id:14,gender:1,level:9,game:this.game,}));
         window.GLOBAL = {};
         window.GLOBAL.battle = {
-            mode: 1, // 战斗模式【1:普通|2：BOSS|3：切磋】
+            mode: 1, // 战斗模式【1:普通|2：BOSS|3：切磋|4：营地】
             envirs: {
                 mapId: 1,
-                cellId: 2,
+                floor: 2,
             },
             playerTeamIds: [1,2,3,4,],
             enemyTeamIds: [11,12,13,14,],
