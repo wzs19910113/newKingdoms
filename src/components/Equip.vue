@@ -1,9 +1,10 @@
 <template>
-    <a class="equip" :class="`equip-${equip.t}`" @click="onTap">
+    <a class="equip" :class="`equip-${equip.t}`" @click="onTap({flag:1,equip,},$event)">
+        <span class="value money" v-html="common.moneyFormat(equip.v,1)"></span>
         <div class="row">
-            <span class="type">{{[`🗡️`,`⛑️`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
+            <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
             <span class="name">{{equip.n}}</span>
-            <span class="awa">（存在感：{{Math.floor(equip.d/100)}}%）</span>
+            <span class="awa">（存在感：{{common.awaFormat(equip.d)}}%）</span>
         </div>
         <div class="row">
             <div class="attr" v-for="attr in equip.a">
@@ -14,13 +15,13 @@
             <div class="atk" v-for="atk in equip.k">
                 <span class="atk-item atk-name">{{atk.a?'全':''}}{{atk.n}} <span class="atk-consume">({{atk.c}})</span></span>
                 <span class="atk-item">伤害<br/>{{atk.d}}</span>
-                <span class="atk-item">力补<br/>{{genRXString(atk.r1)}}</span>
-                <span class="atk-item">精补<br/>{{genRXString(atk.r2)}}</span>
+                <span class="atk-item">力补<br/>{{common.genRXString(atk.r1)}}</span>
+                <span class="atk-item">精补<br/>{{common.genRXString(atk.r2)}}</span>
                 <!-- <span class="atk-item">力补<br/>{{atk.r1}}</span>
                 <span class="atk-item">精补<br/>{{atk.r2}}</span> -->
                 <div class="atk-item buff-wrap">
                     <span class="buff" v-for="(buffId,index) in atk.b" v-bind:key="buffId">
-                        <Buff :buff="genBuff(buffId,atk.bl[index])" mode="2" />
+                        <Buff :buff="genBuff(buffId,atk.bl[index])" :mode="2" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:atk.bl[index]})" />
                     </span>
                 </div>
                 <span class="atk-item sp" v-if="atk.s">{{[`硬直`,`破甲`,`削气`,`必中`,`削精`][atk.s-1]}}<br/>{{atk.sl}}</span>
@@ -31,20 +32,8 @@
 <script>
 import Buff from '../components/Buff';
 import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
+import * as common from '../tools/common';
 import { DEBUG, CONFIG } from '../config/config';
-
-const LEVELS = [
-    [``,0,],
-    [`F`,10,],
-    [`E`,28,],
-    [`D`,46,],
-    [`C`,64,],
-    [`B`,82,],
-    [`A`,100,],
-    [`S`,118,],
-    [`SS`,136,],
-    [`SSS`,150,],
-];
 
 export default {
     name: 'Equip',
@@ -58,7 +47,7 @@ export default {
     data() {
         return {
 
-            DEBUG,CONFIG,
+            common,DEBUG,CONFIG,
         };
     },
     computed: {
@@ -69,28 +58,6 @@ export default {
         // }
     },
     methods: {
-        genRXString(val){ // 生成补正文本
-            if(val<=0||val>150){
-                return `-`;
-            }
-            let name = ``, suffix = ``;
-            for(let i=0;i<LEVELS.length;i++){
-                let l = LEVELS[i];
-                let n = l[0], max = l[1];
-                if(val<=max){ // 8<9
-                    name = n;
-                    let diff = max - LEVELS[i-1][1]; // 3
-                    let mod = max - val; // 1
-                    let div = Math.round(mod/diff*100); // 33
-                    if(div<50){
-                        suffix = `+`;
-                    }
-                    break;
-                }
-            }
-            let res = `${name}${suffix}`;
-            return res;
-        },
         genBuff(buffId,buffLevel){ // 生成buff数据
             let res = {};
             let buffArr = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
@@ -125,15 +92,20 @@ export default {
         background-color: rgba(105,106,129,.5);
     }
     .row{
+        position: relative;
         width: 100%;
         display: flex;
         justify-content: flex-start;
         align-items: center;
+        flex-wrap: wrap;
         min-height: .4rem;
         margin-bottom: .1rem;
     }
     .row:last-child{
         margin-bottom: 0;
+    }
+    .money{
+        color: gold;
     }
     /* 名字 */
     .row .type{
@@ -154,9 +126,21 @@ export default {
         line-height: .3rem;
         font-size: .24rem;
     }
+    .value{
+        position: absolute;
+        top: .16rem;
+        right: -.08rem;
+        padding: 0 .2rem;
+        height: .34rem;
+        line-height: .34rem;
+        background-color: rgba(24,24,24,.98);
+        /* border-top-left-radius: .06rem; */
+        border-bottom-left-radius: .16rem;
+    }
+
     /* 属性加成 */
     .attr{
-        width: .6rem;
+        min-width: .6rem;
         margin-right: .1rem;
     }
     .attr-name,.attr-val{
@@ -205,7 +189,6 @@ export default {
         color: #05cFd3;
         font-weight: bold;
         text-shadow: none;
-
     }
     /* 攻击方式-buff */
     .atk .buff-wrap{

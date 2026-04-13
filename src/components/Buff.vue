@@ -1,19 +1,25 @@
 <template>
     <a class="buff" :class="`${buff.good?'buff-good':'buff-bad'} ${[`buff-sm`,`buff-lg`][mode-1]}`" @click="onTap">
-        <span class="buff-bg" :style="`opacity:${buffBg(buff)}`"></span>
+        <span class="buff-bg" :class="`${shadow?'buff-bg-shadow':''}`" :style="`opacity:${buffBg(buff)}`"></span>
         <span class="buff-name" :style="`opacity:${buffText(buff)}`">{{buff.name+(mode==2?`${buff.level}`:'')}}</span>
     </a>
 </template>
 <script>
-import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
+import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
+import * as common from '../tools/common';
 import { DEBUG, CONFIG } from '../config/config';
+
 export default {
     name: "Buff",
     props:{
         buff: Object,
         mode: { // 模式 1简约 2详细
-            type: String,
-            default: '1',
+            type: Number,
+            default: 1,
+        },
+        shadow: { // 有阴影
+            type: Number,
+            default: 0,
         },
         onTap: { // 点击事件
             type: Function,
@@ -23,6 +29,7 @@ export default {
     data() {
         return {
 
+            common,DEBUG,CONFIG,
         };
     },
     computed: {
@@ -48,7 +55,6 @@ export default {
         position: relative;
         color: #fff;
         background-color: transparent;
-        overflow: hidden;
         text-align: center;
         white-space: nowrap;
         word-break: keep-all;
@@ -89,5 +95,13 @@ export default {
     }
     .buff-bad .buff-bg{
         background-image: radial-gradient(#131313 0%, #800000 100%);
+    }
+    .buff-good .buff-bg-shadow{
+        border: .01rem solid #fff;
+        box-shadow: .02rem .02rem .06rem #131313;
+    }
+    .buff-bad .buff-bg-shadow{
+        border: .01rem solid #fff;
+        box-shadow: .02rem .02rem .06rem #fff;
     }
 </style>

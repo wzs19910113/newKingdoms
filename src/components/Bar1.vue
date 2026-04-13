@@ -15,7 +15,8 @@
     </a>
 </template>
 <script>
-import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
+import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
+import * as common from '../tools/common';
 import { DEBUG, CONFIG } from '../config/config';
 export default {
     props:{
@@ -35,6 +36,7 @@ export default {
     data() {
         return {
 
+            common,DEBUG,CONFIG,
         };
     },
     computed: {},

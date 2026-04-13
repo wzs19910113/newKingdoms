@@ -12,6 +12,11 @@
 </template>
 
 <script>
+
+import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
+import * as common from '../tools/common';
+import { DEBUG, CONFIG } from '../config/config';
+
 export default{
     name: "Bar2",
     props: {
@@ -41,11 +46,13 @@ export default{
         return{
             pColor: ['','#00a800','#8B008B','#FFA500'][this.type],
             bgColor: ['','#666','#666','#666'][this.type],
+
+            common,DEBUG,CONFIG,
         }
     },
     computed: {
         percentage(){ // 计算百分比（0-100）
-            const percent = (this.current / 10000) * 100;
+            const percent = common.awaFormat(this.current);
             return Math.min(100, Math.max(0, Math.floor(percent)));
         },
         circumference(){ // 圆环周长（半径45，周长=2*PI*45 ≈ 282.74）

@@ -140,7 +140,7 @@ export default {
     color: #fff;
     font-size: .24rem;
     text-align: right;
-    padding: 0 .32rem;
+    padding: .1rem .32rem;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;

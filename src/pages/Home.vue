@@ -6,12 +6,12 @@
         </nut-drag>
         <!-- 主体 -->
         <div class="panel">
-            <div class="equip-wrap">
-                <Equip v-for="equip of game.allEquips" v-bind:key="equip.id" :equip="equip" />
+            <div class="skill-wrap">
+                <Skill v-for="skill of game.allSkills" v-bind:key="skill.id" :skill="skill" :onTap="onTapSkill" />
             </div>
-            <!-- <div class="skill-wrap">
-                <Skill v-for="skill of game.allSkills" v-bind:key="skill.id" :equip="skill" />
-            </div> -->
+            <div class="equip-wrap">
+                <Equip v-for="equip of game.allEquips" v-bind:key="equip.id" :equip="equip" :onTap="onTapEquip" />
+            </div>
         </div>
         <!-- alert -->
         <Toast ref="toast" />
@@ -27,6 +27,9 @@ import Toast from '../components/Toast';
 import Pop from '../components/Pop';
 import { query, r, exptr, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, removeFromList, } from '../tools/utils';
 import { DEBUG, CONFIG, CACHE, } from '../config/config';
+
+const BUFF_LIST = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
+
 export default {
     name: 'Home',
     data(){
@@ -61,12 +64,46 @@ export default {
             }
         },
 
+        onTapSkill(data,evt){ // 点击【技能】
+            let { flag, skill, buffId, buffLevel, text, } = data;
+            evt.stopPropagation();
+            evt.preventDefault();
+            if(flag==1){ //
+
+            }
+            else if(flag==2&&buffId&&buffLevel){ // 点击buff
+                this.onTapBuff(buffId,buffLevel);
+            }
+            else if(flag==3&&text){ // 发送说明弹窗
+                this._alert(text);
+            }
+            return false;
+        },
+        onTapEquip(data,evt){ // 点击【装备】
+            let { flag, equip, buffId, buffLevel, } = data;
+            evt.stopPropagation();
+            evt.preventDefault();
+            if(flag==1){ //
+
+            }
+            else if(flag==2){ // 点击buff
+                this.onTapBuff(buffId,buffLevel);
+            }
+            else if(flag==3&&text){ // 发送说明弹窗
+                this._alert(text,3);
+            }
+            return false;
+        },
+        onTapBuff(id,level){ // 点击【buff】
+            let buff = getMatchList(BUFF_LIST,[['id',id]])[0]||{};
+            this._alert(`${buff.name}（强度${level}）：${buff.desc}`,5);
+        },
         onTapCheat(){ // 点击【作弊】按钮
 
         },
 
-        _alert(text){ // 显示提示
-            this.$refs.toast.trigger(text);
+        _alert(text,time){ // 显示提示
+            this.$refs.toast.trigger(text,time);
         },
     },
     components:{
@@ -91,7 +128,6 @@ export default {
         font-size: .24rem;
         line-height: 0;
         background-color: #140425;
-        overflow-y: auto;
     }
     .btn{
         background-color: transparent;
@@ -102,6 +138,11 @@ export default {
         border-radius: .01rem;
         border: .02rem solid #2F4F4F;
         box-shadow: 0 0 .14rem #2F4F4F inset;
+    }
+    .panel{
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
     }
 
     /* 侧边按钮 */

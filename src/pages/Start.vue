@@ -133,11 +133,14 @@ export default {
         genGameData({}){ // 生成随机的游戏数据
             // 生成角色
             // 生成装备
-            for(let i=0;i<32;i++){
-                this.genEquip(r(1,9),r(1,5));
+            for(let i=0;i<40;i++){
+                this.genEquip(r(1,1),r(1,5));
+            }
+            for(let i=0;i<40;i++){
+                this.genSkill(r(1,9),0);
             }
         },
-        genEquip(level,type){
+        genEquip(level,type){ // 生成一个装备
             let equip = common.genEquip({
                 id: this.game.equipIndex++,
                 game: this.game,
@@ -145,6 +148,15 @@ export default {
                 type,
             });
             this.game.allEquips.push(equip);
+        },
+        genSkill(level,beni){ // 生成一个技能
+            let skill = common.genSkill({
+                id: this.game.skillIndex++,
+                game: this.game,
+                level,
+                beni,
+            });
+            this.game.allSkills.push(skill);
         },
 
         _alert(text){ // 显示提示

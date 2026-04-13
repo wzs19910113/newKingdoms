@@ -99,12 +99,12 @@ export default {
             showMenuGuide: 0, // 显示操作菜单指导
             menuGuids: [
                 {name:'防御',desc:'恢复防御力到满值'},
-                {name:'躲避',desc:'降低自己的存在感'},
-                {name:'追踪',desc:'提升敌方单位10%的存在感，该单位为存在感最高的敌人'},
+                {name:'躲避',desc:'降低自己的存在感（隐蔽）'},
+                {name:'追踪',desc:'提升敌方单位10%的存在感，该单位只能是存在感最高的敌人'},
                 {name:'呼吸',desc:'恢复体力到满值'},
-                {name:'集气',desc:'提升潜能'},
+                {name:'集气',desc:'提升潜能（爆发）'},
                 {name:'爆气',desc:'消耗自己全部潜能，选择自己的某项属性按百分比提升'},
-                {name:'劝降',desc:'降低敌人的心理防御，有概率让敌人脱离战斗并回到村落'},
+                {name:'话术',desc:'降低敌人的心理防御（智力）'},
             ],
 
             game: null,
@@ -295,13 +295,13 @@ export default {
                 // this._alert(`${btd.name}`);
             }
             else if(flag==2){ // 点击buff
-                this._alert(`${buff.name}（等级${buff.level}）`);
+                this._alert(`${buff.name}（强度${buff.level}）：${buff.desc}`,5);
             }
             else if(flag==101){ // 点击血条
-                this._alert(`生命力: ${btd.hp[0]} / ${btd.hp[1]}`);
+                // this._alert(`生命力: ${btd.hp[0]} / ${btd.hp[1]}`);
             }
             else if(flag==102){ // 点击精条
-                this._alert(`精力: ${btd.eng[0]} / ${btd.eng[1]}`);
+                // this._alert(`精力: ${btd.eng[0]} / ${btd.eng[1]}`);
             }
             else if(flag==103){ // 点击行动条
                 this._alert(`行动进度: ${Math.round(btd.move/100)} %`);
@@ -359,8 +359,8 @@ export default {
             }
         },
 
-        _alert(text){ // 显示提示
-            this.$refs.toast.trigger(text);
+        _alert(text,time){ // 显示提示
+            this.$refs.toast.trigger(text,time);
         },
 
         onTapCheat(){ // 点击【作弊】按钮
