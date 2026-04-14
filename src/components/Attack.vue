@@ -21,7 +21,22 @@ import { DEBUG, CONFIG } from '../config/config';
 export default {
     name: 'Equip',
     props:{
-        attack: Object,
+        attack: { // 攻击方式数据
+            type: Object,
+            default: {},
+        },
+        mode: { // 模式 1装备栏 2战斗-菜单
+            type: Number,
+            default: 1,
+        },
+        unit: { // 持有者
+            type: Object,
+            default: function(){},
+        },
+        equip: { // 所属武器
+            type: Object,
+            default: function(){},
+        },
         onTap: { // 点击事件
             type: Function,
             default: function(){},
@@ -58,30 +73,32 @@ export default {
 <style scoped>
     .attack{
         width: 100%;
-        padding: .04rem .08rem;
+        height: 1rem;
+        padding: .04rem 0;
         margin-bottom: .14rem;
         display: flex;
         justify-content: flex-start;
         align-items: center;
-        border-radius: .06rem;
         text-shadow: 0 0 .12rem #000;
-        background-color: rgba(184,146,32,.96);
+        /* border: .01rem solid #8ae4f1; */
+        border: .01rem solid rgba(138,228,241,.2);
+        background-color: rgba(44,44,44,.6);
     }
     .attack:last-child{
         margin-bottom: 0;
     }
     .attack-item{
         width: 13%;
+        line-height: .3rem;
         font-size: .22rem;
     }
     .attack-name{
         width: 25%;
-        height: .6rem;
-        line-height: .6rem;
-        background-color: #131313;
-        border-radius: .1rem;
+        height: .8rem;
+        line-height: .8rem;
         white-space: nowrap;
         word-break: keep-all;
+        border-right: .01rem solid rgba(138,228,241,.2);
     }
     .attack-consume{
         color: #05cFd3;
@@ -106,6 +123,6 @@ export default {
         width: .82rem;
         height: .82rem;
         line-height: .41rem;
-        background-color: rgba(96,72,14,.96);
+        background-color: rgba(126,112,14,.96);
     }
 </style>

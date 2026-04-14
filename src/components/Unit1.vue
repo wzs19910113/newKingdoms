@@ -3,8 +3,8 @@
         <div class="block block-stat">
             <div class="avatar-wrap">
                 <a class="avatar" :class="">{{unit.nk+`\r`+unit.btd.name}}</a>
-                <div class="weapon" v-if="unit.btd.weapon1">🗡️{{unit.btd.weapon1}}</div>
-                <div class="weapon" v-if="unit.btd.weapon2">🗡️{{unit.btd.weapon2}}</div>
+                <div class="weapon" v-if="unit.btd.weaponName1">🗡️{{unit.btd.weaponName1}}</div>
+                <div class="weapon" v-if="unit.btd.weaponName2">🗡️{{unit.btd.weaponName2}}</div>
             </div>
             <div class="stat-block-bars">
                 <div class="stat-block-bars-row">

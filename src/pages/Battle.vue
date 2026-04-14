@@ -25,26 +25,30 @@
                 </div>
                 <!-- 操作板块 -->
                 <div class="menu-wrap" :class="`${menuExpand?'menu-wrap-expand':''}`" v-if="menuState>0">
-                    <a class="btn btn-help" @click="onTapMenuHelp">?</a>
                     <a class="btn btn-expand" @click="onTapMenuExpand">{{menuExpand?`▽`:`△`}}</a>
+                    <a class="btn btn-back" v-if="menuState>1" @click="onTapMenuBack">返回</a>
                     <div class="menu">
                         <p class="menu-tip">{{menuTip}}</p>
                         <div class="menu-tag" v-if="menuState==1">
-                            <a class="btn menu-block menu-btn menu-btn-1" @click="onTapMenu(1)">攻击</a>
-                            <a class="btn menu-block menu-btn menu-btn-2" @click="onTapMenu(2)">技能</a>
+                            <a class="btn menu-block menu-btn menu-btn-1" @click="onTapMenu({flag:1})">攻击</a>
+                            <a class="btn menu-block menu-btn menu-btn-2" @click="onTapMenu({flag:2})">技能</a>
                             <div class="menu-block menu-block-lg">
-                                <a class="btn" @click="onTapMenu(3)">防御️</a>
-                                <a class="btn" @click="onTapMenu(4)">躲避</a>
-                                <a class="btn" @click="onTapMenu(5)">追踪</a>
-                                <a class="btn" @click="onTapMenu(6)">呼吸</a>
-                                <a class="btn" @click="onTapMenu(7)">集气</a>
-                                <a class="btn" @click="onTapMenu(8)">爆气</a>
-                                <a class="btn" @click="onTapMenu(9)">劝降</a>
-                                <a class="btn" @click="onTapMenu(10)">撤离</a>
+                                <a class="btn" @click="onTapMenu({flag:3})">防御️</a>
+                                <a class="btn" @click="onTapMenu({flag:4})">躲避</a>
+                                <a class="btn" @click="onTapMenu({flag:5})">追踪</a>
+                                <a class="btn" @click="onTapMenu({flag:6})">呼吸</a>
+                                <a class="btn" @click="onTapMenu({flag:7})">集气</a>
+                                <a class="btn" @click="onTapMenu({flag:8})">爆气</a>
+                                <a class="btn" @click="onTapMenu({flag:9})">劝降</a>
+                                <a class="btn" @click="onTapMenu({flag:10})">撤离</a>
                             </div>
                         </div>
-                        <div class="menu-tag" v-if="menuState>1">
-                            <div class="menu-row"></div>
+                        <div class="menu-tag" v-if="menuState==2">
+                            <div class="menu-attack-wrap">
+                                <div class="menu-weapon" v-for="(weapon,index) in curUnits[curUnitsIndex].btd.weaponList" v-bind:key="index">
+                                    <Attack class="menu-attack" v-for="(attack,index) in weapon.k" v-bind:key="index" :attack="attack" :onTap="onTapMenu.bind(this,{flag:21,data:attack})" :mode="2" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -73,6 +77,7 @@ import Unit2 from '../components/Unit2';
 import Equip from '../components/Equip';
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
+import Attack from '../components/Attack';
 import Pop from '../components/Pop';
 import Toast from '../components/Toast';
 import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
@@ -90,6 +95,11 @@ export default {
             boardTip: '', // 战场公示文字
             menuTip: '', // 菜单公示文字
             menuExpand: 0, // 菜单展开标识
+
+            menuData: { // 菜单数据
+                unitList: [],
+                lastMenuState: -1,
+            },
 
             curUnits: [], // 本帧行动单位数组
             curUnitsIndex: -1, // 本帧行动单位数组下标
@@ -138,14 +148,18 @@ export default {
             playerTeamIds: [1,2,3,4,],
             enemyTeamIds: [11,12,13,14,],
         }
-        _nus[1].es[0] = 1;
-        _nus[1].es[1] = 4;
-        _nus[2].es[0] = 4;
+        _nus[0].es[0] = 1;
+        _nus[1].es[0] = 2;
+        _nus[2].es[0] = 3;
+        _nus[3].es[0] = 4;
+        _nus[3].es[1] = 5;
         window.GLOBAL.allUnits = _nus;
         window.GLOBAL.allEquips = [];
         window.GLOBAL.allEquips.push(common.genEquip({id:1,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.allEquips.push(common.genEquip({id:2,game:{},level:r(9,9),type:r(1,5)}));
-        window.GLOBAL.allEquips.push(common.genEquip({id:3,game:{},level:r(9,9),type:r(1,5)}));
+        window.GLOBAL.allEquips.push(common.genEquip({id:2,game:{},level:r(9,9),type:r(1,1)}));
+        window.GLOBAL.allEquips.push(common.genEquip({id:3,game:{},level:r(9,9),type:r(1,1)}));
+        window.GLOBAL.allEquips.push(common.genEquip({id:4,game:{},level:r(9,9),type:r(1,1)}));
+        window.GLOBAL.allEquips.push(common.genEquip({id:5,game:{},level:r(9,9),type:r(1,1)}));
         window.GLOBAL.allSkills =  [{ // 全部技能
             	id: 1,
             	n: '治疗术',
@@ -221,6 +235,10 @@ export default {
                     break
                 }
             });
+        },
+        goMenuState(flag){ // 进入菜单
+            this.menuData.lastMenuState = this.menuState;
+            this.menuState = flag;
         },
         movementProcess(){ // 行动条进展
             let allUnits = [...this.playerTeam,...this.enemyTeam];
@@ -329,33 +347,37 @@ export default {
         onTapMenuExpand(){ // 点击【菜单-展开】
             this.menuExpand = !this.menuExpand;
         },
-        onTapMenu(flag){ // 点击【执行操作】 0不显示 1基础选项 2攻击选项 3技能选项 4选择单位 5选择属性
+        onTapMenuBack(){ // 点击【菜单-退后】
+            this.menuState = this.menuData.lastMenuState;
+        },
+        onTapMenu({flag,data}){ // 点击【执行操作】 0不显示 1基础选项 2攻击选项 3技能选项 4选择单位 5选择属性
             let nextStep = _ =>{
                 this.goPageState(2);
             }
             if(flag==1){ // 攻击
-                nextStep();
+                this.goMenuState(2);
             }
             else if(flag==2){ // 技能
-                nextStep();
             }
             else if(flag==3){ // 防御
-                nextStep();
             }
             else if(flag==4){ // 躲避
-                nextStep();
             }
-            else if(flag==5){ // 恢复
-                nextStep();
+            else if(flag==5){ // 追踪
             }
-            else if(flag==6){ // 话术
-                nextStep();
+            else if(flag==6){ // 呼吸
             }
-            else if(flag==7){ // 追踪
-                nextStep();
+            else if(flag==7){ // 集气
             }
-            else if(flag==8){ // 撤离
-                nextStep();
+            else if(flag==8){ // 爆气
+            }
+            else if(flag==9){ // 劝降
+            }
+            else if(flag==10){ // 撤离
+            }
+            else if(flag==21){ // 攻击方式
+                let attack = data;
+                console.log(attack);
             }
         },
 
@@ -373,6 +395,7 @@ export default {
         Unit2,
         Equip,
         Pop,
+        Attack,
         Bar1,
         Bar2,
     },
@@ -501,7 +524,6 @@ export default {
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        overflow-y: auto;
         z-index: 2000;
         box-shadow: 0 -.03rem .04rem #8ae4f1;
         transition: all .2s;
@@ -509,34 +531,38 @@ export default {
     .menu-wrap-expand{
         height: 100%;
     }
-    .menu-wrap .btn-help,
-    .menu-wrap .btn-expand{
+    .menu-wrap .btn-expand,
+    .menu-wrap .btn-back{
         display: inline-block;
         position: absolute;
-        top: .14rem;
-        height: .3rem;
-        line-height: .3rem;
-        font-size: .2rem;
-        font-weight: bold;
-    }
-    .menu-wrap .btn-help{
-        width: .3rem;
-        right: .16rem;
-        border-radius: 50%;
-    }
-    .menu-wrap .btn-expand{
-        width: 3rem;
-        right: .56rem;
-        text-align: right;
+        top: 0;
+        width: .88rem;
+        height: .76rem;
+        line-height: .76rem;
+        text-align: center;
         border: none;
         box-shadow: none;
-        padding-right: .2rem;
         color: #8ae4f1;
     }
+    .menu-wrap .btn-expand{
+        right: 0;
+        font-weight: bold;
+        font-size: .4rem;
+    }
+    .menu-wrap .btn-back{
+        right: .88rem;
+        font-size: .24rem;
+    }
     .menu{
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        flex-direction: column;
         width: 100%;
         height: 100%;
         padding: .2rem .35rem;
+        padding-bottom: .04rem;
+        overflow: hidden;
     }
     .menu .menu-tip{
         height: .44rem;
@@ -551,6 +577,7 @@ export default {
         display: flex;
         justify-content: space-around;
         align-items: flex-start;
+        overflow-y: auto;
         width: 100%;
         height: 100%;
     }
@@ -597,6 +624,17 @@ export default {
     }
     .menu .menu-row .btn-lg{
         width: 2rem;
+    }
+    .menu .menu-attack-wrap{
+        width: 100%;
+    }
+    .menu .menu-weapon{
+        width: 100%;
+        color: #fff;
+        margin-bottom: .12rem;
+    }
+    .menu .menu-attack{
+        width: 100%;
     }
 
     /* pop */

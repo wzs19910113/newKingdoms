@@ -8,8 +8,8 @@
             <Bar2 class="cir3" :current="unit.btd.dge" :type="3" :onTap="onTap.bind(this,{flag:105,unit,})" />
         </div>
         <div class="weapon-row" :class="`${!unit.btd.alive?'dead':''}`">
-            <div class="weapon" v-if="unit.btd.weapon1">{{unit.btd.weapon1}}</div>
-            <div class="weapon" v-if="unit.btd.weapon2">{{unit.btd.weapon2}}</div>
+            <div class="weapon" v-if="unit.btd.weaponName1">{{unit.btd.weaponName1}}</div>
+            <div class="weapon" v-if="unit.btd.weaponName2">{{unit.btd.weaponName2}}</div>
         </div>
         <div class="stat-row" :class="`${!unit.btd.alive?'dead':''}`">
             <Bar1 class="bar" title="" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" :onTap="onTap.bind(this,{flag:101,unit,})" />

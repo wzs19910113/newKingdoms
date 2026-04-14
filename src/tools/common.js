@@ -203,7 +203,7 @@ export function genAttack({level=1,melee=1,name='',isSkill=0}){ // 生成一个�
         minAtk = CONFIG.weaponAtkRangeMap[level-1][0];
         maxAtk = CONFIG.weaponAtkRangeMap[level-1][1];
         atkAll = !r(0,4);
-        rAllRatio = .25;
+        rAllRatio = .75;
     }
     if(melee==1){ // 近战
         if(r(1,10)<=3){ // 纯近战
@@ -360,7 +360,7 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
             case 8:
             case 9:
             case 10:
-                res = cl(exptr(CONFIG.attrRangeMap[level-1][0],CONFIG.attrRangeMap[level-1][1],3)/6)+1;
+                res = cl(exptr(CONFIG.attrRangeMap[level-1][0],CONFIG.attrRangeMap[level-1][1],3)/2)+r(2,level*3);
             break;
         }
         return res;
@@ -429,7 +429,7 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
 
     // 武器添加攻击方式
     if(type==1){
-        let atkCount = exptr(1,3,3); // 攻击方式的数量
+        let atkCount = exptr(1,3,2); // 攻击方式的数量
         // let atkCount = 3; // 攻击方式的数量
         let atkNames = shuffle(melee==1?NAMES.ATTACK_NAME_MELEE_LIST:NAMES.ATTACK_NAME_RANGE_LIST);
         res.k = [];
@@ -512,7 +512,7 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
         res.n = genSkillName({level,beni:0});
     }
     // 技能效果
-    let eCount = exptr(1,3,5); // 效果数量
+    let eCount = exptr(1,3,1); // 效果数量
     let sfdSkillEffectList = []; // 可能拥有的效果数组
     let _sfdSkillEffectList = [];
     for(let e of skillEffectList){
@@ -528,8 +528,8 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
     }
 
     // TODO
-    eCount = 1;
-    sfdSkillEffectList = [1]; // 【 1攻击 2添加状态 3减弱一个状态 4恢复生命 5改变护甲 6改变潜能 7改变心防 8改变存在感 】
+    // eCount = 1;
+    // sfdSkillEffectList = [1]; // 【 1攻击 2添加状态 3减弱一个状态 4恢复生命 5改变护甲 6改变潜能 7改变心防 8改变存在感 】
 
     let hasAttack = 0;
     for(let i=0;i<eCount;i++){ // 逐个添加效果
@@ -666,13 +666,17 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.alive = 1; // 存活
     btd.teamSeq = _unit.tms;
     btd.buffs = [];
+    btd.weaponList = [];
+    btd.skillList = [];
+    
     for(let i=0;i<weapons.length;i++){
         if(weapons[i]){
+            btd.weaponList.push(weapons[i]);
             if(i==0){
-                btd.weapon1 = weapons[i].n;
+                btd.weaponName1 = weapons[i].n;
             }
             else if(i==1){
-                btd.weapon2 = weapons[i].n;
+                btd.weaponName2 = weapons[i].n;
             }
         }
     }
@@ -816,9 +820,6 @@ export function calcAtkValue(atk){ // 计算攻击方式的价值
         score += cl(pow(atk.bl[i],1.34)*1500);
     }
     score += cl(pow(atk.sl,1.34)*2500);
-    if(atk.a){
-        score *= 1.5;
-    }
     res = cl(score/2);
     res = setInRange(res,1,Infinity);
     return res;
@@ -873,7 +874,7 @@ export function calcSkillValue(skill){ // 计算技能价值
                 }
             break;
             case 3: // 减弱一个状态
-                res += 1000 + cl(pow(d,1.25))*1500;
+                res += 1000 + cl(pow(d,1.25))*900;
             break;
             case 4: // 治疗
                 res += 100 + d.h*20; // 固定值
