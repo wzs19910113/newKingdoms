@@ -72,7 +72,7 @@
         </div>
         <!-- 弹窗 -->
         <div class="canvas-cover" v-if="pageState==4">
-            <b>执行动画中...</b>
+            <Ani class="ani" res="ani" />
         </div>
         <Pop v-if="viewingUnit" title="角色面板" :onTap="onTapPop">
             <div class="unit-info-pop">
@@ -95,9 +95,10 @@ import Unit1 from '../components/Unit1';
 import Unit2 from '../components/Unit2';
 import Equip from '../components/Equip';
 import Skill from '../components/Skill';
+import Attack from '../components/Attack';
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
-import Attack from '../components/Attack';
+import Ani from '../components/Ani';
 import Pop from '../components/Pop';
 import Toast from '../components/Toast';
 import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
@@ -146,7 +147,7 @@ export default {
             playerTeam:[],
             enemyTeam:[],
 
-            itv: null, // 动画计时器
+            aniTimer: null, // 动画计时器
 
             CONFIG,
             DEBUG,
@@ -225,8 +226,8 @@ export default {
         }
     },
     destroyed(){
-        clearInterval(this.itv);
-        this.itv = null;
+        clearInterval(this.aniTimer);
+        this.aniTimer = null;
     },
     methods: {
         init(){ // 初始化全部
@@ -395,7 +396,7 @@ export default {
         playAni(type,data,period=1){ // 播放动画 period：1,2,3
             this.goPageState(4);
             console.log(`播放动画=>${[`攻击`,`技能`,`防御`,`躲避`,`追踪`,`呼吸`,`集气`,`爆气`,`劝降`,`撤离`,][type-1]}`,data);
-            this.itv = setTimeout(_=>{
+            this.aniTimer = setTimeout(_=>{
                 this.onAniEnd();
             },CONFIG.aniPeriod[period-1]);
         },
@@ -634,15 +635,16 @@ export default {
         },
     },
     components:{
-        Toast,
         Unit1,
         Unit2,
         Equip,
         Skill,
-        Pop,
         Attack,
         Bar1,
         Bar2,
+        Ani,
+        Pop,
+        Toast,
     },
 }
 </script>
@@ -963,7 +965,7 @@ export default {
         height: .8977rem;
         line-height: .8977rem;
     }
-    /* pop */
+    /* 动画 */
     .canvas-cover{
         position: absolute;
         width: 100%;
@@ -981,6 +983,10 @@ export default {
         justify-content: center;
         align-items: center;
     }
+    .ani{
+        
+    }
+    /* pop */
     .unit-info-pop{
         width: 100%;
         padding: .14rem .22rem;

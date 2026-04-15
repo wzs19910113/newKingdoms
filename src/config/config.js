@@ -5,6 +5,7 @@ module.exports = {
 	},
 	CONFIG:{
 		attrMap: [`生命`,`精力`,`体力`,`防御`,`力量`,`精准`,`速度`,`智力`,`定力`,`隐蔽`,`爆发`,],
+		spAttackList: [`破甲`,`压制`,`气溃`,`精溃`,`命中`,`锁定`,`攻心`,`淘金`,],
 		goodBuffs: [{ // 倾向分值[1保护,2强化,3伤害,4弱化]
 				id: 1,name: '疗愈',trend:1,good:1,
 				desc: '受到的治疗效果增强',
@@ -24,7 +25,7 @@ module.exports = {
 				id: 6,name: '潜行',trend:1,good:1,
 				desc: '存在感下降更多',
 			},{
-				id: 7,name: '淘金',trend:1,good:1,
+				id: 7,name: '财迷',trend:1,good:1,
 				desc: '造成伤害后能获得金币',
 			},{
 				id: 8,name: '架势',trend:1,good:1,
@@ -51,7 +52,7 @@ module.exports = {
 				id: 15,name: '迅捷',trend:2,good:1,
 				desc: '提升行动力增速',
 			},{
-				id: 16,name: '凝神',trend:2,good:1,
+				id: 16,name: '亢奋',trend:2,good:1,
 				desc: '造成伤害后恢复自己的体力',
 			},{
 				id: 17,name: '隐匿',trend:1,good:1,
@@ -88,7 +89,7 @@ module.exports = {
 				id: 106,name: '涣散',trend:4,good:0,
 				desc: '潜能累积速度下降',
 			},{
-				id: 107,name: '锁定',trend:3,good:0,
+				id: 107,name: '暴露',trend:3,good:0,
 				desc: '存在感降低能力减弱',
 			},{
 				id: 108,name: '悬赏',trend:3,good:0,
@@ -100,7 +101,7 @@ module.exports = {
 				id: 110,name: '缺氧',trend:4,good:0,
 				desc: '体力的恢复减少',
 			},{
-				id: 111,name: '无力',trend:4,good:0,
+				id: 111,name: '乏力',trend:4,good:0,
 				desc: '力量补正减少',
 			},{
 				id: 112,name: '模糊',trend:4,good:0,
@@ -269,7 +270,7 @@ equip = {
 			r2: 7, // 精准补正
 			b: [103,105,], // buff制造表（buff id）
 			bl: [4,3], // buff等级表（1-9）
-			s: 4, // 特殊效果 1硬直 2破甲 3削气 4必中 5削精 6攻心
+			s: 4, // 特殊效果 1压制 2破甲 3气溃 4命中 5锁定 6精溃 7攻心 8淘金
 			sl: 2, // 特殊效果等级
 			a: 0, // 目标是否为全体
 			c: 4, // 体力消耗
@@ -334,13 +335,4 @@ role = {
 
 }
 
-*/
-
-/*
-effects: [{ // 额外效果列表
-	trigType: 1, // 触发类型 【1:战斗开始|2:公共回合开始|3:自己回合开始|4:发动攻击|5:受到攻击|6:发动治疗|7:生命力提升】
-	targets: [3,], // 作用目标ID列表
-	eventType: 1, // 事件类型 【1：属性调整|2：金币调整|3：添加状态|4：消除状态】
-	event:
-},]
 */

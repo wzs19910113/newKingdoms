@@ -248,7 +248,7 @@ export function genAttack({level=1,melee=1,name='',isSkill=0}){ // 生成一个�
                 newAtk.bl.push(buffLvl);
             }
             // 添加特殊效果
-            newAtk.s = r(1,6);
+            newAtk.s = r(1,CONFIG.spAttackList.length);
             newAtk.sl = r(1,level);
         }
         // else if(atkAll){ // 全体攻击，减少攻击力

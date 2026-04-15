@@ -10,7 +10,7 @@
                     <Buff :buff="genBuff(buffId,attack.bl[index])" :mode="2" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:attack.bl[index]})" />
                 </span>
             </div>
-            <span class="attack-item sp" v-if="attack.s">{{[`硬直`,`破甲`,`削气`,`必中`,`削精`,`攻心`][attack.s-1]}}<br/>Lv.{{attack.sl}}</span>
+            <span class="attack-item sp" v-if="attack.s">{{CONFIG.spAttackList[attack.s-1]}}<br/>Lv.{{attack.sl}}</span>
         </span>
         <span class="attack-mode" v-if="mode==2">
             <span class="attack-shrink">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{attack.c}})</span></span>
