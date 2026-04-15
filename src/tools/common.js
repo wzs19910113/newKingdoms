@@ -207,22 +207,22 @@ export function genAttack({level=1,melee=1,name='',isSkill=0}){ // 生成一个�
     }
     if(melee==1){ // 近战
         if(r(1,10)<=3){ // 纯近战
-            r1Ratio = 2;
+            r1Ratio = 1;
             r2Ratio = 0;
         }
         else{
-            r1Ratio = 1;
-            r2Ratio = 1;
+            r1Ratio = .9;
+            r2Ratio = .7;
         }
     }
     else{ // 远程
-        if(r(1,10)<=9){ // 纯远程
+        if(r(1,10)<=8){ // 纯远程
             r1Ratio = 0;
-            r2Ratio = 2;
+            r2Ratio = 1;
         }
         else{
-            r1Ratio = .4;
-            r2Ratio = 1.6;
+            r1Ratio = .7;
+            r2Ratio = .9;
         }
     }
     newAtk = {
@@ -248,16 +248,14 @@ export function genAttack({level=1,melee=1,name='',isSkill=0}){ // 生成一个�
                 newAtk.bl.push(buffLvl);
             }
             // 添加特殊效果
-            if(r(1,10)<=3){
-                newAtk.s = r(1,6);
-                newAtk.sl = r(1,level);
-            }
+            newAtk.s = r(1,6);
+            newAtk.sl = r(1,level);
         }
-        else if(atkAll){ // 全体攻击，减少攻击力
-            newAtk.d -= cl(newAtk.d*.6);
-            newAtk.r1 -= cl(newAtk.r1*.6);
-            newAtk.r2 -= cl(newAtk.r2*.6);
-        }
+        // else if(atkAll){ // 全体攻击，减少攻击力
+        //     newAtk.d -= cl(newAtk.d*.6);
+        //     newAtk.r1 -= cl(newAtk.r1*.6);
+        //     newAtk.r2 -= cl(newAtk.r2*.6);
+        // }
     }
     newAtk.c = calcWeaponAtkConsume(newAtk); // 攻击体耗
     newAtk.c = setInRange(newAtk.c,1,Infinity);
@@ -623,21 +621,21 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
 
 /* 计算 */
 export function getUnitBtd(unit,game){ // 获取单位战斗数据
-    let equips = [], weapons = [], skills = [], btd = {}, _unit = cloneObj(unit);
+    let equips = [], weaponList = [], skillList = [], btd = {}, _unit = cloneObj(unit);
     let awa = 0;
     for(let equipId of unit.es){
         let equip = getMatchList(game.allEquips,[['id',equipId]])[0];
         if(equip){
             equips.push(cloneObj(equip));
             if(equip.t==1){
-                weapons.push(cloneObj(equip));
+                weaponList.push(cloneObj(equip));
             }
         }
     }
     for(let skillId of unit.ss){
         let skill = getMatchList(game.allSkills,[['id',skillId]])[0];
         if(skill){
-            skills.push(cloneObj(skill));
+            skillList.push(cloneObj(skill));
         }
     }
     for(let equip of equips){
@@ -651,9 +649,9 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.oattrs = cloneObj(_unit.as); // 战斗初始的11维属性
     btd.name = _unit.nm;
 
-    btd.hp = [_unit.st[0],btd.attrs[0],]; // 血
+    btd.hp = [btd.attrs[0],btd.attrs[0],]; // 血
     btd.def = [btd.attrs[3],btd.attrs[3],], // 护甲
-    btd.eng = [_unit.st[1],btd.attrs[1],], // 精力
+    btd.eng = [btd.attrs[1],btd.attrs[1],], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
     btd.speed = Math.sqrt([btd.attrs[6]]); // 真速度
 
@@ -666,20 +664,13 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.alive = 1; // 存活
     btd.teamSeq = _unit.tms;
     btd.buffs = [];
-    btd.weaponList = [];
-    btd.skillList = [];
-    
-    for(let i=0;i<weapons.length;i++){
-        if(weapons[i]){
-            btd.weaponList.push(weapons[i]);
-            if(i==0){
-                btd.weaponName1 = weapons[i].n;
-            }
-            else if(i==1){
-                btd.weaponName2 = weapons[i].n;
-            }
-        }
-    }
+    btd.weaponList = weaponList;
+    btd.skillList = skillList;
+
+    // weapon 名字
+    btd.weaponName1 = weaponList[0]?weaponList[0].n:'';
+    btd.weaponName2 = weaponList[1]?weaponList[1].n:'';
+
     btd.isPlayer = btd.teamSeq>0?1:0; // 可操控角色
 
     // 设置数值范围
@@ -784,7 +775,7 @@ export function getStyleTip(style){ // 获取角色性格介绍
     return res;
 }
 export function genRXString(val){ // 生成补正等级描述文本
-    return val; // TODO
+    // return val; // TODO
     if(val<=0){
         return `-`;
     }

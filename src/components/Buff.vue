@@ -1,5 +1,5 @@
 <template>
-    <a class="buff" :class="`${buff.good?'buff-good':'buff-bad'} ${[`buff-sm`,`buff-lg`][mode-1]}`" @click="onTap">
+    <a class="buff" :class="`${buff.good?'buff-good':'buff-bad'} ${[`buff-sm`,`buff-lg`][mode-1]}`" @click.stop="onTap">
         <span class="buff-bg" :class="`${shadow?'buff-bg-shadow':''}`" :style="`opacity:${buffBg(buff)}`"></span>
         <span class="buff-name" :style="`opacity:${buffText(buff)}`">{{buff.name+(mode==2?`${buff.level}`:'')}}</span>
     </a>

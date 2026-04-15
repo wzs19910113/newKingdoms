@@ -1,5 +1,5 @@
 <template>
-    <a class="bar-wrap" @click="onTap">
+    <a class="bar-wrap" @click.stop="onTap">
         <div class="bar">
             <div class="bar-full" :class="{'bar-hp':type==1,'bar-phy':type==2}" :style="{width:`${calcBarLength()}%`}"></div>
             <div class="bar-label">

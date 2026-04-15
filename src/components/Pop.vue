@@ -1,5 +1,5 @@
 <template>
-    <div class="pop" @click="onTap">
+    <div class="pop" @click.stop="onTap">
         <div class="pop-main">
             <div class="pop-title" v-if="title">{{title}}</div>
             <div class="pop-content">

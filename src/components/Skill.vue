@@ -1,24 +1,32 @@
 <template>
-    <a class="skill" :class="`${skill.t==3?'harm':'beni'}`" @click="onTap({flag:1,skill,},$event)">
-        <span class="value money" v-html="common.moneyFormat(skill.v,1)"></span>
-        <div class="row">
-            <span class="name">{{skill.n}}</span>
-            <a class="consume" @click="onTap({flag:3,text:`消耗体力:${skill.c}`},$event)">（{{skill.c}}）</a>
-        </div>
-        <div class="row row-desc">
-            <span class="awa" v-if="skill.t==3">存在感+{{common.awaFormat(skill.d)}}%</span>
-            <span class="desc" v-html="getSkillTip()"></span>
-        </div>
-        <div class="row atk-wrap" v-if="atkEffectIndex!=-1">
-            <div class="wrap-item atk">
-                <a class="atk-dmg">伤害{{skill.el[atkEffectIndex].d.d}}</a>
-                <a class="atk-r1" v-if="skill.el[atkEffectIndex].d.r1" @click="onTap({flag:3,text:`力量补正：力量带来的伤害提升`},$event)">（ 力补：{{common.genRXString(skill.el[atkEffectIndex].d.r1)}} ）</a>
-                <a class="atk-r2" v-if="skill.el[atkEffectIndex].d.r2" @click="onTap({flag:3,text:`精准补正：精准带来的伤害提升`},$event)">（ 精补：{{common.genRXString(skill.el[atkEffectIndex].d.r2)}} ）</a>
+    <a class="skill" :class="`mode-${mode} ${isOption?'isoption':''}`" @click.stop="onTap({flag:1,skill,},$event)">
+        <div class="skill-mode" :class="`${skill.t==3?'harm':'beni'}`" v-if="mode==1">
+            <span class="value money" v-if="!isOption" v-html="common.moneyFormat(skill.v,1)"></span>
+            <div class="row">
+                <span class="name">{{skill.n}}</span>
+                <a class="consume" @click.stop="onTap({flag:3,text:`消耗体力:${skill.c}`},$event)">（{{skill.c}}）</a>
+            </div>
+            <div class="row row-desc">
+                <span class="awa" v-if="skill.t==3">存在感+{{common.awaFormat(skill.d)}}%</span>
+                <span class="desc" v-html="getSkillTip()"></span>
+            </div>
+            <div class="row atk-wrap" v-if="atkEffectIndex!=-1">
+                <div class="wrap-item atk">
+                    <a class="atk-dmg">伤害{{skill.el[atkEffectIndex].d.d}}</a>
+                    <a class="atk-r1" v-if="skill.el[atkEffectIndex].d.r1" @click.stop="onTap({flag:3,text:`力量补正：力量带来的伤害提升`},$event)">（ 力补：{{common.genRXString(skill.el[atkEffectIndex].d.r1)}} ）</a>
+                    <a class="atk-r2" v-if="skill.el[atkEffectIndex].d.r2" @click.stop="onTap({flag:3,text:`精准补正：精准带来的伤害提升`},$event)">（ 精补：{{common.genRXString(skill.el[atkEffectIndex].d.r2)}} ）</a>
+                </div>
+            </div>
+            <div class="row buff-wrap" v-if="buffEffectIndex!=-1">
+                <div class="wrap-item buff" v-for="(buffId,index) in skill.el[buffEffectIndex].d.b">
+                    <Buff class="buff" :buff="genBuff(buffId,skill.el[buffEffectIndex].d.bl[index])" :mode="2" :shadow="isOption?0:1" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:skill.el[buffEffectIndex].d.bl[index],skill})" />
+                </div>
             </div>
         </div>
-        <div class="row buff-wrap" v-if="buffEffectIndex!=-1">
-            <div class="wrap-item buff" v-for="(buffId,index) in skill.el[buffEffectIndex].d.b">
-                <Buff class="buff" :buff="genBuff(buffId,skill.el[buffEffectIndex].d.bl[index])" :mode="2" :shadow="1" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:skill.el[buffEffectIndex].d.bl[index],skill})" />
+        <div class="skill-mode" :class="`${skill.t==3?'harm':'beni'}`" v-if="mode==2">
+            <div class="row">
+                <span class="name">{{skill.n}}</span>
+                <span class="consume">（{{skill.c}}）</span>
             </div>
         </div>
     </a>
@@ -33,6 +41,14 @@ export default {
     name: 'Skill',
     props:{
         skill: Object,
+        mode: { // 模式 1详细 2简略
+            type: Number,
+            default: 1,
+        },
+        isOption: { // 是选项
+            type: Boolean,
+            default: false,
+        },
         onTap: { // 点击事件
             type: Function,
             default: function(){},
@@ -59,7 +75,7 @@ export default {
                 this.buffEffectIndex = i;
             }
         }
-        console.log(this.skill.n,this.skill);
+        // console.log(this.skill.n,this.skill);
     },
     methods: {
         genBuff(buffId,buffLevel){ // 生成buff数据
@@ -133,18 +149,19 @@ export default {
 </script>
 <style scoped>
     .skill{
+
+    }
+    .skill-mode{
         position: relative;
         display: flex;
         justify-content: flex-start;
         align-items: center;
         flex-direction: column;
-        width: 6rem;
-        margin: 0 auto;
+        width: 100%;
         min-height: 1.2rem;
         line-height: .32rem;
         color: #fff;
         font-size: .22rem;
-        margin-bottom: .2rem;
         padding: .14rem .12rem;
     }
     .row{
@@ -161,9 +178,6 @@ export default {
     }
     .money{
         color: gold;
-    }
-    .row:last-child{
-        margin-bottom: 0;
     }
     /* 名字 */
     .row .name{
@@ -224,5 +238,50 @@ export default {
         padding: 0 .18rem;
         border-radius: .04rem;
         background-color: rgba(14,14,14,.74);
+    }
+    /* 简略版本 */
+    .mode-2{
+    }
+    .mode-2:last-child{
+        margin-right: 0;
+    }
+    .mode-2 .skill-mode{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        padding: 0;
+        margin: 0;
+        font-weight: normal;
+        font-size: .24rem;
+    }
+    .mode-2 .row{
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+    .mode-2 .name{
+        font-weight: normal;
+        font-size: .24rem;
+        overflow: hidden;
+        white-space: nowrap;
+        word-break: keep-all;
+    }
+    /* 作为选项 */
+    .isoption .skill-mode{
+        /* background-color: rgba(24,24,24,.98); */
+        background-color: transparent;
+        background-image: none;
+    }
+    .isoption .beni{
+        border-left: .2rem solid rgba(14,65,38,1);
+    }
+    .isoption .harm{
+        border-left: .2rem solid rgba(95,32,36,1);
     }
 </style>

@@ -1,15 +1,20 @@
 <template>
-    <a class="attack" @click="onTap({flag:1,attack,},$event)">
-        <span class="attack-item attack-name">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{attack.c}})</span></span>
-        <span class="attack-item">伤害<br/>{{attack.d}}</span>
-        <span class="attack-item">力补<br/>{{common.genRXString(attack.r1)}}</span>
-        <span class="attack-item">精补<br/>{{common.genRXString(attack.r2)}}</span>
-        <div class="attack-item buff-wrap">
-            <span class="buff" v-for="(buffId,index) in attack.b" v-bind:key="buffId">
-                <Buff :buff="genBuff(buffId,attack.bl[index])" :mode="2" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:attack.bl[index]})" />
-            </span>
-        </div>
-        <span class="attack-item sp" v-if="attack.s">{{[`硬直`,`破甲`,`削气`,`必中`,`削精`,`攻心`][attack.s-1]}}<br/>Lv.{{attack.sl}}</span>
+    <a class="attack" :class="`mode-${mode}`" @click.stop="onTap({flag:1,attack,},$event)">
+        <span class="attack-mode" v-if="mode==1">
+            <span class="attack-item attack-name">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{attack.c}})</span></span>
+            <span class="attack-item">伤害<br/>{{attack.d}}</span>
+            <span class="attack-item">力补<br/>{{common.genRXString(attack.r1)}}</span>
+            <span class="attack-item">精补<br/>{{common.genRXString(attack.r2)}}</span>
+            <div class="attack-item buff-wrap">
+                <span class="buff" v-for="(buffId,index) in attack.b" v-bind:key="buffId">
+                    <Buff :buff="genBuff(buffId,attack.bl[index])" :mode="2" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:attack.bl[index]})" />
+                </span>
+            </div>
+            <span class="attack-item sp" v-if="attack.s">{{[`硬直`,`破甲`,`削气`,`必中`,`削精`,`攻心`][attack.s-1]}}<br/>Lv.{{attack.sl}}</span>
+        </span>
+        <span class="attack-mode" v-if="mode==2">
+            <span class="attack-shrink">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{attack.c}})</span></span>
+        </span>
     </a>
 </template>
 <script>
@@ -25,7 +30,7 @@ export default {
             type: Object,
             default: {},
         },
-        mode: { // 模式 1装备栏 2战斗-菜单
+        mode: { // 模式 1详细 2简略
             type: Number,
             default: 1,
         },
@@ -72,34 +77,65 @@ export default {
 </script>
 <style scoped>
     .attack{
-        width: 100%;
-        height: 1rem;
-        padding: .04rem 0;
-        margin-bottom: .14rem;
+
+    }
+    .attack-mode{
         display: flex;
         justify-content: flex-start;
         align-items: center;
+    }
+    /* 详细版本 */
+    .mode-1{
+        width: 100%;
+        margin-bottom: .06rem;
+    }
+    .mode-1 .attack-mode{
+        width: 100%;
         text-shadow: 0 0 .12rem #000;
-        /* border: .01rem solid #8ae4f1; */
-        border: .01rem solid rgba(138,228,241,.2);
-        background-color: rgba(44,44,44,.6);
+        background-color: rgba(0,0,0,.33);
+        padding: .04rem .08rem;
+        height: 1rem;
+        line-height: .33rem;
     }
-    .attack:last-child{
-        margin-bottom: 0;
-    }
-    .attack-item{
+    .mode-1 .attack-item{
         width: 13%;
-        line-height: .3rem;
         font-size: .22rem;
     }
-    .attack-name{
+    .mode-1 .attack-name{
         width: 25%;
-        height: .8rem;
-        line-height: .8rem;
+        height: .6rem;
+        line-height: .6rem;
         white-space: nowrap;
         word-break: keep-all;
-        border-right: .01rem solid rgba(138,228,241,.2);
+        border-right: .01rem solid rgba(138,228,241,.5);
     }
+    .mode-1 .attack .buff-wrap{
+        width: 20%;
+    }
+    .mode-1 .attack .sp{
+        display: inline-block;
+        border-radius: .1rem;
+        width: .82rem;
+        height: .82rem;
+        line-height: .41rem;
+        background-color: rgba(96,72,14,.96);
+    }
+    /* 简略版本 */
+    .mode-2{
+        width: 32%;
+        margin-right: 1.3%;
+    }
+    .mode-2:last-child{
+        margin-bottom: 0;
+    }
+    .mode-2 .attack-mode{
+        text-align: center;
+    }
+    .mode-2 .attack-shrink{
+        display: inline-block;
+        width: 100%;
+    }
+    /* 消耗 */
     .attack-consume{
         color: #05cFd3;
         font-weight: bold;
@@ -123,6 +159,6 @@ export default {
         width: .82rem;
         height: .82rem;
         line-height: .41rem;
-        background-color: rgba(126,112,14,.96);
+        background-color: rgba(96,72,14,.96);
     }
 </style>

@@ -7,7 +7,7 @@
         <!-- 主体 -->
         <div class="panel">
             <div class="skill-wrap">
-                <Skill v-for="skill of game.allSkills" v-bind:key="skill.id" :skill="skill" :onTap="onTapSkill" />
+                <Skill class="skill" v-for="skill of game.allSkills" v-bind:key="skill.id" :skill="skill" :mode="1" :onTap="onTapSkill" />
             </div>
             <div class="equip-wrap">
                 <Equip v-for="equip of game.allEquips" v-bind:key="equip.id" :equip="equip" :onTap="onTapEquip" />
@@ -64,10 +64,8 @@ export default {
             }
         },
 
-        onTapSkill(data,evt){ // 点击【技能】
+        onTapSkill(data){ // 点击【技能】
             let { flag, skill, buffId, buffLevel, text, } = data;
-            evt.stopPropagation();
-            evt.preventDefault();
             if(flag==1){ //
 
             }
@@ -77,12 +75,9 @@ export default {
             else if(flag==3&&text){ // 发送说明弹窗
                 this._alert(text);
             }
-            return false;
         },
-        onTapEquip(data,evt){ // 点击【装备】
+        onTapEquip(data){ // 点击【装备】
             let { flag, equip, buffId, buffLevel, } = data;
-            evt.stopPropagation();
-            evt.preventDefault();
             if(flag==1){ //
 
             }
@@ -92,7 +87,6 @@ export default {
             else if(flag==3&&text){ // 发送说明弹窗
                 this._alert(text,3);
             }
-            return false;
         },
         onTapBuff(id,level){ // 点击【buff】
             let buff = getMatchList(BUFF_LIST,[['id',id]])[0]||{};
@@ -143,6 +137,14 @@ export default {
         width: 100%;
         height: 100%;
         overflow-y: auto;
+    }
+    .skill-wrap{
+        width: 6rem;
+        margin: 0 auto;
+    }
+    .skill-wrap .skill{
+        display: block;
+        margin-bottom: .2rem;
     }
 
     /* 侧边按钮 */

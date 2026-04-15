@@ -12,7 +12,7 @@
             </div>
         </div>
         <div class="row row-clm" v-if="equip.t==1">
-            <Attack class="atk" v-for="(attack,index) in equip.k" v-bind:key="index" :attack="attack" :onTap="onTap" />
+            <Attack class="atk" v-for="(attack,index) in equip.k" v-bind:key="index" :attack="attack" :mode="1" :onTap="onTap" />
             <!-- <div class="atk" v-for="atk in equip.k">
                 <span class="atk-item atk-name">{{atk.a?'全':''}}{{atk.n}} <span class="atk-consume">({{atk.c}})</span></span>
                 <span class="atk-item">伤害<br/>{{atk.d}}</span>
@@ -56,7 +56,7 @@ export default {
         // for(let i=0;i<151;i+=1){
         //     console.log(`${i} => ${this.genRXString(i)}`);
         // }
-        console.log(this.equip.n,this.equip);
+        // console.log(this.equip.n,this.equip);
     },
     methods: {
         genBuff(buffId,buffLevel){ // 生成buff数据
@@ -159,50 +159,5 @@ export default {
     /* 攻击方式 */
     .row-clm{
         flex-direction: column;
-    }
-    .atk{
-        width: 100%;
-        padding: .04rem .08rem;
-        margin-bottom: .14rem;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        border-radius: .06rem;
-        text-shadow: 0 0 .12rem #000;
-        background-color: rgba(184,146,32,.96);
-    }
-    .atk:last-child{
-        margin-bottom: 0;
-    }
-    .atk-item{
-        width: 13%;
-        font-size: .22rem;
-    }
-    .atk-name{
-        width: 25%;
-        height: .6rem;
-        line-height: .6rem;
-        background-color: #131313;
-        border-radius: .1rem;
-        white-space: nowrap;
-        word-break: keep-all;
-    }
-    .atk-consume{
-        color: #05cFd3;
-        font-weight: bold;
-        text-shadow: none;
-    }
-    /* 攻击方式-buff */
-    .atk .buff-wrap{
-        width: 20%;
-    }
-    /* 攻击方式-特殊效果 */
-    .atk .sp{
-        display: inline-block;
-        border-radius: .1rem;
-        width: .82rem;
-        height: .82rem;
-        line-height: .41rem;
-        background-color: rgba(96,72,14,.96);
     }
 </style>

@@ -1,7 +1,7 @@
 <template>
-    <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'}`" @click="onTap({flag:1,unit,},$event)">
+    <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'}`" @click.stop="onTap({flag:1,unit,},$event)">
         <div class="avatar-wrap" :class="`${!unit.btd.alive?'dead':''}`">
-            <a class="avatar" :class="" @click="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
+            <a class="avatar" :class="" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
             <div class="cur" v-show="unit.btd.cur&&unit.btd.alive"></div>
             <Bar2 class="cir1" :current="unit.btd.move" :type="1" :onTap="onTap.bind(this,{flag:103,unit,})" />
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" :onTap="onTap.bind(this,{flag:104,unit,})" />

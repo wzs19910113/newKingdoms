@@ -8,13 +8,13 @@
             </div>
             <div class="stat-block-bars">
                 <div class="stat-block-bars-row">
-                    <Bar1 class="bar" title="生命：" :mode="2" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[0]" />
+                    <Bar1 class="bar" title="生命：" :mode="2" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" />
                     <div class="sub-mark def">
                         防御：<span class="sub-crt" :class="`${unit.btd.def[0]<0?'sub-red':''}`">{{Math.round(unit.btd.def[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.def[1])}}</span>
                     </div>
                 </div>
                 <div class="stat-block-bars-row">
-                    <Bar1 class="bar" title="精力：" :mode="2" :type="2" :crt="unit.btd.eng[1]" :max="unit.btd.eng[1]" />
+                    <Bar1 class="bar" title="精力：" :mode="2" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" />
                     <div class="sub-mark phy">
                         体力：<span class="sub-crt">{{Math.round(unit.btd.phy[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.phy[1])}}</span>
                     </div>
@@ -40,38 +40,14 @@
                     <label class="stat-attr-val">{{unit.btd.attrs[index+3]}}（{{unit.as[index+3]}}）</label>
                 </div>
                 <div class="line-wrap">
-                    <div class="line-bar line-2" :style="{width:`${unit.btd.attrs[index+3]/1200*4.2}rem`}"></div>
-                    <div class="line-bar line-1" :style="{width:`${unit.as[index+3]/1200*4.2}rem`}"></div>
+                    <div class="line-bar line-2" :style="{width:`${calcLineWidth(unit.btd.attrs[index+3])}`}"></div>
+                    <div class="line-bar line-1" :style="{width:`${calcLineWidth(unit.as[index+3])}`}"></div>
                 </div>
             </div>
         </div>
     </a>
 </template>
 <script>
-/*
-hp: 5, // 生命力
-atk: 1, // 攻击力
-def: 2, // 护甲
-weight: 3, // 权重
-heal: 0, // 治愈
-str: 0, // 力量
-dex: 0, // 防御
-vig: 3, // 气力
-tvig: 50, // 精力（总体力）
-int: 8, // 智力
-buffs: [{ // 状态栏
-    id: 1,
-    name: '急救',
-    desc: '每回合恢复生命力',
-    level: 1,
-    trendVals: [20,0,0,0], // 倾向分值[保护,强化,伤害,弱化]
-    elapse: 9, // 剩余回合数
-},]
-mentalDef: 150, // 心理防御
-move: 1, // 本回合行动者顺序，由小到大【0:非本回合行动者】
-alive: 1, // 存活
-isPlayer: 1, // 玩家可操控
-*/
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
 import Buff from '../components/Buff';
@@ -104,6 +80,15 @@ export default {
     methods: {
         init(){
             this.stys = common.getStyleTip(this.unit.sty);
+        },
+        calcLineWidth(val){
+            // let res = val/1200*4.2;
+            // res = Math.round(Math.sqrt(res));
+            let res;
+            res = Math.sqrt(val);
+            res = res/50*4.2;
+            res += 'rem';
+            return res;
         },
     },
     components:{

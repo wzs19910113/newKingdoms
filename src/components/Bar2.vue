@@ -1,5 +1,5 @@
 <template>
-    <a class="circular-progress" @click="onTap">
+    <a class="circular-progress" @click.stop="onTap">
         <svg viewBox="0 0 110 110" class="progress-svg">
             <!-- 背景圆环 -->
             <circle class="progress-bg" cx="55" cy="55" r="45" fill="none" :stroke="bgColor" :stroke-width="strokeWidth"/>

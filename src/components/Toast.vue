@@ -1,7 +1,7 @@
 <template>
     <div class="toast-container">
         <TransitionGroup class="toast" name="toast" tag="div">
-            <div v-for="toast in activeToasts" :key="toast.id" class="toast-message" @click="manualClose(toast.id)" >
+            <div v-for="toast in activeToasts" :key="toast.id" class="toast-message" @click.stop="manualClose(toast.id)" >
                 {{ toast.message }}
                 <!-- <span class="toast-progress" :style="{ animationDuration: '5s' }"></span> -->
             </div>

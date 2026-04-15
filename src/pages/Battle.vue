@@ -24,30 +24,46 @@
                     </div>
                 </div>
                 <!-- 操作板块 -->
-                <div class="menu-wrap" :class="`${menuExpand?'menu-wrap-expand':''}`" v-if="menuState>0">
-                    <a class="btn btn-expand" @click="onTapMenuExpand">{{menuExpand?`▽`:`△`}}</a>
-                    <a class="btn btn-back" v-if="menuState>1" @click="onTapMenuBack">返回</a>
+                <div class="menu-wrap" :class="`${menuData.expand?'menu-wrap-expand':''}`" v-if="menuData.state>0">
+                    <a class="btn btn-expand" @click="onTapMenuExpand">{{menuData.expand?`▽`:`△`}}</a>
+                    <a class="btn btn-back" v-if="menuData.state>1" @click="onTapMenuBack">返回</a>
                     <div class="menu">
-                        <p class="menu-tip">{{menuTip}}</p>
-                        <div class="menu-tag" v-if="menuState==1">
+                        <p class="menu-tip">{{menuData.tip}} {{menuData.extip}}：</p>
+
+                        <div class="menu-tag" v-if="menuData.state==1">
                             <a class="btn menu-block menu-btn menu-btn-1" @click="onTapMenu({flag:1})">攻击</a>
                             <a class="btn menu-block menu-btn menu-btn-2" @click="onTapMenu({flag:2})">技能</a>
                             <div class="menu-block menu-block-lg">
-                                <a class="btn" @click="onTapMenu({flag:3})">防御️</a>
-                                <a class="btn" @click="onTapMenu({flag:4})">躲避</a>
-                                <a class="btn" @click="onTapMenu({flag:5})">追踪</a>
-                                <a class="btn" @click="onTapMenu({flag:6})">呼吸</a>
-                                <a class="btn" @click="onTapMenu({flag:7})">集气</a>
-                                <a class="btn" @click="onTapMenu({flag:8})">爆气</a>
-                                <a class="btn" @click="onTapMenu({flag:9})">劝降</a>
-                                <a class="btn" @click="onTapMenu({flag:10})">撤离</a>
+                                <a class="btn btn-mop btn-cdot btn-cdot-1" @click="onTapMenu({flag:3})">防御️</a>
+                                <a class="btn btn-mop btn-cdot btn-cdot-1" @click="onTapMenu({flag:4})">躲避</a>
+                                <a class="btn btn-mop btn-cdot btn-cdot-1" @click="onTapMenu({flag:5})">追踪</a>
+                                <a class="btn btn-mop" @click="onTapMenu({flag:6})">呼吸</a>
+                                <a class="btn btn-mop btn-cdot btn-cdot-1" @click="onTapMenu({flag:7})">集气</a>
+                                <a class="btn btn-mop btn-cdot btn-cdot-1" @click="onTapMenu({flag:8})">爆气</a>
+                                <a class="btn btn-mop btn-cdot btn-cdot-2" @click="onTapMenu({flag:9})">劝降</a>
+                                <a class="btn btn-mop btn-cdot btn-cdot-3" @click="onTapMenu({flag:10})">撤离</a>
                             </div>
                         </div>
-                        <div class="menu-tag" v-if="menuState==2">
-                            <div class="menu-attack-wrap">
-                                <div class="menu-weapon" v-for="(weapon,index) in curUnits[curUnitsIndex].btd.weaponList" v-bind:key="index">
-                                    <Attack class="menu-attack" v-for="(attack,index) in weapon.k" v-bind:key="index" :attack="attack" :onTap="onTapMenu.bind(this,{flag:21,data:attack})" :mode="2" />
+                        <div class="menu-tag" v-if="menuData.state==2">
+                            <div class="menu-sub-wrap menu-attack-wrap">
+                                <div class="menu-weapon" v-for="(weapon,index) in curUnitList[curUnitListIndex].btd.weaponList" v-bind:key="index">
+                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" v-for="(attack,index) in weapon.k" v-bind:key="index" :attack="attack" :mode="menuData.expand?1:2" :onTap="onTapMenu.bind(this,{flag:101,data:attack})" />
                                 </div>
+                            </div>
+                        </div>
+                        <div class="menu-tag" v-if="menuData.state==3">
+                            <div class="menu-sub-wrap menu-skill-wrap">
+                                <Skill class="btn" :class="menuData.expand?'menu-skill-expand':'menu-skill-shrink'" v-for="(skill,index) in curUnitList[curUnitListIndex].btd.skillList" v-bind:key="index" :skill="skill" :mode="menuData.expand?1:2" :isOption="true" :onTap="onTapMenu.bind(this,{flag:102,data:skill})" />
+                            </div>
+                        </div>
+                        <div class="menu-tag" v-if="menuData.state==4">
+                            <div class="menu-sub-wrap menu-unit-wrap">
+                                <a class="btn" v-for="(unit,index) in menuData.unitList" v-bind:key="index"  @click="onTapMenu({flag:21,data:unit})">{{unit.btd.name}}</a>
+                            </div>
+                        </div>
+                        <div class="menu-tag" v-if="menuData.state==5">
+                            <div class="menu-sub-wrap menu-attr-wrap">
+                                <a class="btn" v-for="(attr,index) in menuData.attrList" v-bind:key="index"  @click="onTapMenu({flag:22,data:attr.i})">{{attr.n}}</a>
                             </div>
                         </div>
                     </div>
@@ -55,6 +71,9 @@
             </div>
         </div>
         <!-- 弹窗 -->
+        <div class="canvas-cover" v-if="pageState==4">
+            <b>执行动画中...</b>
+        </div>
         <Pop v-if="viewingUnit" title="角色面板" :onTap="onTapPop">
             <div class="unit-info-pop">
                 <Unit1 :unit="viewingUnit" :mode="2" />
@@ -75,6 +94,7 @@
 import Unit1 from '../components/Unit1';
 import Unit2 from '../components/Unit2';
 import Equip from '../components/Equip';
+import Skill from '../components/Skill';
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
 import Attack from '../components/Attack';
@@ -91,18 +111,22 @@ export default {
             loading: false,
             pageState: 0, // 页面状态【0:读取数据中|1：战斗准备完成|2：累积行动条|3：战斗-操作中|4：动画|5：buff编辑|99：离开】
 
-            menuState: 0, // 操作面板出现状态【0:不显示|1：基础选项|2：攻击选项|3：技能选项|4：选择单位|5：选择属性】
             boardTip: '', // 战场公示文字
-            menuTip: '', // 菜单公示文字
-            menuExpand: 0, // 菜单展开标识
 
             menuData: { // 菜单数据
+                state: 0, // 操作面板出现状态【0:不显示|1：基础选项|2：攻击选项|3：技能选项|4：选择单位|5：选择属性】
                 unitList: [],
-                lastMenuState: -1,
+                attrList: [{n:`力量`,i:4},{n:`精准`,i:5},{n:`速度`,i:6},{n:`智力`,i:7},{n:`定力`,i:8},{n:`隐蔽`,i:9},{n:`爆发`,i:10},],
+                tip: '', // 菜单公示主文字
+                extip: '', // 菜单公示副文字
+                expand: 0, // 菜单展开标识
+                unitOptionType: 0, // 选择单位对应的行动【1攻击|2技能施放|3劝降】
+                unitOptionData: {}, // 选择单位对应的行动相关的数据
+                stateRecordList: [],
             },
 
-            curUnits: [], // 本帧行动单位数组
-            curUnitsIndex: -1, // 本帧行动单位数组下标
+            curUnitList: [], // 本帧行动单位数组
+            curUnitListIndex: -1, // 本帧行动单位数组下标
 
             viewingUnit: null, // 正在查看的单位
 
@@ -122,6 +146,8 @@ export default {
             playerTeam:[],
             enemyTeam:[],
 
+            itv: null, // 动画计时器
+
             CONFIG,
             DEBUG,
         };
@@ -139,7 +165,22 @@ export default {
         _nus.push(common.genUnit({id:13,gender:1,level:3,game:this.game,}));
         _nus.push(common.genUnit({id:14,gender:1,level:9,game:this.game,}));
         window.GLOBAL = {};
-        window.GLOBAL.battle = {
+        window.GLOBAL.game = {
+        	money: 1000,
+        	day: 1,
+        	hour: 0,
+        	meTeamIDs: [1,], // 队伍角色ID
+        	currentMapID: 101, // 当前所在地图ID
+        	luck: 0, // 夺宝能力
+        	allUnits: [], // 角色
+        	unitIndex: 101, // 角色 ID 索引
+        	allEquips: [], // 装备
+        	equipIndex: 101, // 装备 ID 索引
+        	allSkills: [], // 技能
+        	skillIndex: 101, // 技能 ID 索引
+        	allMaps: [], // 地图
+        };
+        window.GLOBAL.game.battle = {
             mode: 1, // 战斗模式【1:普通|2：BOSS|3：切磋|4：营地】
             envirs: {
                 mapId: 1,
@@ -148,38 +189,44 @@ export default {
             playerTeamIds: [1,2,3,4,],
             enemyTeamIds: [11,12,13,14,],
         }
+        // 预设装备
+        window.GLOBAL.game.allUnits = _nus;
+        window.GLOBAL.game.allEquips = [];
         _nus[0].es[0] = 1;
         _nus[1].es[0] = 2;
         _nus[2].es[0] = 3;
         _nus[3].es[0] = 4;
         _nus[3].es[1] = 5;
-        window.GLOBAL.allUnits = _nus;
-        window.GLOBAL.allEquips = [];
-        window.GLOBAL.allEquips.push(common.genEquip({id:1,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.allEquips.push(common.genEquip({id:2,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.allEquips.push(common.genEquip({id:3,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.allEquips.push(common.genEquip({id:4,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.allEquips.push(common.genEquip({id:5,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.allSkills =  [{ // 全部技能
-            	id: 1,
-            	n: '治疗术',
-            	t: [7,3,],// 技能类型
-            	bid: [1,2,], // 添加的状态ID
-                bls: [1,1,], // 状态等级
-            	csm: 4, // 体力消耗
-                des: '治疗，获得1级急救和1级抵挡。',
-        },];
+        _nus[3].es[5] = 6;
+        _nus[3].es[3] = 7;
+        _nus[3].es[4] = 8;
+        _nus[3].as[6] = 656;
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:1,game:{},level:r(9,9),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:2,game:{},level:r(9,9),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:3,game:{},level:r(9,9),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:4,game:{},level:r(9,9),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:5,game:{},level:r(9,9),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:6,game:{},level:r(9,9),type:r(3,3)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:7,game:{},level:r(9,9),type:r(5,5)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:8,game:{},level:r(9,9),type:r(5,5)}));
+        // 预设技能
+        for(let i=0;i<10;i++){
+            _nus[3].ss[i] = i+1;
+            window.GLOBAL.game.allSkills.push(common.genSkill({id:i+1,game:{},level:r(1,9)}));
+        }
 
-
-        if(window.GLOBAL&&window.GLOBAL.battle){ // TODO
-            this.game = window.GLOBAL;
+        if(window.GLOBAL&&window.GLOBAL.game&&window.GLOBAL.game.battle){ // TODO
+            this.game = window.GLOBAL.game;
             this.init();
             console.log(this.game);
-            console.log(this.battleData);
         }
         else{
             this.$router.push('/');
         }
+    },
+    destroyed(){
+        clearInterval(this.itv);
+        this.itv = null;
     },
     methods: {
         init(){ // 初始化全部
@@ -208,6 +255,7 @@ export default {
         goPageState(flag){ // 进入页面状态
             let allUnits = [...this.playerTeam,...this.enemyTeam];
             this.pageState = flag;
+            this.resetMenu();
             this.$nextTick(_=>{
                 switch(flag){
                     case 1: // 战斗开始
@@ -217,12 +265,12 @@ export default {
                         for(let unit of allUnits){
                             unit.btd.cur = 0;
                         }
-                        this.menuState = 0;
+                        this.menuData.state = 0;
                         this.movementProcess();
                     break;
                     case 3: // 进行操作
-                        this.curUnitsIndex = 0;
-                        this.exeCurUnit();
+                        this.curUnitListIndex = 0;
+                        this.curTurnStart();
                     break;
                     case 4: // 动画
 
@@ -236,15 +284,46 @@ export default {
                 }
             });
         },
-        goMenuState(flag){ // 进入菜单
-            this.menuData.lastMenuState = this.menuState;
-            this.menuState = flag;
+        resetMenu(){ // 重置Menu
+            this.menuData.state = 0;
+            this.menuData.unitList = [];
+            this.menuData.tip = '';
+            this.menuData.extip = '';
+            this.menuData.expand = 0;
+            this.menuData.unitOptionType = 0;
+            this.menuData.unitOptionData = {};
+            this.menuData.stateRecordList = [];
+        },
+        goMenuState(flag,data={}){ // 进入菜单
+            let { type, caster, } = data;
+            if(flag==4){ // 选择目标单位 type:1敌方全体，2友方全体
+                let list, team;
+                if(type==1){
+                    list = getMatchList(this.enemyTeam,[['alive'],1]);
+                    team = '敌方';
+                }
+                else if(type==2){
+                    list = getMatchList(this.playerTeam,[['alive'],1]);
+                    list = removeFromList(caster.id,'id',list); // 剔除执行者
+                    team = '友方';
+                }
+                this.menuData.unitList = list;
+                this.menuData.extip = `选择${team}目标`;
+            }
+            else if(flag==5){ // 选择属性
+                this.menuData.extip = `选择属性`;
+            }
+            else{
+                this.menuData.extip = ``;
+            }
+            this.menuData.stateRecordList.push(this.menuData.state);
+            this.menuData.state = flag;
         },
         movementProcess(){ // 行动条进展
             let allUnits = [...this.playerTeam,...this.enemyTeam];
             let allAliveUnits = getSubMatchList(allUnits,[['alive',1]],'btd');
             let stop = 0, tickCount = 0;
-            let curUnits = []; // 可行动单位数组
+            let curUnitList = []; // 可行动单位数组
             let calcTickCount = _ =>{
                 let smallestTickCount = Infinity; // 最先行动者的所需行动步数
                 // 计算每个人的【所需行动步数】和【超出行动力】
@@ -268,47 +347,148 @@ export default {
                 // 得出最小行动步数为 3，筛选出本帧行动者
                 for(let unit of allAliveUnits){
                     if(unit.tickCount<=smallestTickCount){
-                        curUnits.push(unit);
+                        curUnitList.push(unit);
                     }
                 }
                 // 根据超出行动力，对本帧行动者数组进行逆向排序
-                curUnits = bulbsort(curUnits,'overflowMove',1);
-                this.curUnits = curUnits;
+                curUnitList = bulbsort(curUnitList,'overflowMove',1);
+                this.curUnitList = curUnitList;
             }
             calcTickCount();
-            for(let unit of curUnits){ // 所有本帧行动者行动条归零
+            for(let unit of curUnitList){ // 所有本帧行动者行动条归零
                 unit.btd.move = 0;
             }
             this.$nextTick(_=>{
                 this.goPageState(3);
-                // for(let u of this.curUnits){ console.log(u.nm); }
+                // for(let u of this.curUnitList){ console.log(u.nm); }
             });
         },
-        exeCurUnit(){ // 执行本帧行动者的动作
-            let curUnit = this.curUnits[this.curUnitsIndex];
+        curTurnStart(){ // 本帧行动者的回合开始
+            let curUnit = this.curUnitList[this.curUnitListIndex];
             this.$nextTick(_=>{
                 let _n = curUnit.btd.name;
                 curUnit.btd.name = 'JK';
                 curUnit.btd.name = _n;
                 curUnit.btd.cur = true;
                 if(curUnit.btd.isPlayer){ // 玩家
-                    this.menuState = 1;
-                    this.menuTip = `${curUnit.btd.name}行动：`;
+                    this.menuData.state = 1;
+                    this.menuData.tip = `${curUnit.btd.name}行动`;
+                    this.menuData.extip = ``;
                 }
                 else{ // 人机
-                    this.goPageState(4);
+                    // this.goPageState(4);
                 }
             })
+        },
+        onAniEnd(){ // 当动画结束
+            if(this.checkEnd()){ // 战斗结束
+
+            }
+            else{ // 战斗未结束，继续行动条增长
+                this.goPageState(2);
+            }
+        },
+        checkEnd(){ // 检查胜负
+            let res = 0;
+            return res;
+        },
+        playAni(type,data,period=1){ // 播放动画 period：1,2,3
+            this.goPageState(4);
+            console.log(`播放动画=>${[`攻击`,`技能`,`防御`,`躲避`,`追踪`,`呼吸`,`集气`,`爆气`,`劝降`,`撤离`,][type-1]}`,data);
+            this.itv = setTimeout(_=>{
+                this.onAniEnd();
+            },CONFIG.aniPeriod[period-1]);
+        },
+
+        unitAction({caster,type,targetUnitList,burstAttr,skill,attack}){ // 单位执行动作
+            /*action = {
+                type: 1, // 动作类型 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9劝降 10撤离
+                targetUnitList: [], // 目标单位数组
+            }*/
+            switch(type){
+                case 1: // 进行攻击
+                    this.unitAttack(caster,attack,targetUnitList);
+                break;
+                case 2: // 施放技能
+                    this.unitSpell(caster,skill,targetUnitList);
+                break;
+                case 3: // 防御
+                    this.unitDefense(caster);
+                break;
+                case 4: // 躲避
+                    this.unitDodge(caster);
+                break;
+                case 5: // 追踪
+                    this.unitTrace(caster);
+                break;
+                case 6: // 呼吸
+                    this.unitBreath(caster);
+                break;
+                case 7: // 集气
+                    this.unitConcentrate(caster);
+                break;
+                case 8: // 爆气
+                    this.unitBurst(caster,burstAttr);
+                break;
+                case 9: // 劝降
+                    this.unitPersuade(caster,targetUnitList);
+                break;
+                case 10: // 撤离
+                    this.unitFlee(caster);
+                break;
+            }
+        },
+        unitAttack(caster,attack,targetUnitList){ // 单位进行攻击
+            let names = ``;
+            for(let unit of targetUnitList){
+                names += `${unit.btd.name}+`;
+            }
+            console.log(`${caster.btd.name} ${attack.n}攻击 ${names}`,attack);
+            this.playAni(1);
+        },
+        unitSpell(caster,skill,targetUnitList){ // 单位施放技能
+            console.log(`${caster.btd.name} 对 ${targetUnitList[0].btd.name} 使用技能【${skill.n}】`,skill);
+            this.playAni(2);
+        },
+        unitDefense(caster){ // 单位防御
+            console.log(`${caster.btd.name} 进行防御`);
+            this.playAni(3);
+        },
+        unitDodge(caster){ // 单位躲避
+            console.log(`${caster.btd.name} 进行躲避`);
+            this.playAni(4);
+        },
+        unitTrace(caster){ // 单位追踪
+            console.log(`${caster.btd.name} 进行追踪`);
+            this.playAni(5);
+        },
+        unitBreath(caster){ // 单位呼吸
+            console.log(`${caster.btd.name} 进行呼吸`);
+            this.playAni(6);
+        },
+        unitConcentrate(caster){ // 单位集气
+            console.log(`${caster.btd.name} 进行集气`);
+            this.playAni(7);
+        },
+        unitBurst(caster,attr){ // 单位爆气
+            console.log(`${caster.btd.name} ${[`力量`,`精准`,`速度`,`智力`,`定力`,`隐蔽`,`爆发`,][attr-4]}爆发`);
+            this.playAni(8);
+        },
+        unitPersuade(caster,targetUnitList){ // 单位劝降
+            console.log(`${caster.btd.name} 劝降 ${targetUnitList[0].btd.name}`);
+            this.playAni(9);
+        },
+        unitFlee(caster){ // 单位撤离
+            console.log(`${caster.btd.name} 进行撤离`);
+            this.playAni(10);
         },
 
         onTapStartBattle(){ // 点击【开始战斗】
             this.goPageState(2);
         },
-        onTapUnit(data,evt){ // 点击【单位图标】
+        onTapUnit(data){ // 点击【单位图标】
             let { flag, unit, buff, } = data;
             let btd = unit.btd;
-            evt.stopPropagation();
-            evt.preventDefault();
             if(flag==1){ // 点击单位
                 // this._alert(`${btd.name}`);
             }
@@ -335,7 +515,6 @@ export default {
                 _unit.btd = common.getUnitBtd(unit,this.game);
                 this.viewingUnit = _unit;
             }
-            return false;
         },
         onTapPop(){ // 点击【弹窗-关闭】
             this.viewingUnit = null;
@@ -345,39 +524,104 @@ export default {
             this.showMenuGuide = !this.showMenuGuide;
         },
         onTapMenuExpand(){ // 点击【菜单-展开】
-            this.menuExpand = !this.menuExpand;
+            this.menuData.expand = !this.menuData.expand;
         },
         onTapMenuBack(){ // 点击【菜单-退后】
-            this.menuState = this.menuData.lastMenuState;
+            this.menuData.extip = ``;
+            this.menuData.state = this.menuData.stateRecordList[this.menuData.stateRecordList.length-1];
+            this.menuData.stateRecordList.pop();
         },
-        onTapMenu({flag,data}){ // 点击【执行操作】 0不显示 1基础选项 2攻击选项 3技能选项 4选择单位 5选择属性
-            let nextStep = _ =>{
-                this.goPageState(2);
-            }
-            if(flag==1){ // 攻击
+        onTapMenu({flag,data={}}){ // 点击【执行操作】 0不显示 1基础选项 2攻击选项 3技能选项 4选择单位 5选择属性
+            let curUnit = this.curUnitList[this.curUnitListIndex];
+            if(flag==1){ // 攻击面板
                 this.goMenuState(2);
             }
-            else if(flag==2){ // 技能
+            else if(flag==2){ // 技能面板
+                this.goMenuState(3);
             }
             else if(flag==3){ // 防御
+                this.unitAction({caster:curUnit,type:3});
             }
             else if(flag==4){ // 躲避
+                this.unitAction({caster:curUnit,type:4});
             }
             else if(flag==5){ // 追踪
+                this.unitAction({caster:curUnit,type:5});
             }
             else if(flag==6){ // 呼吸
+                this.unitAction({caster:curUnit,type:6});
             }
             else if(flag==7){ // 集气
+                this.unitAction({caster:curUnit,type:7});
             }
             else if(flag==8){ // 爆气
+                this.goMenuState(5);
             }
             else if(flag==9){ // 劝降
+                this.menuData.unitOptionType = 3; // 以单位为目标的行动类型：劝降
+                this.goMenuState(4,{type:1,caster:curUnit});
             }
             else if(flag==10){ // 撤离
+                this.unitAction({caster:curUnit,type:10});
             }
-            else if(flag==21){ // 攻击方式
+            else if(flag==21){ // 选择单位
+                switch(this.menuData.unitOptionType){
+                    case 1: // 攻击
+                        this.unitAction({
+                            type: 1,
+                            caster: curUnit,
+                            attack: this.menuData.unitOptionData,
+                            targetUnitList: [data],
+                        });
+                    break;
+                    case 2: // 技能施放
+                        this.unitAction({
+                            type: 2,
+                            caster: curUnit,
+                            skill: this.menuData.unitOptionData,
+                            targetUnitList: [data],
+                        });
+                    break;
+                    case 3: // 劝降
+                        // console.log(`????`,data);
+                        this.unitAction({
+                            type: 9,
+                            caster: curUnit,
+                            targetUnitList: [data],
+                        });
+                    break;
+                }
+            }
+            else if(flag==22){ // 选择属性
+                this.unitAction({caster:curUnit,type:8,burstAttr:data});
+            }
+            else if(flag==101){ // 点击攻击方式
                 let attack = data;
-                console.log(attack);
+                if(attack.a){ // 全体攻击，则直接执行动作
+                    this.unitAction({caster:curUnit,type:1,attack,targetUnitList:this.enemyTeam});
+                }
+                else{ // 普通攻击，则选择目标
+                    this.menuData.unitOptionType = 1; // 以单位为目标的行动类型：攻击
+                    this.menuData.unitOptionData = attack;
+                    this.goMenuState(4,{type:1,caster:curUnit});
+                }
+            }
+            else if(flag==102){ // 点击技能
+                let skill = data;
+                let target = skill.t;
+                if(target==1){ // 自己，则直接执行动作
+                    this.unitAction({caster:curUnit,type:2,skill,targetUnitList:[curUnit]});
+                }
+                else if(target==2){ // 友方，则选择目标
+                    this.menuData.unitOptionType = 2; // 以单位为目标的行动类型：技能施放
+                    this.menuData.unitOptionData = skill;
+                    this.goMenuState(4,{type:2,caster:curUnit});
+                }
+                else if(target==3){ // 敌方，则选择目标
+                    this.menuData.unitOptionType = 2; // 以单位为目标的行动类型：技能施放
+                    this.menuData.unitOptionData = skill;
+                    this.goMenuState(4,{type:1,caster:curUnit});
+                }
             }
         },
 
@@ -394,6 +638,7 @@ export default {
         Unit1,
         Unit2,
         Equip,
+        Skill,
         Pop,
         Attack,
         Bar1,
@@ -625,19 +870,117 @@ export default {
     .menu .menu-row .btn-lg{
         width: 2rem;
     }
-    .menu .menu-attack-wrap{
+    /* 菜单-基础选项 */
+    .btn-mop{
+        position: relative;
+    }
+    .btn-cdot::after{
+        position: absolute;
+        top: .12rem;
+        right: .09rem;
+        width: .06rem;
+        height: .1rem;
+        line-height: .1rem;
+        color: #05cFd3;
+        font-weight: bold;
+        text-align: center;
+        font-size: .2rem;
+    }
+    .btn-cdot-1::after{
+        content: '1';
+    }
+    .btn-cdot-2::after{
+        content: '2';
+    }
+    .btn-cdot-3::after{
+        content: '3';
+    }
+    /* 菜单-选择攻击 */
+    .menu .menu-sub-wrap{
         width: 100%;
+    }
+    .menu .menu-attack-wrap{
+
     }
     .menu .menu-weapon{
         width: 100%;
         color: #fff;
         margin-bottom: .12rem;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex-wrap: wrap;
     }
-    .menu .menu-attack{
+    .menu .menu-weapon .menu-attack-shrink{
+        width: 32%;
+        margin-right: 1%;
+        margin-bottom: .04rem;
+        height: .68rem;
+        line-height: .68rem;
+    }
+    /* 菜单-选择技能 */
+    .menu-skill-wrap{
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: .12rem;
+    }
+    .menu .menu-skill-shrink{
+        width: 49%;
+        margin-right: 1%;
+        margin-bottom: .08rem;
+        height: .5rem;
+        line-height: .5rem;
+    }
+    .menu .menu-skill-expand{
+        height: auto;
         width: 100%;
+        margin-bottom: .08rem;
     }
-
+    /* 菜单-选择单位 */
+    .menu-unit-wrap{
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .menu-unit-wrap .btn{
+        width: 24%;
+        margin-right: 1%;
+        height: 1.632rem;
+        font-size: .4rem;
+        line-height: 1.632rem;
+    }
+    /* 菜单-选择属性 */
+    .menu-attr-wrap{
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .menu-attr-wrap .btn{
+        width: 13.2%;
+        margin-right: 1%;
+        height: .8977rem;
+        line-height: .8977rem;
+    }
     /* pop */
+    .canvas-cover{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        background-color: rgba(255,255,255,.78);
+        z-index: 20000;
+        color: #131313;
+        font-size: .4rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
     .unit-info-pop{
         width: 100%;
         padding: .14rem .22rem;
