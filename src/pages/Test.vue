@@ -72,14 +72,14 @@
 </template>
 
 <script>
-import Ani from '../_t/Ccc.vue'; // 'thunder', 'arc', 'laser', 'blood', 'fire', 'explosion', 'heal', 'barrier', 'formation'
+// import Ani from '../_t/Ccc.vue'; // 'thunder', 'arc', 'laser', 'blood', 'fire', 'explosion', 'heal', 'barrier', 'formation'
 import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
 import * as common from '../tools/common';
 import { DEBUG, CONFIG, CACHE, } from '../config/config';
 
 export default {
     name: 'Test',
-    components: { Ani, },
+    components: { },
     data() {
         return {
             s0: 1,

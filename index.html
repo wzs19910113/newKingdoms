@@ -15,7 +15,10 @@
     </head>
     <body>
         <script>
-            document.documentElement.style.fontSize=window.innerWidth/7.5+'px';window.onresize=function(){document.documentElement.style.fontSize=window.innerWidth/7.5+'px'};
+            window.GLOBAL={};
+            window.GLOBAL.fontSize=window.innerWidth/7.5;
+            document.documentElement.style.fontSize=window.GLOBAL.fontSize+'px';
+            window.onresize=function(){window.GLOBAL.fontSize=window.innerWidth/7.5;document.documentElement.style.fontSize=window.GLOBAL.fontSize+'px';};
         </script>
         <div id="app"></div>
         <!-- built files will be auto injected -->

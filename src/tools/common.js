@@ -189,11 +189,12 @@ export function genRandomAge(){ // 随机生成年龄
     }
     return age;
 };
-export function genAttack({level=1,melee=1,name='',isSkill=0}){ // 生成一个攻击方式
+export function genAttack({level=1,melee=1,names=[],isSkill=0}){ // 生成一个攻击方式
     let newAtk = {};
     let atkAll = 0; // 是否为全体攻击
     let r1Ratio = 0, r2Ratio = 0, rAllRatio = 0;
     let minAtk, maxAtk;
+    let name,effectType;
     if(isSkill){ // 用于技能
         minAtk = CONFIG.skillAtkRangeMap[level-1][0];
         maxAtk = CONFIG.skillAtkRangeMap[level-1][1];
@@ -214,6 +215,7 @@ export function genAttack({level=1,melee=1,name='',isSkill=0}){ // 生成一个�
             r1Ratio = .9;
             r2Ratio = .7;
         }
+        effectType = [1,2,][r(0,1)];
     }
     else{ // 远程
         if(r(1,10)<=8){ // 纯远程
@@ -224,7 +226,18 @@ export function genAttack({level=1,melee=1,name='',isSkill=0}){ // 生成一个�
             r1Ratio = .7;
             r2Ratio = .9;
         }
+        effectType = [3,4,5,6,][r(0,3)];
     }
+    // 生成名字
+    let availableNames = []; // 可选的名字数组
+    let attackNameList = NAMES.ATTACK_NAME_LIST[effectType-1];
+    for(let n of attackNameList){
+        if(arrContains(names,n)==-1){
+            availableNames.push(n);
+        }
+    }
+    name = randIn(availableNames);
+    // 赋值
     newAtk = {
         n: name,
         d: cl(exptr(minAtk,maxAtk,1))+1,
@@ -428,13 +441,13 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
     // 武器添加攻击方式
     if(type==1){
         let atkCount = exptr(1,3,2); // 攻击方式的数量
+        let names = []; // 已有的攻击名字数组
         // let atkCount = 3; // 攻击方式的数量
-        let atkNames = shuffle(melee==1?NAMES.ATTACK_NAME_MELEE_LIST:NAMES.ATTACK_NAME_RANGE_LIST);
         res.k = [];
         for(let i=0;i<atkCount;i++){ // 循环生成攻击方式
-            let name = atkNames[i];
-            let newAtk = genAttack({level,melee,name,});
+            let newAtk = genAttack({level,melee,names,});
             res.k.push(newAtk);
+            names.push(newAtk.n);
         }
         // 调整每个攻击方式的体力消耗
         let sortedK = bulbsort(res.k,'c',1);

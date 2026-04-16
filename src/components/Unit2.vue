@@ -1,8 +1,8 @@
 <template>
     <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'} ${aniStyle}`" @click.stop="onTap({flag:1,unit,},$event)">
         <div class="avatar-wrap" :class="`${!unit.btd.alive?'dead':''}`">
-            <a class="avatar" v-if="!aniStyle" ref="unit-icon" :class="" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
-            <a class="avatar" v-else ref="unit-icon" :class="" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
+            <a class="avatar avatar" v-if="!aniStyle" ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
+            <a class="avatar" v-else ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
             <div class="cur" v-show="unit.btd.cur&&unit.btd.alive"></div>
             <Bar2 class="cir1" :current="unit.btd.move" :type="1" :onTap="onTap.bind(this,{flag:103,unit,})" />
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" :onTap="onTap.bind(this,{flag:104,unit,})" />
@@ -59,6 +59,7 @@ import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
 import Buff from '../components/Buff';
 import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
+import * as common from '../tools/common';
 import { DEBUG, CONFIG } from '../config/config';
 export default {
     props:{
@@ -73,8 +74,7 @@ export default {
             loading: false,
             aniStyle: '',
 
-            CONFIG,
-            DEBUG,
+            common,CONFIG,DEBUG,
         };
     },
     computed: {
@@ -108,6 +108,11 @@ export default {
             else{
                 this.aniStyle = '';
             }
+        },
+        calcOpacity(){ // 计算透明度
+            let res, dodge = this.unit.btd.dge;
+            res = 80 + Math.round(common.awaFormat(dodge)/5);
+            return res;
         },
     },
     components:{
@@ -297,12 +302,6 @@ export default {
     .unit-cast-top .avatar{
         animation: castTop .5s ease-in-out forwards;
     }
-    .unit-cast-bottom .avatar{
-        animation: castBottom .5s ease-in-out forwards;
-    }
-    .unit-shake .avatar{
-        animation: shake .5s .4s ease-in-out forwards;
-    }
     @keyframes castTop {
         50%{
             transform: translateY(250%);
@@ -310,6 +309,9 @@ export default {
         100%{
             transform: translateY(0);
         }
+    }
+    .unit-cast-bottom .avatar{
+        animation: castBottom .5s ease-in-out forwards;
     }
     @keyframes castBottom {
         50%{
@@ -319,6 +321,9 @@ export default {
             transform: translateY(0);
         }
     }
+    .unit-shake .avatar{
+        animation: shake .5s .4s ease-in-out forwards;
+    }
     @keyframes shake {
         10%{
             transform: translateX(-20%);
@@ -327,28 +332,29 @@ export default {
             transform: translateX(20%);
         }
         30%{
-            transform: translateX(-10%);
+            transform: translateX(-15%);
         }
         40%{
-            transform: translateX(10%);
+            transform: translateX(15%);
         }
         50%{
-            transform: translateX(-6%);
+            transform: translateX(-12%);
         }
         60%{
-            transform: translateX(6%);
+            transform: translateX(12%);
         }
         70%{
-            transform: translateX(3%);
+            transform: translateX(6%);
         }
         80%{
-            transform: translateX(-3%);
+            transform: translateX(-6%);
         }
         90%{
-            transform: translateX(2%);
+            transform: translateX(3%);
         }
         100%{
             transform: translateX(0);
         }
     }
+
 </style>

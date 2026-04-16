@@ -4,17 +4,28 @@
 
 <script>
 export default {
-  name: "BattleEffect",
+  name: "AniElement",
   props: {
     id: {
       type: Number,
       required: true,
     },
-    delay: {
-        type: Number,
-        default: 0, // 延迟时间，单位秒
-      },
-      // 动画类型: 'thunder', 'arc', 'laser', 'blood', 'fire', 'explosion', 'heal', 'barrier', 'formation', 'moon', 'halo', 'cross'
+        delay: {
+            type: Number,
+            default: 0, // 延迟时间，单位秒
+        },
+        text: {
+            type: String,
+            default: '',
+        },
+        color: {
+            type: Object,
+            default: function(){return {r:0,g:0,b:0,}},
+        },
+        fontSize: {
+            type: Number,
+            default: .44, // rem
+        },
     type: {
       type: String,
       required: true,
@@ -70,7 +81,7 @@ export default {
 
   },
   mounted() {
-      console.log(`Ccc mounted=>`,this);
+      // console.log(`Ccc mounted=>`,this);
     this.initCanvas();
     this.startTime = performance.now() + this.delay * 1000;
     this.animate();
@@ -169,6 +180,9 @@ export default {
       ctx.globalAlpha = alpha;
       // 根据类型分发绘制
       switch (this.type) {
+        case "text":
+          this.drawText(ctx, progress);
+          break;
         case "thunder":
           this.drawThunder(ctx, progress);
           break;
@@ -205,6 +219,9 @@ export default {
         case "cross":
           this.drawCross(ctx, progress);
           break;
+        case "dark":
+          this.drawDark(ctx, progress);
+          break;
         default:
           this.drawThunder(ctx, progress);
       }
@@ -216,6 +233,59 @@ export default {
       ctx.shadowColor = color;
     },
 
+    // 文本特效
+    drawText(ctx, progress){
+        const t = progress;
+        const color = this.color;
+
+        const text = this.text || "0";
+        const fontFamily = this.fontFamily || "Arial, \"Microsoft YaHei\", sans-serif";
+        const fontSize = this.fontSize || .44;
+        // const op_color = {r:255-color.r,g:255-color.g,b:255-color.b,};
+        const op_color = {r:0,g:0,b:0,};
+
+        // 透明度：只淡出（前60%完全不透明，之后线性淡出）
+        let alpha = 1;
+        const fadeOutStart = 0.55;
+        if (t > fadeOutStart) {
+            alpha = 1 - (t - fadeOutStart) / (1 - fadeOutStart);
+        }
+        alpha = Math.min(1, Math.max(0, alpha));
+
+        ctx.save();
+
+        // 设置字体
+        ctx.font = `bold ${fontSize}rem ${fontFamily}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        // ========== 第一层：文字外发光（最大范围） ==========
+        ctx.shadowColor = `rgba(${op_color.r},${op_color.g},${op_color.b}, ${0.7 * alpha})`;
+        ctx.fillStyle = `rgba(${op_color.r},${op_color.g},${op_color.b}, ${0.95 * alpha})`;
+        ctx.fillText(text, 1, 1);
+        // ========== 第二层：文字主体（清晰） ==========
+        // ctx.shadowBlur = 12;
+        ctx.shadowColor = `rgba(${color.r},${color.g},${color.b}, ${0.9 * alpha})`;
+        ctx.fillStyle = `rgba(${color.r},${color.g},${color.b}, ${alpha})`;
+        ctx.fillText(text, 0, 0);
+        // ========== 第四层：文字描边（增强可读性） ==========
+        // ctx.shadowBlur = 0;
+        // ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b}, ${0.5 * alpha})`;
+        // ctx.lineWidth = 2.5;
+        // ctx.strokeText(text, 0, 0);
+        // ========== 第七层：文字闪光效果（随机闪烁） ==========
+        // if (t < 0.3 && Math.random() < 0.3) {
+        //     const flashIntensity = (1 - t / 0.3) * 0.8;
+        //     ctx.fillStyle = `rgba(255, 255, 255, ${0.7 * flashIntensity * alpha})`;
+        //     ctx.fillText(text, 0, 0);
+        // }
+        // ========== 第八层：文字底部阴影（增强立体感） ==========
+        // ctx.shadowBlur = 8;
+        // ctx.shadowColor = `rgba(0, 0, 0, ${0.4 * alpha})`;
+        // ctx.fillStyle = `rgba(0, 0, 0, ${0.3 * alpha})`;
+        // ctx.fillText(text, 2, 2);
+
+        ctx.restore();
+    },
     // 雷击特效: 扩散状闪电（无主干，向四周放射）
     drawThunder(ctx, progress) {
       const t = progress;
@@ -758,17 +828,43 @@ export default {
         const xOff = Math.cos(angleOff + t * 12) * 14 * t;
         ctx.beginPath();
         ctx.arc(xOff, yOff, rad, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(80, 140, 100, ${0.8 * (1 - t * 0.4)})`;
+        ctx.fillStyle = `rgba(180, 240, 200, ${0.8 * (1 - t * 0.4)})`;
         ctx.fill();
       }
       // 十字光晕
-      // ctx.beginPath();
-      // ctx.moveTo(-8, 0);
-      // ctx.lineTo(0, -18 * t);
-      // ctx.lineTo(8, 0);
-      // ctx.lineTo(0, 18 * t);
-      // ctx.fillStyle = `rgba(120, 255, 120, ${0.7 * Math.sin(t * Math.PI)})`;
-      // ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-8, 0);
+      ctx.lineTo(0, -18 * t);
+      ctx.lineTo(8, 0);
+      ctx.lineTo(0, 18 * t);
+      ctx.fillStyle = `rgba(120, 205, 180, ${0.7 * Math.sin(t * Math.PI)})`;
+      ctx.fill();
+
+      // ========== 第八层：冲击波光环 ==========
+      for (let wave = 0; wave < 2; wave++) {
+        const waveDelay = wave * 0.12;
+        const waveProgress = Math.max(0, Math.min(1, (t - waveDelay) / (1 - waveDelay)));
+        if (waveProgress > 0 && waveProgress < 0.95) {
+          const waveRadius = 12 + 25 * waveProgress;
+          ctx.beginPath();
+          ctx.arc(0, 0, waveRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255, 230, 170, ${0.8 * 1 * (1 - waveProgress)})`;
+          ctx.lineWidth = .5;
+          ctx.stroke();
+
+          // 光环上的粒子
+          // for (let p = 0; p < 16; p++) {
+          //   const ringAngle = (p / 16) * Math.PI * 2 + t * 15;
+          //   const x = Math.cos(ringAngle) * waveRadius;
+          //   const y = Math.sin(ringAngle) * waveRadius;
+          //   ctx.beginPath();
+          //   ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+          //   ctx.fillStyle = `rgba(255, 235, 180, ${0.5 * 1 * (1 - waveProgress)})`;
+          //   ctx.fill();
+          // }
+        }
+      }
+
       ctx.restore();
     },
     // 护盾特效: 潜绿色+蓝色 六边形多层
@@ -777,20 +873,20 @@ export default {
       ctx.save();
       ctx.shadowBlur = 14;
       ctx.shadowColor = "#44ccff";
-      for (let layer = 0; layer < 3; layer++) {
-        const scaleLayer = 1 - layer * 0.2;
+      for (let layer = 0; layer < 2; layer++) {
+        const scaleLayer = 1 - layer * 5.2;
         ctx.beginPath();
         for (let i = 0; i < 6; i++) {
-          const angleHex = i * Math.PI * 2 / 6 + t * 2;
-          const xOff = Math.cos(angleHex) * (18 + layer * 4) * t;
-          const yOff = Math.sin(angleHex) * (18 + layer * 4) * t;
+          const angleHex = i * Math.PI * 2 / 6 + Math.PI/2;
+          const xOff = Math.cos(angleHex) * (18 + layer * 4) * (1 - t * 0.3);
+          const yOff = Math.sin(angleHex) * (18 + layer * 4) * (1 - t * 0.3);
           if (i === 0) ctx.moveTo(xOff, yOff);
           else ctx.lineTo(xOff, yOff);
         }
         ctx.closePath();
-        ctx.fillStyle = `rgba(80, 180, 200, ${0.4 * (1 - t * 0.3)})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.4 * (1 - t * 0.8)})`;
         ctx.fill();
-        ctx.strokeStyle = `rgba(150, 220, 255, ${0.7 * Math.sin(t * Math.PI)})`;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.7 * Math.sin(t * Math.PI)})`;
         ctx.lineWidth = 2;
         ctx.stroke();
       }
@@ -824,6 +920,7 @@ export default {
       ctx.font = `${24 * (1 + t * 0.5)}px "Arial"`;
       ctx.fillStyle = `rgba(70, 170, 250, ${0.8 * Math.sin(t * Math.PI)})`;
       ctx.fillText("⚝", -12, 10);
+
       ctx.restore();
     },
     // 飙血特效: 鲜红色，向四周扩散然后下坠的粒子效果，扩散速度由快到慢，只要淡出不要淡入
@@ -839,14 +936,14 @@ export default {
       ctx.shadowColor = "rgba(100, 0, 0, 0.4)";
 
       // ========== 第一层：大血滴粒子（主要喷溅，带重力下坠）==========
-      const largeDropCount = 55;
+      const largeDropCount = 30; // 50
       for (let i = 0; i < largeDropCount; i++) {
         // 粒子角度（向四周扩散，主要向前上方和侧方）
         let angle;
         const angleBias = Math.random();
         if (angleBias < 0.5) {
           // 前方区域（-60度 到 60度），略向上
-          angle = (Math.random() - 0.5) * Math.PI * 0.67 - 0.2;
+          angle = (Math.random() - 0.5) * Math.PI * 0.07 - 0.2;
         } else if (angleBias < 0.75) {
           // 两侧区域
           angle = Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.4;
@@ -859,9 +956,9 @@ export default {
         }
 
         // 初始水平距离（由快到慢扩散）
-        const horizontalDist = 4 + 65 * easeOut * (0.3 + Math.random() * 1);
+        const horizontalDist = 4 + 15 * easeOut * (0.3 + Math.random() * 1);
         // 重力下坠效果：Y轴额外增加下坠偏移
-        const gravityDrop = 108 * t * t * (0.5 + Math.random() * 0.8);
+        const gravityDrop = 38 * t * t * (0.5 + Math.random() * 0.8);
 
         const x = Math.cos(angle) * horizontalDist;
         let y = Math.sin(angle) * horizontalDist + gravityDrop;
@@ -889,7 +986,7 @@ export default {
       }
 
       // ========== 第二层：中血滴粒子（中等大小，受重力影响较大）==========
-      const mediumDropCount = 80;
+      const mediumDropCount = 80; // 80
       for (let i = 0; i < mediumDropCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         // 水平方向随机
@@ -914,7 +1011,7 @@ export default {
       }
 
       // ========== 第三层：血雾/血丝（细小颗粒，漂浮感）==========
-      const mistCount = 130;
+      const mistCount = 130; // 130
       for (let i = 0; i < mistCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         const horizontalDist = 2 + 70 * easeOut * Math.random();
@@ -938,11 +1035,11 @@ export default {
       }
 
       // ========== 第四层：下坠血滴（专门表现重力下坠的重血滴）==========
-      const fallingDropCount = 45;
+      const fallingDropCount = 15;
       for (let i = 0; i < fallingDropCount; i++) {
         // 角度偏向下方向
         const angle = -Math.PI / 4 + (Math.random() - 0.5) * Math.PI * 0.8;
-        const horizontalDist = 2 + 55 * easeOut * Math.random();
+        const horizontalDist = 2 + 5 * easeOut * Math.random();
         // 强重力下坠
         const gravityDrop = 108 * t * t * (0.6 + Math.random() * 0.8);
 
@@ -963,7 +1060,7 @@ export default {
       }
 
       // ========== 第五层：血迹飞溅拖尾（轨迹线）==========
-      const streakCount = 45;
+      const streakCount = 0;
       for (let i = 0; i < streakCount; i++) {
         let angle;
         if (Math.random() < 0.65) {
@@ -996,7 +1093,7 @@ export default {
       }
 
       // ========== 第六层：地面溅射血点（最下方）==========
-      const groundSplashCount = 30;
+      const groundSplashCount = 0;
       for (let i = 0; i < groundSplashCount; i++) {
         const angle = (Math.random() - 0.5) * Math.PI * 1.5;
         const horizontalDist = 5 + 60 * easeOut * Math.random();
@@ -1026,7 +1123,7 @@ export default {
 
       ctx.save();
       ctx.shadowBlur = 12;
-      ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
+      ctx.shadowColor = "rgba(255, 255, 255, 0.1)";
 
       // 月牙向上移动的距离
       const upwardDistance = -15 - 70 * easeIn;
@@ -1045,7 +1142,7 @@ export default {
 
         const isWhite = Math.random() > 0.6;
         if (isWhite) {
-          ctx.fillStyle = `rgba(255, 255, 255, ${0.7 * fadeOutAlpha * (1 - y / 80)})`;
+          ctx.fillStyle = `rgba(0, 0, 0, ${0.7 * fadeOutAlpha * (1 - y / 80)})`;
         } else {
           ctx.fillStyle = `rgba(180, 200, 220, ${0.6 * fadeOutAlpha * (1 - y / 80)})`;
         }
@@ -1065,73 +1162,73 @@ export default {
         ctx.beginPath();
         ctx.moveTo(tailX, tailY);
         ctx.lineTo(x, y);
-        ctx.strokeStyle = `rgba(0, 200, 240, ${0.55 * fadeOutAlpha * (1 - y / 75)})`;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.55 * fadeOutAlpha * (1 - y / 75)})`;
         ctx.lineWidth = 1.5 + Math.random() * 2;
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(x, y, 1.5 + Math.random() * 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(80, 210, 240, ${0.7 * fadeOutAlpha * (1 - y / 75)})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.7 * fadeOutAlpha * (1 - y / 75)})`;
         ctx.fill();
       }
 
       // 第三层：光晕粒子（较大，发光感）
-      const glowCount = 5;
-      for (let i = 0; i < glowCount; i++) {
-        const x = (Math.random() - 0.5) * 55 * easeIn;
-        const y = 20 + 50 * easeIn * Math.random();
-        const size = 2 + Math.random() * 4;
-
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(220, 230, 255, ${0.5 * fadeOutAlpha * (1 - y / 70)})`;
-        ctx.fill();
-
-        // 光晕外圈
-        ctx.beginPath();
-        ctx.arc(x, y, size * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 210, 240, ${0.25 * fadeOutAlpha * (1 - y / 70)})`;
-        ctx.fill();
-      }
+      // const glowCount = 5;
+      // for (let i = 0; i < glowCount; i++) {
+      //   const x = (Math.random() - 0.5) * 55 * easeIn;
+      //   const y = 20 + 50 * easeIn * Math.random();
+      //   const size = 2 + Math.random() * 4;
+      //
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, size, 0, Math.PI * 2);
+      //   ctx.fillStyle = `rgba(220, 230, 255, ${0.5 * fadeOutAlpha * (1 - y / 70)})`;
+      //   ctx.fill();
+      //
+      //   // 光晕外圈
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, size * 1.5, 0, Math.PI * 2);
+      //   ctx.fillStyle = `rgba(200, 210, 240, ${0.25 * fadeOutAlpha * (1 - y / 70)})`;
+      //   ctx.fill();
+      // }
 
       // 第四层：重力加速粒子（向下加速坠落）
-      const gravityCount = 20;
-      for (let i = 0; i < gravityCount; i++) {
-        const x = (Math.random() - 0.5) * 60 * easeIn;
-        // 重力加速效果：y随t的平方增长
-        const y = 8 + 245 * easeIn * easeIn * Math.random();
-        const size = 1 + Math.random() * 2.5;
-
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 250, 240, ${0.65 * fadeOutAlpha * (1 - y / 70)})`;
-        ctx.fill();
-      }
+      // const gravityCount = 20;
+      // for (let i = 0; i < gravityCount; i++) {
+      //   const x = (Math.random() - 0.5) * 60 * easeIn;
+      //   // 重力加速效果：y随t的平方增长
+      //   const y = 8 + 245 * easeIn * easeIn * Math.random();
+      //   const size = 1 + Math.random() * 2.5;
+      //
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, size, 0, Math.PI * 2);
+      //   ctx.fillStyle = `rgba(255, 250, 240, ${0.65 * fadeOutAlpha * (1 - y / 70)})`;
+      //   ctx.fill();
+      // }
 
       // 第五层：月牙尾部溅射粒子（从月牙底部向下喷出）
-      const splashCount = 10;
-      for (let i = 0; i < splashCount; i++) {
-        // 粒子从月牙底部位置开始
-        const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.6;
-        const distance = 5 + 50 * easeIn * Math.random();
-        const x = Math.cos(angle) * distance * 0.8;
-        const y = 8 + Math.sin(angle) * distance;
-
-        const size = 1.5 + Math.random() * 2.5;
-
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 245, 250, ${0.7 * fadeOutAlpha * (1 - y / 65)})`;
-        ctx.fill();
-
-        // 溅射拖尾
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x - Math.sin(angle) * 3, y + 4);
-        ctx.strokeStyle = `rgba(200, 200, 220, ${0.45 * fadeOutAlpha * (1 - y / 65)})`;
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-      }
+      // const splashCount = 10;
+      // for (let i = 0; i < splashCount; i++) {
+      //   // 粒子从月牙底部位置开始
+      //   const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.6;
+      //   const distance = 5 + 50 * easeIn * Math.random();
+      //   const x = Math.cos(angle) * distance * 0.8;
+      //   const y = 8 + Math.sin(angle) * distance;
+      //
+      //   const size = 1.5 + Math.random() * 2.5;
+      //
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, size, 0, Math.PI * 2);
+      //   ctx.fillStyle = `rgba(255, 245, 250, ${0.7 * fadeOutAlpha * (1 - y / 65)})`;
+      //   ctx.fill();
+      //
+      //   // 溅射拖尾
+      //   ctx.beginPath();
+      //   ctx.moveTo(x, y);
+      //   ctx.lineTo(x - Math.sin(angle) * 3, y + 4);
+      //   ctx.strokeStyle = `rgba(200, 200, 220, ${0.45 * fadeOutAlpha * (1 - y / 65)})`;
+      //   ctx.lineWidth = 1.2;
+      //   ctx.stroke();
+      // }
 
       ctx.restore();
     },
@@ -1283,9 +1380,7 @@ export default {
 
       ctx.restore();
     },
-
-
-    // 弧线特效: 发白光的弧线，只要淡出不要淡入
+    // 十字特效: 只要淡出不要淡入
     drawCross(ctx, progress) {
       const t = progress;
 
@@ -1473,17 +1568,202 @@ export default {
 
       ctx.restore();
     },
+    // 黑暗
+    drawDark(ctx, progress) {
+      const t = progress;
 
+      // 透明度：只淡出（前70%不透明，之后线性淡出）
+      let alpha = 1;
+      const fadeOutStart = 0.65;
+      if (t > fadeOutStart) {
+        alpha = 1 - (t - fadeOutStart) / (1 - fadeOutStart);
+      }
+      alpha = Math.min(1, Math.max(0, alpha));
+
+      // 弧线扩展进度（弧线从无到有，然后保持）
+      let arcProgress;
+      if (t < 0.3) {
+        // 前30%快速画出弧线
+        arcProgress = t / 0.3;
+      } else {
+        // 之后保持完整弧线，随淡出衰减
+        arcProgress = 1;
+      }
+      arcProgress = Math.min(1, Math.max(0, arcProgress));
+
+      // 亮度系数（弧线保持高亮，淡出时衰减）
+      let brightness = 1;
+      if (t > fadeOutStart) {
+        brightness = 1 - (t - fadeOutStart) / (1 - fadeOutStart) * 0.5;
+      }
+      brightness = Math.min(1, Math.max(0.3, brightness));
+
+      const finalAlpha = alpha * brightness;
+
+      ctx.save();
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = `rgba(0, 0, 0, ${0.9 * finalAlpha})`;
+
+      // 弧线参数
+      const radius = 35;
+      const startAngle = -Math.PI * 2;  // -144度
+      const endAngle = Math.PI * 2;      // 144度
+      const totalAngle = endAngle - startAngle;
+      const currentEndAngle = startAngle + totalAngle * arcProgress;
+
+      // ========== 第一层：主弧线（最亮） ==========
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, startAngle, currentEndAngle);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = `rgba(0, 0, 0, ${0.98 * finalAlpha})`;
+      ctx.stroke();
+
+      // ========== 第二层：弧线内层高亮 ==========
+      ctx.beginPath();
+      ctx.arc(0, 0, radius - 2, startAngle, currentEndAngle);
+      ctx.lineWidth = 1.25;
+      ctx.strokeStyle = `rgba(0, 0, 0, ${0.92 * finalAlpha})`;
+      ctx.stroke();
+
+      // ========== 第三层：弧线外发光晕 ==========
+      // ctx.beginPath();
+      // ctx.arc(0, 0, radius + 3, startAngle, currentEndAngle);
+      // ctx.lineWidth = 6;
+      // ctx.strokeStyle = `rgba(0, 0, 0, ${0.45 * finalAlpha})`;
+      // ctx.stroke();
+
+      // ========== 第四层：弧线端点光球（起点和当前终点） ==========
+      // 起点光球
+      const startX = Math.cos(startAngle) * radius;
+      const startY = Math.sin(startAngle) * radius;
+      ctx.beginPath();
+      ctx.arc(startX, startY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0, 0, 0, ${0.85 * finalAlpha})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(startX, startY, 3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0, 0, 0, 1)`;
+      ctx.fill();
+
+      // 当前终点光球（随弧线扩展而移动）
+      if (arcProgress > 0.05) {
+        const endX = Math.cos(currentEndAngle) * radius;
+        const endY = Math.sin(currentEndAngle) * radius;
+        ctx.beginPath();
+        ctx.arc(endX, endY, 6, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 0, 0, ${0.85 * finalAlpha})`;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(endX, endY, 3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 0, 0, 1)`;
+        ctx.fill();
+
+        // 终点拖尾光晕
+        ctx.beginPath();
+        ctx.arc(endX, endY, 10, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 0, 0, ${0.3 * finalAlpha})`;
+        ctx.fill();
+      }
+      //
+      // ========== 第五层：弧线轨迹粒子（沿弧线分布） ==========
+      const particleCount = Math.floor(20 * arcProgress);
+      for (let i = 0; i < particleCount; i++) {
+        const angleProgress = i / Math.max(1, particleCount);
+        const angle = startAngle + totalAngle * angleProgress * arcProgress;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        const size = 2 + Math.sin(angle * 8) * 1;
+
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(140, 0, 100, ${0.6 * finalAlpha * (1 - angleProgress * 0.3)})`;
+        ctx.fill();
+      }
+      //
+      // ========== 第六层：弧线内侧光晕粒子 ==========
+      const innerParticleCount = 125;
+      for (let i = 0; i < innerParticleCount; i++) {
+        const angle = startAngle + Math.random() * totalAngle * arcProgress;
+        const radiusOffset = radius - 8 - Math.random() * 12;
+        const x = Math.cos(angle) * radiusOffset;
+        const y = Math.sin(angle) * radiusOffset;
+        const size = 1.5 + Math.random() * 2.5;
+
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(40, 0, 30, ${0.45 * finalAlpha * (1 - Math.random() * 0.5)})`;
+        ctx.fill();
+      }
+
+      // ========== 第七层：弧线外侧散逸粒子 ==========
+      const outerParticleCount = 20;
+      for (let i = 0; i < outerParticleCount; i++) {
+        const angle = startAngle + Math.random() * totalAngle * arcProgress;
+        const radiusOffset = radius + 5 + Math.random() * 15;
+        const x = Math.cos(angle) * radiusOffset;
+        const y = Math.sin(angle) * radiusOffset;
+        const size = 1 + Math.random() * 2;
+
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 0, 0, ${0.35 * finalAlpha * (1 - Math.random() * 0.6)})`;
+        ctx.fill();
+      }
+
+      // ========== 第八层：弧线中间飘浮光尘 ==========
+      // const dustCount = 30;
+      // for (let i = 0; i < dustCount; i++) {
+      //   // 分布在弧线内侧区域
+      //   const angle = startAngle + Math.random() * totalAngle * arcProgress;
+      //   const radiusOffset = radius - 15 + Math.random() * 25;
+      //   const x = Math.cos(angle) * radiusOffset;
+      //   const y = Math.sin(angle) * radiusOffset;
+      //   const size = 0.8 + Math.random() * 1.8;
+      //
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, size, 0, Math.PI * 2);
+      //   ctx.fillStyle = `rgba(255, 245, 210, ${0.4 * finalAlpha * (1 - Math.random() * 0.7)})`;
+      //   ctx.fill();
+      // }
+      //
+      // // ========== 第九层：弧线动态流动粒子（沿弧线移动） ==========
+      // const flowParticleCount = 8;
+      // for (let i = 0; i < flowParticleCount; i++) {
+      //   // 粒子位置随进度移动
+      //   const flowOffset = (t * 2 + i / flowParticleCount) % 1;
+      //   const angle = startAngle + totalAngle * flowOffset * arcProgress;
+      //   const x = Math.cos(angle) * radius;
+      //   const y = Math.sin(angle) * radius;
+      //   const size = 2.5 + Math.sin(t * 20 + i) * 1;
+      //
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, size, 0, Math.PI * 2);
+      //   ctx.fillStyle = `rgba(255, 255, 255, ${0.8 * finalAlpha})`;
+      //   ctx.fill();
+      //
+      //   // 流动粒子拖尾
+      //   ctx.beginPath();
+      //   ctx.arc(x - Math.cos(angle) * 4, y - Math.sin(angle) * 4, size * 0.6, 0, Math.PI * 2);
+      //   ctx.fillStyle = `rgba(255, 255, 220, ${0.5 * finalAlpha})`;
+      //   ctx.fill();
+      // }
+
+      // ========== 第十层：弧线中心区域光晕 ==========
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 0, 0, ${0.2 * finalAlpha})`;
+      ctx.fill();
+
+      ctx.restore();
+    },
   },
 };
 </script>
 
 <style scoped>
 .battle-effect-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 99999;
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 </style>

@@ -74,7 +74,7 @@
         <!-- <div class="canvas-cover" v-if="pageState==4">
             <Ani class="ani" res="ani" />
         </div> -->
-        <div class="canvas-cover" @click="onTapCheat">
+        <div class="canvas-cover" @click="onTapCheat" v-if="pageState==1">
             <Ani class="ani" ref="ani" @onAnimationEnd="onAnimationEnd" />
         </div>
         <Pop v-if="viewingUnit" title="角色面板" :onTap="onTapPop">
@@ -146,6 +146,8 @@ export default {
             ],
 
             game: null,
+
+            aniList: [], // 播放动画的数据数组
 
             playerTeam:[],
             enemyTeam:[],
@@ -380,7 +382,7 @@ export default {
             })
         },
         onAnimationEnd(){ // 当动画结束
-            console.log(`当动画结束`);
+            // console.log(`当动画结束`);
             // 清除所有dom动画
             let allUnits = [...this.playerTeam,...this.enemyTeam];
             for(let unit of allUnits){
@@ -651,16 +653,24 @@ export default {
 
         onTapCheat(){ // 点击【作弊】按钮
             // this.goPageState(2);
-            let cUnit = this.playerTeam[3],tUnit = this.enemyTeam[1],t2Unit = this.enemyTeam[3];
+            let cUnit = this.playerTeam[3],tUnit = this.enemyTeam[2],t2Unit = this.enemyTeam[3];
             let c_pos = this.getUnitDomPos(cUnit.id);
             let t_pos = this.getUnitDomPos(tUnit.id);
             let c_vdom = this.$refs[`u-${cUnit.id}`][0], t_vdom = this.$refs[`u-${tUnit.id}`][0], t2_vdom = this.$refs[`u-${t2Unit.id}`][0];
 
             let x = 250;
             c_vdom.trigAni('cast');
-            t_vdom.trigAni('shake');
+            // t_vdom.trigAni('shake');
             // t2_vdom.trigAni('shake');
-            this.$refs.ani.trigger({name:'attack-melee', fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
+
+            this.$refs.ani.trigger({name:'attack-slash-heavy',fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
+            // let tl1 = [{val:'破',colorType:9,fontSize:.6,},];
+            // this.$refs.ani.trigger({name:'text',textList:tl1, fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
+            // let tl2 = [{val:-973,colorType:2,},];
+            // this.$refs.ani.trigger({name:'number-common',textList:tl2, fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
+            // this.$refs.ani.trigger({name:'number-potency-damage',textList:[{val:3700,},], fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
+            // this.$refs.ani.trigger({name:'number-common',textList:[{val:-316,colorType:4},], fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
+            this.$refs.ani.trigger({name:'text',textList:[{val:'miss',colorType:10,fontSize:.66},], fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
         },
     },
     components:{
