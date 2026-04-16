@@ -1,7 +1,8 @@
 <template>
-    <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'}`" @click.stop="onTap({flag:1,unit,},$event)">
+    <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'} ${aniStyle}`" @click.stop="onTap({flag:1,unit,},$event)">
         <div class="avatar-wrap" :class="`${!unit.btd.alive?'dead':''}`">
-            <a class="avatar" :class="" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
+            <a class="avatar" v-if="!aniStyle" ref="unit-icon" :class="" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
+            <a class="avatar" v-else ref="unit-icon" :class="" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
             <div class="cur" v-show="unit.btd.cur&&unit.btd.alive"></div>
             <Bar2 class="cir1" :current="unit.btd.move" :type="1" :onTap="onTap.bind(this,{flag:103,unit,})" />
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" :onTap="onTap.bind(this,{flag:104,unit,})" />
@@ -24,7 +25,7 @@
             </div>
         </div>
         <div class="buff-wrap" :class="`${!unit.btd.alive?'dead':''}`">
-            <Buff v-for="buff in unit.btd.buffs" v-bind:key="buff.id" :buff="buff" :onTap="onTap.bind(this,{flag:2,unit,buff})" />
+            <Buff v-for="buff in unit.btd.buffs" :key="buff.id" :buff="buff" :onTap="onTap.bind(this,{flag:2,unit,buff})" />
         </div>
         <div class="death-cover" v-if="!unit.btd.alive">战<br/>退</div>
     </a>
@@ -70,6 +71,7 @@ export default {
     data() {
         return {
             loading: false,
+            aniStyle: '',
 
             CONFIG,
             DEBUG,
@@ -92,6 +94,20 @@ export default {
                 name = name.substring(0,pv)+'\r'+name.substring(pv);
             }
             return name;
+        },
+        getIconVDom(){ // 获取头像的VDOM
+            return this.$refs[`unit-icon`];
+        },
+        trigAni(name){ // 触发动画
+            if(name=='cast'){
+                this.aniStyle = `unit-${name}-${this.unit.btd.isPlayer?'bottom':'top'}`;
+            }
+            else if(name=='shake'){
+                this.aniStyle = `unit-${name}`;
+            }
+            else{
+                this.aniStyle = '';
+            }
         },
     },
     components:{
@@ -273,5 +289,66 @@ export default {
         text-shadow: 0 0 .2rem #000;
         z-index: 1000;
         opacity: .5;
+    }
+    /* 动画 */
+    .unit-cast-top .avatar-wrap{
+        z-index: 150;
+    }
+    .unit-cast-top .avatar{
+        animation: castTop .5s ease-in-out forwards;
+    }
+    .unit-cast-bottom .avatar{
+        animation: castBottom .5s ease-in-out forwards;
+    }
+    .unit-shake .avatar{
+        animation: shake .5s .4s ease-in-out forwards;
+    }
+    @keyframes castTop {
+        50%{
+            transform: translateY(250%);
+        }
+        100%{
+            transform: translateY(0);
+        }
+    }
+    @keyframes castBottom {
+        50%{
+            transform: translateY(-250%);
+        }
+        100%{
+            transform: translateY(0);
+        }
+    }
+    @keyframes shake {
+        10%{
+            transform: translateX(-20%);
+        }
+        20%{
+            transform: translateX(20%);
+        }
+        30%{
+            transform: translateX(-10%);
+        }
+        40%{
+            transform: translateX(10%);
+        }
+        50%{
+            transform: translateX(-6%);
+        }
+        60%{
+            transform: translateX(6%);
+        }
+        70%{
+            transform: translateX(3%);
+        }
+        80%{
+            transform: translateX(-3%);
+        }
+        90%{
+            transform: translateX(2%);
+        }
+        100%{
+            transform: translateX(0);
+        }
     }
 </style>

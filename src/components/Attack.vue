@@ -6,7 +6,7 @@
             <span class="attack-item">力补<br/>{{common.genRXString(attack.r1)}}</span>
             <span class="attack-item">精补<br/>{{common.genRXString(attack.r2)}}</span>
             <div class="attack-item buff-wrap">
-                <span class="buff" v-for="(buffId,index) in attack.b" v-bind:key="buffId">
+                <span class="buff" v-for="(buffId,index) in attack.b" :key="buffId">
                     <Buff :buff="genBuff(buffId,attack.bl[index])" :mode="2" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:attack.bl[index]})" />
                 </span>
             </div>

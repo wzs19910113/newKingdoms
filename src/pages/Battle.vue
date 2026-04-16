@@ -11,7 +11,7 @@
                 <div class="battle-field">
                     <!-- 敌方区域 -->
                     <div class="team-pan team-pan-top">
-                        <Unit2 v-for="unit in enemyTeam" v-bind:key="unit.id" :unit="unit" :onTap="onTapUnit" />
+                        <Unit2 v-for="unit in enemyTeam" :ref="'u-'+unit.id" :key="unit.id" :unit="unit" :onTap="onTapUnit" />
                     </div>
                     <!-- 公示信息区域 -->
                     <div class="board-container">
@@ -20,7 +20,7 @@
                     </div>
                     <!-- 我方区域 -->
                     <div class="team-pan team-pan-bottom">
-                        <Unit2 v-for="unit in playerTeam" v-bind:key="unit.id" :unit="unit" :onTap="onTapUnit" />
+                        <Unit2 v-for="unit in playerTeam" :ref="'u-'+unit.id" :key="unit.id" :unit="unit" :onTap="onTapUnit" />
                     </div>
                 </div>
                 <!-- 操作板块 -->
@@ -46,24 +46,24 @@
                         </div>
                         <div class="menu-tag" v-if="menuData.state==2">
                             <div class="menu-sub-wrap menu-attack-wrap">
-                                <div class="menu-weapon" v-for="(weapon,index) in curUnitList[curUnitListIndex].btd.weaponList" v-bind:key="index">
-                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" v-for="(attack,index) in weapon.k" v-bind:key="index" :attack="attack" :mode="menuData.expand?1:2" :onTap="onTapMenu.bind(this,{flag:101,data:attack})" />
+                                <div class="menu-weapon" v-for="(weapon,index) in curUnitList[curUnitListIndex].btd.weaponList" :key="index">
+                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" v-for="(attack,index) in weapon.k" :key="index" :attack="attack" :mode="menuData.expand?1:2" :onTap="onTapMenu.bind(this,{flag:101,data:attack})" />
                                 </div>
                             </div>
                         </div>
                         <div class="menu-tag" v-if="menuData.state==3">
                             <div class="menu-sub-wrap menu-skill-wrap">
-                                <Skill class="btn" :class="menuData.expand?'menu-skill-expand':'menu-skill-shrink'" v-for="(skill,index) in curUnitList[curUnitListIndex].btd.skillList" v-bind:key="index" :skill="skill" :mode="menuData.expand?1:2" :isOption="true" :onTap="onTapMenu.bind(this,{flag:102,data:skill})" />
+                                <Skill class="btn" :class="menuData.expand?'menu-skill-expand':'menu-skill-shrink'" v-for="(skill,index) in curUnitList[curUnitListIndex].btd.skillList" :key="index" :skill="skill" :mode="menuData.expand?1:2" :isOption="true" :onTap="onTapMenu.bind(this,{flag:102,data:skill})" />
                             </div>
                         </div>
                         <div class="menu-tag" v-if="menuData.state==4">
                             <div class="menu-sub-wrap menu-unit-wrap">
-                                <a class="btn" v-for="(unit,index) in menuData.unitList" v-bind:key="index"  @click="onTapMenu({flag:21,data:unit})">{{unit.btd.name}}</a>
+                                <a class="btn" v-for="(unit,index) in menuData.unitList" :key="index"  @click="onTapMenu({flag:21,data:unit})">{{unit.btd.name}}</a>
                             </div>
                         </div>
                         <div class="menu-tag" v-if="menuData.state==5">
                             <div class="menu-sub-wrap menu-attr-wrap">
-                                <a class="btn" v-for="(attr,index) in menuData.attrList" v-bind:key="index"  @click="onTapMenu({flag:22,data:attr.i})">{{attr.n}}</a>
+                                <a class="btn" v-for="(attr,index) in menuData.attrList" :key="index"  @click="onTapMenu({flag:22,data:attr.i})">{{attr.n}}</a>
                             </div>
                         </div>
                     </div>
@@ -71,8 +71,11 @@
             </div>
         </div>
         <!-- 弹窗 -->
-        <div class="canvas-cover" v-if="pageState==4">
+        <!-- <div class="canvas-cover" v-if="pageState==4">
             <Ani class="ani" res="ani" />
+        </div> -->
+        <div class="canvas-cover" @click="onTapCheat">
+            <Ani class="ani" ref="ani" @onAnimationEnd="onAnimationEnd" />
         </div>
         <Pop v-if="viewingUnit" title="角色面板" :onTap="onTapPop">
             <div class="unit-info-pop">
@@ -146,8 +149,6 @@ export default {
 
             playerTeam:[],
             enemyTeam:[],
-
-            aniTimer: null, // 动画计时器
 
             CONFIG,
             DEBUG,
@@ -225,10 +226,7 @@ export default {
             this.$router.push('/');
         }
     },
-    destroyed(){
-        clearInterval(this.aniTimer);
-        this.aniTimer = null;
-    },
+    destroyed(){},
     methods: {
         init(){ // 初始化全部
             let { playerTeamIds, enemyTeamIds, } = this.game.battle;
@@ -381,12 +379,19 @@ export default {
                 }
             })
         },
-        onAniEnd(){ // 当动画结束
+        onAnimationEnd(){ // 当动画结束
+            console.log(`当动画结束`);
+            // 清除所有dom动画
+            let allUnits = [...this.playerTeam,...this.enemyTeam];
+            for(let unit of allUnits){
+                let vdom = this.$refs[`u-${unit.id}`][0];
+                vdom.trigAni();
+            }
             if(this.checkEnd()){ // 战斗结束
 
             }
             else{ // 战斗未结束，继续行动条增长
-                this.goPageState(2);
+                // this.goPageState(2);
             }
         },
         checkEnd(){ // 检查胜负
@@ -397,8 +402,22 @@ export default {
             this.goPageState(4);
             console.log(`播放动画=>${[`攻击`,`技能`,`防御`,`躲避`,`追踪`,`呼吸`,`集气`,`爆气`,`劝降`,`撤离`,][type-1]}`,data);
             this.aniTimer = setTimeout(_=>{
-                this.onAniEnd();
+                this.onAnimationEnd();
             },CONFIG.aniPeriod[period-1]);
+        },
+        getUnitDomPos(id){ // 获取单位dom的坐标
+            let vdom = this.$refs[`u-${id}`][0];
+            if(vdom){
+                let dom = vdom.getIconVDom();
+                let rect = dom.getBoundingClientRect();
+                return {
+                    x: Math.round((rect.left+rect.right)/2),
+                    y: Math.round((rect.top+rect.bottom)/2),
+                };
+            }
+            else{
+                return false;
+            }
         },
 
         unitAction({caster,type,targetUnitList,burstAttr,skill,attack}){ // 单位执行动作
@@ -631,7 +650,17 @@ export default {
         },
 
         onTapCheat(){ // 点击【作弊】按钮
-            this.goPageState(2);
+            // this.goPageState(2);
+            let cUnit = this.playerTeam[3],tUnit = this.enemyTeam[1],t2Unit = this.enemyTeam[3];
+            let c_pos = this.getUnitDomPos(cUnit.id);
+            let t_pos = this.getUnitDomPos(tUnit.id);
+            let c_vdom = this.$refs[`u-${cUnit.id}`][0], t_vdom = this.$refs[`u-${tUnit.id}`][0], t2_vdom = this.$refs[`u-${t2Unit.id}`][0];
+
+            let x = 250;
+            c_vdom.trigAni('cast');
+            t_vdom.trigAni('shake');
+            // t2_vdom.trigAni('shake');
+            this.$refs.ani.trigger({name:'attack-melee', fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
         },
     },
     components:{
@@ -975,7 +1004,6 @@ export default {
         left: 0;
         right: 0;
         margin: auto;
-        background-color: rgba(255,255,255,.78);
         z-index: 20000;
         color: #131313;
         font-size: .4rem;
@@ -984,7 +1012,7 @@ export default {
         align-items: center;
     }
     .ani{
-        
+        box-shadow: 0 0 .5rem #fff inset;
     }
     /* pop */
     .unit-info-pop{
