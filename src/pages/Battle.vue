@@ -74,7 +74,7 @@
         <!-- <div class="canvas-cover" v-if="pageState==4">
             <Ani class="ani" res="ani" />
         </div> -->
-        <div class="canvas-cover" @click="onTapCheat" v-if="pageState==1">
+        <div class="canvas-cover" @click="onTapCheat" v-if="pageState==4">
             <Ani class="ani" ref="ani" @onAnimationEnd="onAnimationEnd" />
         </div>
         <Pop v-if="viewingUnit" title="角色面板" :onTap="onTapPop">
@@ -107,6 +107,13 @@ import Toast from '../components/Toast';
 import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
 import * as common from '../tools/common';
 import { DEBUG, CONFIG, CACHE, } from '../config/config';
+
+const CHANGES = [`hp`,`eng`,`dge`,`mov`,`ptc`,`mdef`,`money`,];
+const INIT_CHANGES = Array.map(CHANGES,cn=>{
+    let res = {};
+    res[cn] = 0;
+    return res;
+});
 
 export default {
     name: 'Home',
@@ -205,6 +212,8 @@ export default {
         _nus[3].es[3] = 7;
         _nus[3].es[4] = 8;
         _nus[3].as[6] = 656;
+        _nus[4].es[0] = 9;
+        _nus[4].es[5] = 10;
         window.GLOBAL.game.allEquips.push(common.genEquip({id:1,game:{},level:r(9,9),type:r(1,1)}));
         window.GLOBAL.game.allEquips.push(common.genEquip({id:2,game:{},level:r(9,9),type:r(1,1)}));
         window.GLOBAL.game.allEquips.push(common.genEquip({id:3,game:{},level:r(9,9),type:r(1,1)}));
@@ -213,6 +222,8 @@ export default {
         window.GLOBAL.game.allEquips.push(common.genEquip({id:6,game:{},level:r(9,9),type:r(3,3)}));
         window.GLOBAL.game.allEquips.push(common.genEquip({id:7,game:{},level:r(9,9),type:r(5,5)}));
         window.GLOBAL.game.allEquips.push(common.genEquip({id:8,game:{},level:r(9,9),type:r(5,5)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:9,game:{},level:r(1,1),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:10,game:{},level:r(1,1),type:r(5,5)}));
         // 预设技能
         for(let i=0;i<10;i++){
             _nus[3].ss[i] = i+1;
@@ -382,30 +393,25 @@ export default {
             })
         },
         onAnimationEnd(){ // 当动画结束
-            // console.log(`当动画结束`);
+            console.log(`当动画结束`);
+
             // 清除所有dom动画
             let allUnits = [...this.playerTeam,...this.enemyTeam];
             for(let unit of allUnits){
                 let vdom = this.$refs[`u-${unit.id}`][0];
                 vdom.trigAni();
             }
+
             if(this.checkEnd()){ // 战斗结束
 
             }
             else{ // 战斗未结束，继续行动条增长
-                // this.goPageState(2);
+                this.goPageState(2);
             }
         },
         checkEnd(){ // 检查胜负
             let res = 0;
             return res;
-        },
-        playAni(type,data,period=1){ // 播放动画 period：1,2,3
-            this.goPageState(4);
-            console.log(`播放动画=>${[`攻击`,`技能`,`防御`,`躲避`,`追踪`,`呼吸`,`集气`,`爆气`,`劝降`,`撤离`,][type-1]}`,data);
-            this.aniTimer = setTimeout(_=>{
-                this.onAnimationEnd();
-            },CONFIG.aniPeriod[period-1]);
         },
         getUnitDomPos(id){ // 获取单位dom的坐标
             let vdom = this.$refs[`u-${id}`][0];
@@ -420,6 +426,130 @@ export default {
             else{
                 return false;
             }
+        },
+
+        playDomAni(unit,aniName){ // 播放单位DOM元素动作
+            let vdom = this.$refs[`u-${unit.id}`][0];
+            if(vdom){
+                vdom.trigAni(aniName);
+            }
+        },
+        playAniList({caster,shakeList=[]}){ // 逐一播放 aniList 中的全部动画
+            this.goPageState(4);
+            if(caster){
+                this.playDomAni(caster,'cast');
+            }
+            for(let unit of shakeList){
+                unit.playDomAni(caster,'shake');
+            }
+            for(let aniData of this.aniList){
+                this.playAni(aniData);
+            }
+        },
+        playAni({caster,target,effectType=0,heavy=0,}){ // 播放动画
+            /*
+                unit: {
+                    ...unit,
+                    changes: {
+                        hp: 0, // 生命力
+                        def: 0, // 防御力
+                        eng: 0, // 精力
+                        dge: 0, // 存在感
+                        mov: 0, // 行动值
+                        ptc: 0, // 潜能
+                		mdef: 0, // 心理防御
+                        money: 0, // 金币
+                    },
+                },
+                effectType: 1,
+                // 1slash 2smash 3bullet 4range 5fire 6thunder 7cure 8power 9pure
+                // 10浮动数字（血|精力|心防|钱） 11压制 12破盾 13气溃 14锁敌 15miss
+                heavy: true, // 是否为重击
+            */
+            let casterPos = this.getUnitDomPos(caster.id);
+            let targetPos = this.getUnitDomPos(target.id);
+            let changes = target.changes;
+
+            let params;
+            let aniName, textList = [];
+            let suffex = heavy?'-heavy':'';
+
+            switch(effectType){
+                case 1:
+                    aniName = `attack-slash${suffex}`;
+                break;
+                case 2:
+                    aniName = `attack-smash${suffex}`;
+                break;
+                case 3:
+                    aniName = `attack-bullet${suffex}`;
+                break;
+                case 4:
+                    aniName = `attack-range${suffex}`;
+                break;
+                case 5:
+                    aniName = `attack-fire${suffex}`;
+                break;
+                case 6:
+                    aniName = `attack-thunder`;
+                break;
+                case 7:
+                    aniName = `protect-cure`;
+                break;
+                case 8:
+                    aniName = `protect-power`;
+                break;
+                case 9:
+                    aniName = `protect-pure`;
+                break;
+                case 10: // 通用浮动数字，涉及到数值
+                    aniName = `number-comon`;
+                    if(changes.hp){
+                        let colorType = changes.hp>0?1:2;
+                        textList.push([{val:changes.hp,colorType}]);
+                    }
+                    if(changes.eng){
+                        textList.push([{val:changes.eng,colorType:3}]);
+                    }
+                    if(changes.mdef){
+                        textList.push([{val:changes.mdef,colorType:4}]);
+                    }
+                    if(changes.money){
+                        textList.push([{val:changes.money,colorType:8}]);
+                    }
+                break;
+                case 11: // 压制，涉及到数值
+                    aniName = `number-quell`;
+                    textList.push([{val:changes.mov,}]);
+                break;
+                case 12: // 破盾，涉及到数值
+                    aniName = `text`;
+                    textList.push([{val:'破',colorType:9,fontSize:.6,}]);
+                break;
+                case 13: // 气溃，涉及到数值
+                    aniName = `number-potency-damage`;
+                    textList.push([{val:changes.ptc,}]);
+                break;
+                case 14: // 锁敌，涉及到数值
+                    aniName = `protect-lock-on`;
+                    textList.push([{val:changes.dge,}]);
+                break;
+                case 15: // miss
+                    aniName = `text`;
+                    textList.push([{val:'miss',colorType:8,fontSize:.66}]);
+                break;
+            };
+            params = {
+                name:aniName,
+                fromX: casterPos.x,
+                fromY: casterPos.y,
+                toX: targetPos.x,
+                toY: targetPos.y,
+            }
+            if(textList.length>0){
+                params.textList = textList;
+            }
+            this.$refs.ani.trigger(params);
         },
 
         unitAction({caster,type,targetUnitList,burstAttr,skill,attack}){ // 单位执行动作
@@ -461,48 +591,103 @@ export default {
             }
         },
         unitAttack(caster,attack,targetUnitList){ // 单位进行攻击
-            let names = ``;
-            for(let unit of targetUnitList){
-                names += `${unit.btd.name}+`;
+            /*单个动画数据：
+                unit: {
+                    ...unit,
+                    changes: {
+                        hp: 0, // 生命力
+                        eng: 0, // 精力
+                        dge: 0, // 存在感
+                        mov: 0, // 行动值
+                        ptc: 0, // 潜能
+                		mdef: 0, // 心理防御
+                        money: 0, // 金币
+                    },
+                },
+                effectType: 1,
+                // 1slash 2smash 3bullet 4range 5fire 6thunder 7cure 8power 9pure
+                // 10浮动数字（血|精力|心防|钱） 11压制 12破盾 13气溃 14锁敌 15miss
+                heavy: true, // 是否为重击*/
+            let shakeList = [];
+            let casterChanges = cloneObj(INIT_CHANGES);
+
+            // 遍历每个目标单位
+            for(let target of targetUnitList){
+                let attackTargetResult = this.attackOnTarget({caster,target,attack,});
+                for(let cn of CHANGES){
+                    casterChanges += attackTargetResult.casterChanges[cn];
+                }
             }
-            console.log(`${caster.btd.name} ${attack.n}攻击 ${names}`,attack);
-            this.playAni(1);
+            let changResult = common.calcUnitChange({target,changes:target.changes});
+            caster = caster.unit;
+            if(changResult.isChanged){
+                this.aniList.push({caster,target,effectType,}); // 制造一个画布动画
+            }
+
+            // 计算完动作后，播放DOM动画+所有画布动画
+            this.playAniList({caster,shakeList});
+
+            // TODO
+            // let names = ``;
+            // for(let unit of targetUnitList){ names += `${unit.btd.name}+`;}
+            // console.log(`${caster.btd.name} ${attack.n}攻击 ${names}`,attack);
         },
         unitSpell(caster,skill,targetUnitList){ // 单位施放技能
             console.log(`${caster.btd.name} 对 ${targetUnitList[0].btd.name} 使用技能【${skill.n}】`,skill);
-            this.playAni(2);
+        },
+        attackOnTarget({caster,target,attack}){ // 对一个单位进行攻击
+            let res = {};
+            let casterChanges, targetChanges;
+            let sp;
+            if(common.calcHit(caster,target)){ // 命中
+                let dmg = common.calcDmg({caster,attack}); // 计算伤害
+                let effectType = attack.et;
+                let attackResult = common.calcAttack({caster,target,attack,dmg}); // 计算攻击结果，获得 casterChanges、 targetChanges和sp值
+                casterChanges = attackResult.casterChanges;
+                targetChanges = attackResult.targetChanges;
+                sp = attackResult.sp;
+                target.changes = targetChanges;
+                // 计算画布动画的类型
+                this.aniList.push({caster,target,effectType,}); // 制造一个画布动画
+                shakeList.push(target);
+            }
+            else{ // 未命中
+                this.aniList.push({caster,target,effectType:15}); // 制造一个画布动画
+                if(attack.s==5&&r(1,100)<CONFIG.spAttackRate){ // 锁敌sppp
+                    sp = attack.s;
+                }
+            }
+            let changResult = common.calcUnitChange({target,changes:target.changes});
+            target = changResult.unit;
+            if(changResult.isChanged){
+                this.aniList.push({caster,target,effectType,}); // 制造一个画布动画
+            }
+            res = { casterChanges,targetChanges,sp, };
+            return res;
         },
         unitDefense(caster){ // 单位防御
             console.log(`${caster.btd.name} 进行防御`);
-            this.playAni(3);
         },
         unitDodge(caster){ // 单位躲避
             console.log(`${caster.btd.name} 进行躲避`);
-            this.playAni(4);
         },
         unitTrace(caster){ // 单位追踪
             console.log(`${caster.btd.name} 进行追踪`);
-            this.playAni(5);
         },
         unitBreath(caster){ // 单位呼吸
             console.log(`${caster.btd.name} 进行呼吸`);
-            this.playAni(6);
         },
         unitConcentrate(caster){ // 单位集气
             console.log(`${caster.btd.name} 进行集气`);
-            this.playAni(7);
         },
         unitBurst(caster,attr){ // 单位爆气
             console.log(`${caster.btd.name} ${[`力量`,`精准`,`速度`,`智力`,`定力`,`隐蔽`,`爆发`,][attr-4]}爆发`);
-            this.playAni(8);
         },
         unitPersuade(caster,targetUnitList){ // 单位劝降
             console.log(`${caster.btd.name} 劝降 ${targetUnitList[0].btd.name}`);
-            this.playAni(9);
         },
         unitFlee(caster){ // 单位撤离
             console.log(`${caster.btd.name} 进行撤离`);
-            this.playAni(10);
         },
 
         onTapStartBattle(){ // 点击【开始战斗】

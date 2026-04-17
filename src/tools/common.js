@@ -679,6 +679,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.buffs = [];
     btd.weaponList = weaponList;
     btd.skillList = skillList;
+    btd.money = 0;
 
     // weapon 名字
     btd.weaponName1 = weaponList[0]?weaponList[0].n:'';
@@ -689,39 +690,6 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     // 设置数值范围
     btd.ptc = setInRange(btd.ptc,0,10000);
     btd.dge = setInRange(btd.dge,0,10000);
-
-    // @TODO
-    // if(unit.id==2){
-    //     btd.cur = 1;
-    // }
-    // if(unit.id==3||unit.id==11){
-    //     btd.alive = 0;
-    // }
-    // let bufflen = r(0,3);
-    // for(let i=0;i<bufflen;i++){
-    //     let buff;
-    //     if(r(0,1)){
-    //         buff = {
-    //             id: i+1,
-    //             name: '急救',
-    //             desc: '每回合恢复生命力',
-    //             level: r(1,3),
-    //             good: 1,
-    //             benis: [20,0,0,0],
-    //         }
-    //     }
-    //     else{
-    //         buff = {
-    //             id: i+100,
-    //             name: '破绽',
-    //             desc: '受到的伤害增加',
-    //             level: r(1,3),
-    //             good: 0,
-    //             benis: [0,0,20,0],
-    //         }
-    //     }
-    //     btd.buffs.push(buff);
-    // }
 
     return btd;
 }
@@ -963,6 +931,108 @@ export function calcUnitScore(unit,game){ // 计算单位战力 TODO
     return res;
 }
 
+export function calcHit({caster,target,}){ // 计算是否命中
+    let res = 0;
+    let cbtd = caster.btd, tbtd = target.btd;
+    if(cbtd.isPlayer!=tbtd.isPlayer){ // 不同阵营，根据概率判断是否命中
+        let rand = r(1,10000);
+        if(rand<=tbtd.dge){
+            res = 1;
+        }
+    }
+    else{ // 同阵营直接命中
+        res = 1;
+    }
+    return res;
+}
+export function calcDmg({caster,attack,}){ // 根据攻击计算伤害
+    let res = 0;
+    res = 4;
+    return res;
+}
+ // 根据伤害值计算
+ // 返回 { casterChanges，targetChanges，sp:0, }
+export function calcAttack({caster,target,dmg,attack,}){
+    let res;
+    let cbtd = caster.btd, tbtd = target.btd;
+    let casterChanges = {}, targetChanges = {}, triggeredSPEffect = 0;
+
+    if(attack.s&&r(1,100)<CONFIG.spAttackRate){ // 触发SP效果
+        let s = attack.s;
+        triggeredSPEffect = s; // 已触发的SP效果
+        if(s==1){ // 压制
+
+        }
+        else if(s==2){ // 破盾
+
+        }
+        else if(s==3){ // 气溃
+
+        }
+        else if(s==4){ // 精溃
+
+        }
+        // else if(s==5){ // 锁敌
+        //
+        // }
+        else if(s==6){ // 攻心
+
+        }
+        else if(s==7){ // 淘金
+
+        }
+    }
+
+    casterChanges.dge = 2700;
+    targetChanges.def = -dmg;
+    if(dmg>tbtd.def[0]){ // 破防，掉血
+        targetChanges.hp -= (dmg-tbtd.def[0]);
+    }
+
+    res = { casterChanges, targetChanges, sp:triggeredSPEffect, };
+    return res;
+}
+export function calcUnitChange({unit,changes,}){ // 根据 changes 获得改变后的 unit 数据
+    let res = cloneObj(unit);
+    let btd = res.btd;
+    let isChanged = 0;
+
+    if(changes.hp!=0){ // 血
+        btd.hp[0] += changes.hp;
+        btd.alive = btd.hp[0]<=0;
+    }
+    if(changes.def!=0){ // 防御
+        btd.def[0] += changes.def;
+    }
+    if(changes.eng!=0){ // 精力
+        btd.eng[0] += changes.eng;
+    }
+    if(changes.phy!=0){ // 体力
+        btd.phy[0] += changes.phy;
+    }
+    if(changes.dge!=0){ // 存在感
+        btd.dge[0] += changes.dge;
+    }
+    if(changes.mov!=0){ // 行动力
+        btd.mov[0] += changes.mov;
+    }
+    if(changes.ptc!=0){ // 潜能
+        btd.ptc[0] += changes.ptc;
+    }
+    if(changes.mdef!=0){ // 心理防御
+        btd.mdef[0] += changes.mdef;
+    }
+
+    btd.hp[0] = setInRange(btd.hp[0],0,btd.hp[1]);
+    btd.def[0] = setInRange(btd.def[0],0,btd.def[1]);
+    btd.eng[0] = setInRange(btd.eng[0],0,btd.eng[1]);
+    btd.phy[0] = setInRange(btd.phy[0],0,btd.phy[1]);
+    btd.dge = setInRange(btd.dge,0,10000);
+    btd.mov = setInRange(btd.mov,0,10000);
+    btd.ptc = setInRange(btd.dge,0,10000);
+
+    return {unit:res,isChanged};
+}
 
 
 

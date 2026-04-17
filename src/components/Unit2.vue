@@ -111,7 +111,8 @@ export default {
         },
         calcOpacity(){ // 计算透明度
             let res, dodge = this.unit.btd.dge;
-            res = 80 + Math.round(common.awaFormat(dodge)/5);
+            // res = 80 + Math.round(common.awaFormat(dodge)/5);
+            res = 100;
             return res;
         },
     },

@@ -36,11 +36,11 @@ const textColorMap = [
     {r:255,g:15,b:15}, // 2伤害
     {r:155,g:155,b:255}, // 3精力
     {r:215,g:172,b:155}, // 4心防
-    {r:0,g:168,b:0}, // 5行动力
-    {r:139,g:0,b:139}, // 6潜能
-    {r:255,g:165,b:0}, // 7存在感
+    {r:0,g:168,b:0}, // 5行动力sp
+    {r:139,g:0,b:139}, // 6潜能sp
+    {r:255,g:165,b:0}, // 7存在感sp
     {r:255,g:215,b:0}, // 8金币
-    {r:178,g:55,b:64}, // 9破盾
+    {r:178,g:55,b:64}, // 9破盾sp
     {r:255,g:195,b:55}, // 10MISS
 ];
 
@@ -102,7 +102,7 @@ export default {
                             toY2 = toY-17*sizeScale;
                             fromY2 = toY-8*sizeScale;
                         }
-                        if(colorType==5){
+                        if(colorType==8){
                             text += '$';
                         }
                         this.triggerElement({type:1, fromX,fromY:fromY2, toX,toY:toY2, text,color:textColorMap[colorType-1], fontSize, delay: .5 +.3*i});
@@ -130,7 +130,7 @@ export default {
                         this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[5], fontSize:.22, delay: .5 +.3*i});
                     }
                 break;
-                case 'number-dodge-down': // 锁敌
+                case 'number-lock-on': // 锁敌
                     fromX2 = toX + 45*sizeScale;
                     fromY2 = toY + 18*sizeScale;
                     toX2 = fromX2;
