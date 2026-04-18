@@ -189,18 +189,18 @@ export function genRandomAge(){ // 随机生成年龄
     }
     return age;
 };
-export function genAttack({level=1,melee=1,names=[],isSkill=0}){ // 生成一个攻击方式
+export function genAttack({level=1,melee=1,names=[],skillId=0,equipId=0}){ // 生成一个攻击方式
     let newAtk = {};
     let atkAll = 0; // 是否为全体攻击
     let r1Ratio = 0, r2Ratio = 0, rAllRatio = 0;
     let minAtk, maxAtk;
     let name,effectType;
-    if(isSkill){ // 用于技能
+    if(skillId){ // 用于技能
         minAtk = CONFIG.skillAtkRangeMap[level-1][0];
         maxAtk = CONFIG.skillAtkRangeMap[level-1][1];
         rAllRatio = 1;
     }
-    else{ // 用于武器
+    else if(equipId){ // 用于武器
         minAtk = CONFIG.weaponAtkRangeMap[level-1][0];
         maxAtk = CONFIG.weaponAtkRangeMap[level-1][1];
         atkAll = !r(0,4);
@@ -248,8 +248,12 @@ export function genAttack({level=1,melee=1,names=[],isSkill=0}){ // 生成一个
         s: 0,
         sl: 0,
         a: atkAll,
+        sid: 0,
+        eid: 0,
+        et: effectType,
     };
-    if(!isSkill){ // 用于武器
+    if(equipId){ // 属于武器
+        newAtk.eid = equipId;
         if(!atkAll){ // 如果不是全体攻击
             // 添加buff
             let buffCount = exptr(0,2,3);
@@ -264,11 +268,9 @@ export function genAttack({level=1,melee=1,names=[],isSkill=0}){ // 生成一个
             newAtk.s = r(1,CONFIG.spAttackList.length);
             newAtk.sl = r(1,level);
         }
-        // else if(atkAll){ // 全体攻击，减少攻击力
-        //     newAtk.d -= cl(newAtk.d*.6);
-        //     newAtk.r1 -= cl(newAtk.r1*.6);
-        //     newAtk.r2 -= cl(newAtk.r2*.6);
-        // }
+    }
+    else if(skillId){ // 属于技能
+        newAtk.sid = skillId;
     }
     newAtk.c = calcWeaponAtkConsume(newAtk); // 攻击体耗
     newAtk.c = setInRange(newAtk.c,1,Infinity);
@@ -445,7 +447,7 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
         // let atkCount = 3; // 攻击方式的数量
         res.k = [];
         for(let i=0;i<atkCount;i++){ // 循环生成攻击方式
-            let newAtk = genAttack({level,melee,names,});
+            let newAtk = genAttack({level,melee,names,equipId:res.id});
             res.k.push(newAtk);
             names.push(newAtk.n);
         }
@@ -552,7 +554,7 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
                 let d=0, r1=0, r2=0;
                 let atkCount = 1;
                 for(let i=0;i<atkCount;i++){
-                    let newAttack = genAttack({level,melee,isSkill:1});
+                    let newAttack = genAttack({level,melee,skillId:res.id});
                     d += newAttack.d;
                     r1 += newAttack.r1;
                     r2 += newAttack.r2;
@@ -668,8 +670,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
     btd.speed = Math.sqrt([btd.attrs[6]]); // 真速度
 
-    // btd.dge = 10000-btd.attrs[9]*10; // 隐蔽
-    btd.dge = awa; // 隐蔽
+    btd.dge = cl(awa*calcDodgeRate(btd.attrs[9])); // 隐蔽
 
     btd.move = 0; // 行动
     btd.mdef = btd.attrs[8]*25; // 心理防御
@@ -680,6 +681,8 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.weaponList = weaponList;
     btd.skillList = skillList;
     btd.money = 0;
+    btd.roundRemainCount = 0;
+    btd.roundTotal = 1;
 
     // weapon 名字
     btd.weaponName1 = weaponList[0]?weaponList[0].n:'';
@@ -930,7 +933,32 @@ export function calcUnitScore(unit,game){ // 计算单位战力 TODO
     let res = 0;
     return res;
 }
+export function calcDodgeRate(dodge){ // 计算躲避因素
+    let res;
+    res = 1-dodge/CONFIG.dodgeDeno;
+    return res;
+}
 
+/* 战斗相关 */
+export function canConsume({unit,consume}){ // 检查体力
+    let res = 0;
+    let remain = unit.btd.phy[0]+unit.btd.eng[0];
+    res = consume<=remain;
+    return res;
+}
+export function calcConsume({type,unit,data,}){ // 计算体力消耗 type 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9劝降 10撤离
+    let res = 0;
+    if(type==1){ // 攻击，data就是attack
+        res = data.c;
+    }
+    else if(type==2){ // 技能，data就是skill
+        res = data.c;
+    }
+    else{
+        res = CONFIG.baseConsumeList[type-3]||0;
+    }
+    return res;
+}
 export function calcHit({caster,target,}){ // 计算是否命中
     let res = 0;
     let cbtd = caster.btd, tbtd = target.btd;
@@ -943,16 +971,74 @@ export function calcHit({caster,target,}){ // 计算是否命中
     else{ // 同阵营直接命中
         res = 1;
     }
-    return res;
+    return 1;
 }
 export function calcDmg({caster,attack,}){ // 根据攻击计算伤害
     let res = 0;
-    res = 4;
+    let strDmg = cl(caster.btd.attrs[4]*attack.r1/100);
+    let acrDmg = cl(caster.btd.attrs[5]*attack.r2/100);
+    res = attack.d + strDmg + acrDmg;
+    // res = 4;
     return res;
 }
- // 根据伤害值计算
+export function saveUnitChanges(unit){ // 结算changes，即根据 changes 获得改变后的 unit 数据
+    let btd = unit.btd;
+    let changes = btd.changes;
+
+    if(changes.hp!=0){ // 血
+        btd.hp[0] += changes.hp;
+        btd.alive = btd.hp[0]>0;
+    }
+    if(changes.def!=0){ // 防御
+        btd.def[0] += changes.def;
+    }
+    if(changes.eng!=0){ // 精力
+        btd.eng[0] += changes.eng;
+    }
+    if(changes.phy!=0){ // 体力
+        btd.phy[0] += changes.phy;
+    }
+    if(changes.dge!=0){ // 存在感
+        btd.dge += changes.dge;
+    }
+    if(changes.mov!=0){ // 行动力
+        btd.mov += changes.mov;
+    }
+    if(changes.ptc!=0){ // 潜能
+        btd.ptc += changes.ptc;
+    }
+    if(changes.mdef!=0){ // 心理防御
+        btd.mdef += changes.mdef;
+    }
+    if(changes.money!=0){ // 金币
+        btd.money += changes.money;
+    }
+
+    btd.hp[0] = setInRange(btd.hp[0],0,btd.hp[1]);
+    btd.def[0] = setInRange(btd.def[0],0,btd.def[1]);
+    btd.eng[0] = setInRange(btd.eng[0],0,btd.eng[1]);
+    btd.phy[0] = setInRange(btd.phy[0],0,btd.phy[1]);
+    btd.dge = setInRange(btd.dge,0,10000);
+    btd.mov = setInRange(btd.mov,0,10000);
+    btd.ptc = setInRange(btd.dge,0,10000);
+    btd.mdef = setInRange(btd.mdef,-999999,999999);
+    btd.money = setInRange(btd.money,-999999,999999);
+}
+export function calcAttackAwaup({unit,attack,}){ // 计算攻击时的存在感上升值
+    let res = 0;
+    let dodge = unit.btd.attrs[9];
+    let rate = calcDodgeRate(dodge);
+    for(let weapon of unit.btd.weaponList){
+        res += weapon.d;
+    }
+    res = cl(res*rate);
+    return res;
+}
+
+
+ // 根据伤害值计算 changes
  // 返回 { casterChanges，targetChanges，sp:0, }
-export function calcAttack({caster,target,dmg,attack,}){
+function calcAttackChanges({caster,target,dmg,attack,}){
     let res;
     let cbtd = caster.btd, tbtd = target.btd;
     let casterChanges = {}, targetChanges = {}, triggeredSPEffect = 0;
@@ -992,46 +1078,10 @@ export function calcAttack({caster,target,dmg,attack,}){
     res = { casterChanges, targetChanges, sp:triggeredSPEffect, };
     return res;
 }
-export function calcUnitChange({unit,changes,}){ // 根据 changes 获得改变后的 unit 数据
-    let res = cloneObj(unit);
-    let btd = res.btd;
-    let isChanged = 0;
 
-    if(changes.hp!=0){ // 血
-        btd.hp[0] += changes.hp;
-        btd.alive = btd.hp[0]<=0;
-    }
-    if(changes.def!=0){ // 防御
-        btd.def[0] += changes.def;
-    }
-    if(changes.eng!=0){ // 精力
-        btd.eng[0] += changes.eng;
-    }
-    if(changes.phy!=0){ // 体力
-        btd.phy[0] += changes.phy;
-    }
-    if(changes.dge!=0){ // 存在感
-        btd.dge[0] += changes.dge;
-    }
-    if(changes.mov!=0){ // 行动力
-        btd.mov[0] += changes.mov;
-    }
-    if(changes.ptc!=0){ // 潜能
-        btd.ptc[0] += changes.ptc;
-    }
-    if(changes.mdef!=0){ // 心理防御
-        btd.mdef[0] += changes.mdef;
-    }
-
-    btd.hp[0] = setInRange(btd.hp[0],0,btd.hp[1]);
-    btd.def[0] = setInRange(btd.def[0],0,btd.def[1]);
-    btd.eng[0] = setInRange(btd.eng[0],0,btd.eng[1]);
-    btd.phy[0] = setInRange(btd.phy[0],0,btd.phy[1]);
-    btd.dge = setInRange(btd.dge,0,10000);
-    btd.mov = setInRange(btd.mov,0,10000);
-    btd.ptc = setInRange(btd.dge,0,10000);
-
-    return {unit:res,isChanged};
+export function _q(){ // ???
+    let res;
+    return res;
 }
 
 

@@ -1,10 +1,10 @@
 <template>
-    <a class="skill" :class="`mode-${mode} ${isOption?'isoption':''}`" @click.stop="onTap({flag:1,skill,},$event)">
+    <a class="skill" :class="`mode-${mode} ${isOption?'isoption':''}`" @click.stop="_onTap">
         <div class="skill-mode" :class="`${skill.t==3?'harm':'beni'}`" v-if="mode==1">
             <span class="value money" v-if="!isOption" v-html="common.moneyFormat(skill.v,1)"></span>
             <div class="row">
                 <span class="name">{{skill.n}}</span>
-                <a class="consume" @click.stop="onTap({flag:3,text:`消耗体力:${skill.c}`},$event)">（{{skill.c}}）</a>
+                <a class="consume">（{{common.calcConsume({type:2,data:skill,unit})}}）</a>
             </div>
             <div class="row row-desc">
                 <span class="awa" v-if="skill.t==3">存在感+{{common.awaFormat(skill.d)}}%</span>
@@ -13,20 +13,20 @@
             <div class="row atk-wrap" v-if="atkEffectIndex!=-1">
                 <div class="wrap-item atk">
                     <a class="atk-dmg">伤害{{skill.el[atkEffectIndex].d.d}}</a>
-                    <a class="atk-r1" v-if="skill.el[atkEffectIndex].d.r1" @click.stop="onTap({flag:3,text:`力量补正：力量带来的伤害提升`},$event)">（ 力补：{{common.genRXString(skill.el[atkEffectIndex].d.r1)}} ）</a>
-                    <a class="atk-r2" v-if="skill.el[atkEffectIndex].d.r2" @click.stop="onTap({flag:3,text:`精准补正：精准带来的伤害提升`},$event)">（ 精补：{{common.genRXString(skill.el[atkEffectIndex].d.r2)}} ）</a>
+                    <a class="atk-r1" v-if="skill.el[atkEffectIndex].d.r1" @click.stop="_onTapRx1">（ 力补：{{common.genRXString(skill.el[atkEffectIndex].d.r1)}} ）</a>
+                    <a class="atk-r2" v-if="skill.el[atkEffectIndex].d.r2" @click.stop="_onTapRx2">（ 精补：{{common.genRXString(skill.el[atkEffectIndex].d.r2)}} ）</a>
                 </div>
             </div>
             <div class="row buff-wrap" v-if="buffEffectIndex!=-1">
                 <div class="wrap-item buff" v-for="(buffId,index) in skill.el[buffEffectIndex].d.b">
-                    <Buff class="buff" :buff="genBuff(buffId,skill.el[buffEffectIndex].d.bl[index])" :mode="2" :shadow="isOption?0:1" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:skill.el[buffEffectIndex].d.bl[index],skill})" />
+                    <Buff class="buff" :buff="genBuff(buffId,skill.el[buffEffectIndex].d.bl[index])" :mode="2" :shadow="isOption?0:1" @onTap="_onTapBuff(buffId,skill.el[buffEffectIndex].d.bl[index])" />
                 </div>
             </div>
         </div>
         <div class="skill-mode" :class="`${skill.t==3?'harm':'beni'}`" v-if="mode==2">
             <div class="row">
                 <span class="name">{{skill.n}}</span>
-                <span class="consume">（{{skill.c}}）</span>
+                <span class="consume">（{{common.calcConsume({type:2,data:skill,unit})}}）</span>
             </div>
         </div>
     </a>
@@ -44,6 +44,10 @@ export default {
         mode: { // 模式 1详细 2简略
             type: Number,
             default: 1,
+        },
+        unit: { // 持有者
+            type: Object,
+            default: function(){},
         },
         isOption: { // 是选项
             type: Boolean,
@@ -140,6 +144,18 @@ export default {
                 effectTip = effectTip.slice(0,-1);
             }
             return effectTip;
+        },
+        _onTap(){
+            this.$emit('onTap',{flag:1,skill:this.skill,});
+        },
+        _onTapRx1(){
+            this.$emit('onTap',{flag:3,text:`力量补正：力量带来的伤害提升`});
+        },
+        _onTapRx2(){
+            this.$emit('onTap',{flag:3,text:`精准补正：精准带来的伤害提升`});
+        },
+        _onTapBuff(buffId,buffLevel){
+            this.$emit('onTap',{flag:2,buffId,buffLevel,skill:this.skill});
         },
     },
     components: {

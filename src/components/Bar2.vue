@@ -1,5 +1,5 @@
 <template>
-    <a class="circular-progress" @click.stop="onTap">
+    <a class="circular-progress" @click.stop="_onTap">
         <svg viewBox="0 0 110 110" class="progress-svg">
             <!-- 背景圆环 -->
             <circle class="progress-bg" cx="55" cy="55" r="45" fill="none" :stroke="bgColor" :stroke-width="strokeWidth"/>
@@ -65,8 +65,13 @@ export default{
         },
         textSize(){ // 中心文字大小（根据组件大小自适应）
             return Math.max(12, Math.floor(this.size / 5));
-        }
-    }
+        },
+    },
+    methods: {
+        _onTap(){
+            this.$emit('onTap');
+        },
+    },
 };
 </script>
 

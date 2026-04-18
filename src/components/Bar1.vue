@@ -1,7 +1,7 @@
 <template>
-    <a class="bar-wrap" @click.stop="onTap">
+    <a class="bar-wrap" @click.stop="_onTap">
         <div class="bar">
-            <div class="bar-full" :class="{'bar-hp':type==1,'bar-phy':type==2}" :style="{width:`${calcBarLength()}%`}"></div>
+            <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2}" :style="{width:`${calcBarLength()}%`}"></div>
             <div class="bar-label">
                 <span class="txt" v-if="title">{{title}}</span>
                 <span class="num" v-if="mode==1">
@@ -19,6 +19,7 @@ import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj
 import * as common from '../tools/common';
 import { DEBUG, CONFIG } from '../config/config';
 export default {
+    name: 'Bar1',
     props:{
         title: String,
         type: Number, // [1：生命值|2：精力]
@@ -52,6 +53,9 @@ export default {
                 res = 0;
             return res;
         },
+        _onTap(){
+            this.$emit('onTap');
+        },
     },
 };
 </script>
@@ -80,7 +84,7 @@ export default {
         border-bottom-right-radius: .2rem;
         z-index: 2;
     }
-    .bar-full::after{
+    /* .bar-full::after{
         content: '';
         display: block;
         position: absolute;
@@ -99,11 +103,11 @@ export default {
         to{
             box-shadow: none;
         }
-    }
+    } */
     .bar-hp{
         background-image: radial-gradient(closest-corner, #CD5C5C 0%, #B22222 100%);
     }
-    .bar-phy{
+    .bar-eng{
         background-image: radial-gradient(closest-corner, #6495ED 0%, #6A5ACD 100%);
     }
     .bar-label{

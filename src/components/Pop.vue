@@ -1,5 +1,5 @@
 <template>
-    <div class="pop" @click.stop="onTap">
+    <div class="pop" @click.stop="_onTap">
         <div class="pop-main">
             <div class="pop-title" v-if="title">{{title}}</div>
             <div class="pop-content">
@@ -27,10 +27,11 @@ export default {
     computed: {
     },
     mounted(){
-
     },
     methods: {
-
+        _onTap(){
+            this.$emit('onTap');
+        },
     },
 };
 </script>

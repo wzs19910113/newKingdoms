@@ -1,5 +1,5 @@
 <template>
-    <a class="equip" :class="`equip-${equip.t}`" @click="onTap({flag:1,equip,},$event)">
+    <a class="equip" :class="`equip-${equip.t}`" @click="_onTap">
         <span class="value money" v-html="common.moneyFormat(equip.v,1)"></span>
         <div class="row">
             <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
@@ -12,7 +12,7 @@
             </div>
         </div>
         <div class="row row-clm" v-if="equip.t==1">
-            <Attack class="atk" v-for="(attack,index) in equip.k" :key="index" :attack="attack" :mode="1" :onTap="onTap" />
+            <Attack class="atk" v-for="(attack,index) in equip.k" :key="index" :attack="attack" :mode="1" @onTap="_onTapAttack" />
             <!-- <div class="atk" v-for="atk in equip.k">
                 <span class="atk-item atk-name">{{atk.a?'全':''}}{{atk.n}} <span class="atk-consume">({{atk.c}})</span></span>
                 <span class="atk-item">伤害<br/>{{atk.d}}</span>
@@ -68,6 +68,12 @@ export default {
                 res.level = buffLevel;
             }
             return res;
+        },
+        _onTap(){
+            this.$emit('onTap',{flag:1,equip:this.equip,});
+        },
+        _onTapAttack(data){
+            this.$emit('onTap',data);
         },
     },
     components: {

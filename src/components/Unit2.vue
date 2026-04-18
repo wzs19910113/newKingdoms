@@ -1,31 +1,29 @@
 <template>
-    <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'} ${aniStyle}`" @click.stop="onTap({flag:1,unit,},$event)">
+    <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'} ${aniStyle}`" @click.stop="_onTap">
         <div class="avatar-wrap" :class="`${!unit.btd.alive?'dead':''}`">
-            <a class="avatar avatar" v-if="!aniStyle" ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
-            <a class="avatar" v-else ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="onTap({flag:106,unit,},$event)">{{unitNameFormat(unit.btd.name)}}</a>
+
+            <a class="avatar avatar" v-if="!aniStyle" ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
+            <a class="avatar" v-else ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
+
             <div class="cur" v-show="unit.btd.cur&&unit.btd.alive"></div>
-            <Bar2 class="cir1" :current="unit.btd.move" :type="1" :onTap="onTap.bind(this,{flag:103,unit,})" />
-            <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" :onTap="onTap.bind(this,{flag:104,unit,})" />
-            <Bar2 class="cir3" :current="unit.btd.dge" :type="3" :onTap="onTap.bind(this,{flag:105,unit,})" />
+            <Bar2 class="cir1" :current="unit.btd.move" :type="1" @onTap="_onTapFlag(103)" />
+            <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" @onTap="_onTapFlag(104)" />
+            <Bar2 class="cir3" :current="unit.btd.dge" :type="3" @onTap="_onTapFlag(105)" />
         </div>
         <div class="weapon-row" :class="`${!unit.btd.alive?'dead':''}`">
             <div class="weapon" v-if="unit.btd.weaponName1">{{unit.btd.weaponName1}}</div>
             <div class="weapon" v-if="unit.btd.weaponName2">{{unit.btd.weaponName2}}</div>
         </div>
         <div class="stat-row" :class="`${!unit.btd.alive?'dead':''}`">
-            <Bar1 class="bar" title="" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" :onTap="onTap.bind(this,{flag:101,unit,})" />
-            <div class="sub-mark def">
-                <span class="sub-crt" :class="`${unit.btd.def[0]<0?'sub-red':''}`">{{Math.round(unit.btd.def[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.def[1])}}</span>
-            </div>
+            <Bar1 class="bar" title="" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" @onTap="_onTapFlag(101)" />
+            <Bar3 class="bar" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
         </div>
         <div class="stat-row" :class="`${!unit.btd.alive?'dead':''}`">
-            <Bar1 class="bar" title="" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" :onTap="onTap.bind(this,{flag:102,unit,})" />
-            <div class="sub-mark phy">
-                <span class="sub-crt">{{Math.round(unit.btd.phy[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.phy[1])}}</span>
-            </div>
+            <Bar1 class="bar" title="" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" @onTap="_onTapFlag(102)" />
+            <Bar3 class="bar" :type="2" :crt="unit.btd.phy[0]" :max="unit.btd.phy[1]" />
         </div>
         <div class="buff-wrap" :class="`${!unit.btd.alive?'dead':''}`">
-            <Buff v-for="buff in unit.btd.buffs" :key="buff.id" :buff="buff" :onTap="onTap.bind(this,{flag:2,unit,buff})" />
+            <Buff v-for="buff in unit.btd.buffs" :key="buff.id" :buff="buff" @onTap="_onTapBuff(buff)" />
         </div>
         <div class="death-cover" v-if="!unit.btd.alive">战<br/>退</div>
     </a>
@@ -57,6 +55,7 @@ isPlayer: 1, // 玩家可操控
 */
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
+import Bar3 from '../components/Bar3';
 import Buff from '../components/Buff';
 import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
 import * as common from '../tools/common';
@@ -115,10 +114,23 @@ export default {
             res = 100;
             return res;
         },
+        _onTap(){
+            this.$emit('onTap',{flag:1,unit:this.unit,});
+        },
+        _onTapAvatar(){
+            this.$emit('onTap',{flag:106,unit:this.unit,});
+        },
+        _onTapFlag(flag){
+            this.$emit('onTap',{flag,unit:this.unit,});
+        },
+        _onTapBuff(buff){
+            this.$emit('onTap',{flag:2,unit:this.unit,buff,});
+        },
     },
     components:{
         Bar1,
         Bar2,
+        Bar3,
         Buff,
     },
 };

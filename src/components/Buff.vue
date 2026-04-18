@@ -1,5 +1,5 @@
 <template>
-    <a class="buff" :class="`${buff.good?'buff-good':'buff-bad'} ${[`buff-sm`,`buff-lg`][mode-1]}`" @click.stop="onTap">
+    <a class="buff" :class="`${buff.good?'buff-good':'buff-bad'} ${[`buff-sm`,`buff-lg`][mode-1]}`" @click.stop="_onTap">
         <span class="buff-bg" :class="`${shadow?'buff-bg-shadow':''}`" :style="`opacity:${buffBg(buff)}`"></span>
         <span class="buff-name" :style="`opacity:${buffText(buff)}`">{{buff.name+(mode==2?`${buff.level}`:'')}}</span>
     </a>
@@ -45,6 +45,9 @@ export default {
         buffText(buff){ // 计算buff文本明度
             let l = buff.level;
             return `${70+l*3}%`;
+        },
+        _onTap(){
+            this.$emit('onTap');
         },
     },
 };

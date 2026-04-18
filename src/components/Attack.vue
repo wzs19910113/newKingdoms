@@ -1,19 +1,19 @@
 <template>
-    <a class="attack" :class="`mode-${mode}`" @click.stop="onTap({flag:1,attack,},$event)">
+    <a class="attack" :class="`mode-${mode} ${ban?'attack-ban':''}`" @click.stop="_onTap">
         <span class="attack-mode" v-if="mode==1">
-            <span class="attack-item attack-name">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{attack.c}})</span></span>
+            <span class="attack-item attack-name">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{common.calcConsume({type:1,data:attack,unit})}})</span></span>
             <span class="attack-item">伤害<br/>{{attack.d}}</span>
             <span class="attack-item">力补<br/>{{common.genRXString(attack.r1)}}</span>
             <span class="attack-item">精补<br/>{{common.genRXString(attack.r2)}}</span>
             <div class="attack-item buff-wrap">
                 <span class="buff" v-for="(buffId,index) in attack.b" :key="buffId">
-                    <Buff :buff="genBuff(buffId,attack.bl[index])" :mode="2" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:attack.bl[index]})" />
+                    <Buff :buff="genBuff(buffId,attack.bl[index])" :mode="2" @onTap="_onTapBuff(buffId,attack.bl[index])" />
                 </span>
             </div>
             <span class="attack-item sp" v-if="attack.s">{{CONFIG.spAttackList[attack.s-1]}}<br/>Lv.{{attack.sl}}</span>
         </span>
         <span class="attack-mode" v-if="mode==2">
-            <span class="attack-shrink">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{attack.c}})</span></span>
+            <span class="attack-shrink">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{common.calcConsume({type:1,data:attack,unit})}})</span></span>
         </span>
     </a>
 </template>
@@ -33,6 +33,10 @@ export default {
         mode: { // 模式 1详细 2简略
             type: Number,
             default: 1,
+        },
+        ban: { // 禁用
+            type: Boolean,
+            default: false,
         },
         unit: { // 持有者
             type: Object,
@@ -68,6 +72,12 @@ export default {
                 res.level = buffLevel;
             }
             return res;
+        },
+        _onTap(){
+            this.$emit('onTap',{flag:1,data:this.attack,ban:this.ban,});
+        },
+        _onTapBuff(buffId,buffLevel){
+            this.$emit('onTap',{flag:2,buffId,buffLevel,});
         },
     },
     components: {
@@ -160,5 +170,23 @@ export default {
         height: .82rem;
         line-height: .41rem;
         background-color: rgba(96,72,14,.96);
+    }
+    /* 禁用 */
+    .attack-ban{
+        background-color: rgba(55,55,55,.4);
+        box-shadow: none;
+        border: none;
+        color: #777;
+        opacity: .7;
+    }
+    .attack-ban .attack-shrink{
+        text-decoration: line-through;
+    }
+    .attack-ban .attack-name{
+        text-decoration: line-through;
+    }
+    .attack-ban .attack-consume{
+        text-decoration: line-through;
+        color: #777;
     }
 </style>

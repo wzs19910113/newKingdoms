@@ -71,6 +71,8 @@ export default {
             },
             playList: [],
             playIdIndex: 1,
+            response: null,
+            responseTriggerred: false, // 是否已经触发过response回调函数
 
             common, DEBUG, CONFIG,
         }
@@ -78,11 +80,12 @@ export default {
     mounted(){},
     beforeDestroy(){},
     methods:{
-        trigger({name,fromX,fromY,toX,toY,textList}){ // 触发组合动画 textList=[{val,colorType,fontSize}]
+        trigger({name,fromX,fromY,toX,toY,textList,response}){ // 触发组合动画 textList=[{val,colorType,fontSize}] response回调函数触发数据结算
             let toX2,toY2,fromX2,fromY2,angle1,text;
+            this.response = response;
             switch(name){
 
-                case 'text': // 显示数字
+                case 'text': // 显示文本
                     for(let i=0;i<textList.length;i++){
                         let { val, colorType, fontSize, } = textList[i];
                         text = val;
@@ -379,6 +382,10 @@ export default {
         },
         onSingleAnimationEnd(id){ // 当单一动画结束
             this.playList = removeFromList(id,'id',this.playList);
+            if(!this.responseTriggerred){
+                this.response&&this.response();
+                this.responseTriggerred = true;
+            }
             if(this.playList.length==0){ // 若所有动画都结束，则真的结束
                 this.$emit('onAnimationEnd');
             }

@@ -9,15 +9,11 @@
             <div class="stat-block-bars">
                 <div class="stat-block-bars-row">
                     <Bar1 class="bar" title="生命：" :mode="2" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" />
-                    <div class="sub-mark def">
-                        防御：<span class="sub-crt" :class="`${unit.btd.def[0]<0?'sub-red':''}`">{{Math.round(unit.btd.def[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.def[1])}}</span>
-                    </div>
+                    <Bar3 class="bar" title="防御：" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
                 </div>
                 <div class="stat-block-bars-row">
                     <Bar1 class="bar" title="精力：" :mode="2" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" />
-                    <div class="sub-mark phy">
-                        体力：<span class="sub-crt">{{Math.round(unit.btd.phy[0])}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(unit.btd.phy[1])}}</span>
-                    </div>
+                    <Bar3 class="bar" title="体力：" :type="2" :crt="unit.btd.phy[0]" :max="unit.btd.phy[1]" />
                 </div>
             </div>
         </div>
@@ -50,6 +46,7 @@
 <script>
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
+import Bar3 from '../components/Bar3';
 import Buff from '../components/Buff';
 import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
 import * as common from '../tools/common';
@@ -94,6 +91,7 @@ export default {
     components:{
         Bar1,
         Bar2,
+        Bar3,
         Buff,
     },
 };
@@ -170,36 +168,6 @@ export default {
     .stat-block-bars-row{
         position: relative;
         margin-bottom: .25rem;
-    }
-    /* bar栏 */
-    .sub-mark{
-        position: absolute;
-        max-width: 90%;
-        height: .35rem;
-        line-height: .35rem;
-        padding: 0 .2rem;
-        top: .26rem;
-        right: -.05rem;
-        font-size: .26rem;
-        background-color: #fff;
-        border: .005rem solid #aaa;
-        z-index: 5;
-        overflow: hidden;
-        white-space: nowrap;
-        word-break: keep-all;
-        text-align: left;
-        color: #fff;
-        box-shadow: .03rem .05rem .02rem .02rem rgba(50,50,50,.3);
-    }
-    .def{
-        background-image: radial-gradient(closest-corner, #FF7F50 10%, #A0522D 100%);
-    }
-    .phy{
-        background-image: radial-gradient(closest-corner, #00BFFF 10%, #008B8B 100%);
-        text-shadow: 0 0 .1rem #000;
-    }
-    .sub-mark .sub-red{
-        color: #80A;
     }
     /* 数据栏 */
     .block-data{

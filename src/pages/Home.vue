@@ -7,10 +7,10 @@
         <!-- 主体 -->
         <div class="panel">
             <div class="skill-wrap">
-                <Skill class="skill" v-for="skill of game.allSkills" :key="skill.id" :skill="skill" :mode="1" :onTap="onTapSkill" />
+                <Skill class="skill" v-for="skill of game.allSkills" :key="skill.id" :skill="skill" :mode="1" @onTap="onTapSkill" />
             </div>
             <div class="equip-wrap">
-                <Equip v-for="equip of game.allEquips" :key="equip.id" :equip="equip" :onTap="onTapEquip" />
+                <Equip v-for="equip of game.allEquips" :key="equip.id" :equip="equip" @onTap="onTapEquip" />
             </div>
         </div>
         <!-- alert -->
