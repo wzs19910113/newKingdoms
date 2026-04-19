@@ -11,16 +11,16 @@
                 <div class="battle-field">
                     <!-- 敌方区域 -->
                     <div class="team-pan team-pan-top">
-                        <Unit2 v-for="unit in enemyTeam" :ref="'u-'+unit.id" :key="unit.id" :unit="unit" @onTap="onTapUnit" />
+                        <Unit2 v-for="unit in enemyTeam" :ref="'u-'+unit.id" :key="unit.id" :pageState="pageState" :unit="unit" @onTap="onTapUnit" />
                     </div>
                     <!-- 公示信息区域 -->
                     <div class="board-container">
-                        <div class="board-row" v-if="boardTip">{{boardTip}} - {{aniList.length}}</div>
+                        <div class="board-row" v-if="boardTip">{{boardTip}}</div>
                         <a class="btn btn-start" v-if="pageState==1" @click="onTapStartBattle">开 始 战 斗</a>
                     </div>
                     <!-- 我方区域 -->
                     <div class="team-pan team-pan-bottom">
-                        <Unit2 v-for="unit in playerTeam" :ref="'u-'+unit.id" :key="unit.id" :unit="unit" @onTap="onTapUnit" />
+                        <Unit2 v-for="unit in playerTeam" :ref="'u-'+unit.id" :key="unit.id" :pageState="pageState" :unit="unit" @onTap="onTapUnit" />
                     </div>
                 </div>
                 <!-- 操作板块 -->
@@ -58,7 +58,7 @@
                         </div>
                         <div class="menu-tag" v-if="menuData.state==4">
                             <div class="menu-sub-wrap menu-unit-wrap">
-                                <a class="btn" v-for="(unit,index) in menuData.unitList" :key="index"  @click="onTapMenu({flag:21,data:unit})">{{unit.btd.name}}</a>
+                                <a class="btn" :class="unit.btd.isPlayer?'btn-target-player':'btn-target-enemy'" v-for="(unit,index) in menuData.unitList" :key="index"  @click="onTapMenu({flag:21,data:unit})">{{unit.btd.name}}</a>
                             </div>
                         </div>
                         <div class="menu-tag" v-if="menuData.state==5">
@@ -74,7 +74,7 @@
         <!-- <div class="canvas-cover" v-if="pageState==4">
             <Ani class="ani" res="ani" />
         </div> -->
-        <div class="canvas-cover" v-if="pageState==4">
+        <div class="canvas-cover" v-if="pageState==4" @click="onTapCanvas2">
             <Ani class="ani" ref="ani" @onAnimationEnd="onAnimationEnd" />
         </div>
         <Pop v-if="viewingUnit" title="角色面板" @onTap="onTapPop">
@@ -89,6 +89,11 @@
                 </p>
             </div>
         </Pop>
+        <Pop v-if="pageState==5" :title="`选择并削减状态强度（-${editLevel}）`" @onTap="onTapPop">
+            <div class="buff-edit-menu">
+                <Buff class="buff-edit-btn" v-for="(buff,index) in editBuffList" :key="index" :buff="buff" :mode="2" @onTap="onTapEditBuff(buff)" />
+            </div>
+        </Pop>
         <Toast ref="toast" />
     </div>
 </template>
@@ -101,11 +106,13 @@ import Skill from '../components/Skill';
 import Attack from '../components/Attack';
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
+import Buff from '../components/Buff';
 import Ani from '../components/Ani';
 import Pop from '../components/Pop';
 import Toast from '../components/Toast';
 import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
 import * as common from '../tools/common';
+import * as ai from '../tools/ai';
 import { DEBUG, CONFIG, CACHE, } from '../config/config';
 
 const INIT_CHANGES = {
@@ -118,6 +125,10 @@ const INIT_CHANGES = {
     dge: 0,
     mdef: 0,
     money: 0,
+    buffList: [],
+    weakenBuff: null,
+    effectTypeList: [],
+    domAni: '',
 }
 
 export default {
@@ -168,8 +179,13 @@ export default {
 
             aniList: [], // 播放画布动画的数据数组
 
-            playerTeam:[],
-            enemyTeam:[],
+            playerTeam: [],
+            enemyTeam: [],
+
+            editBuffUnitList: [], // buff编辑对象单位数组
+            editBuffUnitIndex: -1, // buff编辑对象单位数组下标
+            editBuffList: [], // 编辑弹窗的 buff 数组
+            editLevel: 0, // 可以削减的 buff 层数
 
             timerList: [],
 
@@ -230,12 +246,15 @@ export default {
         _nus[3].es[5] = 6;
         _nus[3].es[3] = 7;
         _nus[3].es[4] = 8;
+        _nus[3].g = 5000;
 
         _nus[3].as[6] = 656;
         _nus[4].es[0] = 9;
         _nus[4].es[5] = 10;
         _nus[7].es[4] = 10;
         _nus[7].es[5] = 10;
+        _nus[4].g = 1000;
+        _nus[7].g = 10000;
         window.GLOBAL.game.allEquips.push(common.genEquip({id:1,game:{},level:r(9,9),type:r(1,1)}));
         window.GLOBAL.game.allEquips.push(common.genEquip({id:2,game:{},level:r(9,9),type:r(1,1)}));
         window.GLOBAL.game.allEquips.push(common.genEquip({id:3,game:{},level:r(9,9),type:r(1,1)}));
@@ -367,7 +386,7 @@ export default {
                 // 计算每个人的【所需行动步数】和【超出行动力】
                 for(let unit of allAliveUnits){
                     let speed = unit.btd.speed; // 3
-                    let diff= 10000-unit.btd.move; // 10
+                    let diff= 10000-unit.btd.mov; // 10
                     let divisor = Math.ceil(diff/speed); // 除数=4
                     unit.tickCount = divisor; // 需要 4 步才能行动
                     unit.overflowMove = speed*divisor-diff; // 超出的行动力为 2
@@ -380,7 +399,7 @@ export default {
                 }
                 // 所有人推进行动条
                 for(let unit of allAliveUnits){
-                    unit.btd.move += smallestTickCount*unit.btd.speed;
+                    unit.btd.mov += smallestTickCount*unit.btd.speed;
                 }
                 // 得出最小行动步数为 3，筛选出本帧行动者
                 for(let unit of allAliveUnits){
@@ -394,7 +413,7 @@ export default {
             }
             calcTickCount();
             for(let unit of curUnitList){ // 所有本帧行动者行动条归零
-                unit.btd.move = 0;
+                unit.btd.mov = 0;
                 unit.btd.roundRemainCount = unit.btd.roundTotal;
             }
             this.$nextTick(_=>{
@@ -402,15 +421,13 @@ export default {
                 // for(let u of this.curUnitList){ console.log(u.nm); }
             });
         },
-        unitRoundStart(){ // 单位的回合开始
+        unitRoundStart(){ // 单位回合开始
             let curUnit = this.curUnitList[this.curUnitListIndex];
             let allUnits = [...this.playerTeam,...this.enemyTeam];
 
             // 初始化所有单位的 changes
             for(let unit of allUnits){
                 unit.btd.changes = cloneObj(INIT_CHANGES);
-                unit.btd.changes.effectTypeList = [];
-                unit.btd.changes.domAni = '';
             }
 
             // 清空所有动画
@@ -436,9 +453,15 @@ export default {
                 }
             })
         },
+        unitRoundEnd(){ // 单位回合结束
+            let allAliveUnits = this.getAllAliveUnits();
+            for(let unit of allAliveUnits){
+
+            }
+        },
         turnStart(){ // 大回合开始，一个turn可以包含多个round
             this.turnCount++;
-            this.boardTip = `第 ${this.turnCount} 回合`;
+            // this.boardTip = `第 ${this.turnCount} 回合`;
             this.curUnitListIndex = 0;
             this.unitRoundStart();
         },
@@ -450,7 +473,12 @@ export default {
                 vdom.trigAni();
                 unit.btd.changes = {};
             }
-
+            // 清除编辑buff弹窗数据
+            this.editBuffUnitList = [];
+            this.editBuffUnitIndex = -1;
+            this.editBuffList = [];
+            this.editLevel = 0;
+            // 检查是否满足结束条件
             let checkEndResult = this.checkEnd();
             if(checkEndResult){ // 战斗结束
                 if(checkEndResult==1){ // 获胜
@@ -511,32 +539,107 @@ export default {
             let allUnits = [...this.playerTeam,...this.enemyTeam];
             return getSubMatchList(allUnits,[['alive',1]],'btd');
         },
-        attackOnTarget({caster,target,attack}){ // 对一个单位进行攻击
-            // 计算 changes
-            if(common.calcHit({caster,target})){ // 命中
+        checkBan({unit,data}){ // 检查按钮是否禁用
+            return !common.canConsume({unit,consume:common.calcConsume({type:1,unit,data,})});
+        },
+        consumeAction({consume,unit,}){ // 单位动作消耗体力并计算 changes
+            unit.btd.changes.phy -= consume;
+            if(consume>unit.btd.phy[0]){ // 破限，掉精
+                unit.btd.changes.eng -= (consume-unit.btd.phy[0]);
+            }
+            // 把消耗转化为潜能
+            unit.btd.changes.ptc += Math.round(consume*10*unit.btd.ptc/CONFIG.ptcDeno);
+        },
+        attackOnTarget({caster,target,attack,hit=0}){ // 单位受到攻击并计算 changes，hit是否确定命中
+            if(hit||common.calcHit({caster,target})){ // 命中，结算伤害
                 let btd = target.btd;
                 let changes = btd.changes;
+                let penetrate = 0; // 是否穿透防御
                 changes.domAni = "shake";
                 // 推送攻击画布动画
                 this.pushEffectType(attack.et,target);
                  // 计算伤害
                 let dmg = common.calcDmg({caster,attack,});
+
+                // 破盾sppp
+                if(attack.s&&attack.s==2&&r(1,100)<CONFIG.spAttackRate){
+                    let extraTrueDmg = Math.round(dmg*CONFIG.spLevelMap[1][attack.sl-1]); // 额外增加的真实伤害值
+                    if(extraTrueDmg>0){
+                        this.pushEffectType(201,target);
+                        this.pushEffectType(105,target);
+                        penetrate = 1;
+                        changes.hp -= extraTrueDmg;
+                    }
+                }
+
+                // 常规伤害结算规则
                 changes.def -= dmg;
                 if(dmg>btd.def[0]){ // 破防，掉血
+                    this.pushEffectType(201,target);
+                    penetrate = 1;
                     changes.hp -= (dmg-btd.def[0]);
+                }
+
+                // 其他sppp
+                if(attack.s&&r(1,100)<CONFIG.spAttackRate){
+                    if(attack.s==1){ // 压制sppp，计算行动力下降值
+                        let movDmg = common.calcQuellDmg({caster,target,attack,dmg});
+                        if(movDmg>0){
+                            changes.mov -= movDmg;
+                            this.pushEffectType(102,target);
+                        }
+                    }
+                    else if(attack.s==3){ // 气溃sppp，计算潜能伤害
+                        let ptcDmg = common.calcPotencyDmg({caster,target,attack,dmg});
+                        if(ptcDmg>0){
+                            changes.ptc -= ptcDmg;
+                            this.pushEffectType(103,target);
+                        }
+                    }
+                    else if(attack.s==4){ // 精溃sppp，计算精力伤害
+                        let engDmg = common.calcEnergyDmg({caster,target,attack,dmg});
+                        if(engDmg>0){
+                            changes.eng -= engDmg;
+                            this.pushEffectType(201,target);
+                        }
+                    }
+                    else if(attack.s==6){ // 攻心sppp，计算心灵伤害
+                        let mentalDmg = common.calcMentalDmg({caster,target,attack,dmg});
+                        if(mentalDmg>0){
+                            changes.mdef -= mentalDmg;
+                            this.pushEffectType(201,target);
+                        }
+                    }
+                    else if(attack.s==7){ // 赏金sppp，计算金币伤害
+                        let goldDmg = common.calcGoldDmg({caster,target,attack,dmg,});
+                        if(goldDmg>0){
+                            let gain = goldDmg;
+                            gain = setInRange(gain,0,target.btd.money);
+                            if(gain>0){
+                                changes.money -= goldDmg;
+                                caster.btd.changes.money += gain;
+                                this.pushEffectType(201,target);
+                                this.pushEffectType(201,caster);
+                            }
+                        }
+                    }
+                }
+
+                // 如果穿透防御，则添加buff
+                if(penetrate&&attack.b){
+                    for(let i=0;i<attack.b.length;i++){
+                        let buffId = attack.b[i], buffLevel = attack.bl[i];
+                        target.btd.changes.buffList.push({ id:buffId, level:buffLevel, });
+                    }
                 }
             }
             else{ // 未命中
                 this.pushEffectType(106,target);
-                if(attack.s==5&&r(1,100)<CONFIG.spAttackRate){ // 锁敌sppp
-                    this.pushEffectType(104,target);
-
-                }
             }
-            this.pushEffectType(101,target);
-        },
-        checkBan({unit,data}){ // 检查按钮是否禁用
-            return !common.canConsume({unit,consume:common.calcConsume({type:1,unit,data,})});
+            if(attack.s&&attack.s==5&&r(1,100)<CONFIG.spAttackRate){ // 锁敌sppp
+                this.pushEffectType(104,target);
+                target.btd.changes.dge += CONFIG.spLevelMap[4][attack.sl-1];
+            }
         },
 
         /* 动画相关 */
@@ -551,6 +654,7 @@ export default {
             let allAliveUnits = this.getAllAliveUnits();
             this.$nextTick(_=>{
                 let domAniExist = 0;
+                // 播放每个单位的dom动画
                 for(let unit of allAliveUnits){
                     let changes = unit.btd.changes;
                     if(changes.domAni){
@@ -560,10 +664,12 @@ export default {
                 }
                 if(this.aniList.length<=0){ // 如果没有动画，则直接结束动画
                     this.timerList.push(setTimeout(_=>{
+                        this.onAnimationResponse();
                         this.onAnimationEnd();
                     },domAniExist?550:10));
                 }
-                else{
+                else{ // 播放每个单位的画布动画
+                    this.aniList = bulbsort(this.aniList,'effectType',0);
                     for(let aniData of this.aniList){
                         this.playAni(aniData);
                     }
@@ -574,7 +680,8 @@ export default {
             /*
                 effectType: 5,// 1slash 2smash 3bullet 4range 5fire 6thunder 7cure 8power 9pure 10mental
                 // 11重slash 12重smash 13重bullet 14重range 15重fire
-                // 101浮动数字（血|精|心|钱） 102行动力 103潜能 104存在感 105破盾 106miss
+                // 102行动力 103潜能 104存在感 105破盾 106miss
+                // 201浮动数字（血|精|心|钱）
                 number: 1||{}, // { hp:0, eng:0, mdef:0, money:0, }
             */
             let casterPos = this.getUnitDomPos(caster.id);
@@ -630,12 +737,8 @@ export default {
                     aniName = `attack-fire-heavy`;
                 break;
 
-                case 101: // 通用浮动数字，涉及到数值
+                case 201: // 通用浮动数字，涉及到数值
                     aniName = `number-common`;
-                    if(number.hp){
-                        let colorType = number.hp>0?1:2;
-                        textList.push({val:number.hp,colorType});
-                    }
                     if(number.eng){
                         textList.push({val:number.eng,colorType:3});
                     }
@@ -645,22 +748,26 @@ export default {
                     if(number.money){
                         textList.push({val:number.money,colorType:8});
                     }
+                    if(number.hp){
+                        let colorType = number.hp>0?1:2;
+                        textList.push({val:number.hp,colorType});
+                    }
                 break;
                 case 102: // 压制，涉及到数值
                     aniName = `number-quell`;
                     textList.push({val:number,});
                 break;
-                case 103: // 破盾，涉及到数值
-                    aniName = `text`;
-                    textList.push({val:'破',colorType:9,fontSize:.6,});
-                break;
-                case 104: // 气溃，涉及到数值
+                case 103: // 气溃，涉及到数值
                     aniName = `number-potency-damage`;
                     textList.push({val:number,});
                 break;
-                case 105: // 锁敌，涉及到数值
+                case 104: // 锁敌，涉及到数值
                     aniName = `number-lock-on`;
                     textList.push({val:number,});
+                break;
+                case 105: // 破盾，涉及到数值
+                    aniName = `text`;
+                    textList.push({val:'破',colorType:9,fontSize:.6,});
                 break;
                 case 106: // miss
                     aniName = `text`;
@@ -678,7 +785,7 @@ export default {
             if(textList.length>0){
                 params.textList = textList;
             }
-
+            // console.log(`播放动画参数，`,params);
             this.$refs.ani&&this.$refs.ani.trigger(params);
         },
         pushAniByChanges({caster,target}){ // 根据 changes 生成并推送多个‘单动画数据’进入aniList用于稍后播放
@@ -688,8 +795,8 @@ export default {
                 if((effectType>0&&effectType<16)||effectType==105||effectType==106){ // 动画效果+破盾+miss
                     this.aniList.push({caster,target,effectType,});
                 }
-                else if(effectType==101&&(changes.hp||changes.eng||changes.mdef||changes.money)){ // 通用数字（血精心钱）
-                    this.aniList.push({caster,target,effectType:101,number:changes});
+                else if(effectType==201&&(changes.hp||changes.eng||changes.mdef||changes.money)){ // 通用数字（血精心钱）
+                    this.aniList.push({caster,target,effectType:201,number:changes});
                 }
                 else if(effectType==102&&changes.mov){ // 特殊数字·行动力
                     this.aniList.push({caster,target,effectType:102,number:changes.mov,});
@@ -703,7 +810,10 @@ export default {
             }
         },
         pushEffectType(type,unit,){ // 为单位添加 effectType，用于播放画布动画
-            unit.btd.changes.effectTypeList.push(type);
+            // console.log(`为单位添加 effectType`,arrContains(unit.btd.changes.effectTypeList,type));
+            if(arrContains(unit.btd.changes.effectTypeList,type)==-1){
+                unit.btd.changes.effectTypeList.push(type);
+            }
         },
         getUnitDomPos(id){ // 获取单位dom的坐标
             let vdom = this.$refs[`u-${id}`][0];
@@ -726,8 +836,10 @@ export default {
         },
         onAnimationResponse(){ // 当动画中途回应
             let allAliveUnits = this.getAllAliveUnits();
-            for(let unit of allAliveUnits){ // 根据所有单位的 changes 改变其数据
+            for(let unit of allAliveUnits){ // 保存 changes：根据所有单位的 changes 改变其数据
                 common.saveUnitChanges(unit);
+                // console.log(unit.btd.name,unit.btd.mov);
+
                 let _n = unit.btd.name;
                 unit.btd.name = 'JK';
                 unit.btd.name = _n;
@@ -743,33 +855,43 @@ export default {
             switch(type){
                 case 1: // 进行攻击
                     this.unitAttack(caster,attack,targetUnitList);
+                    this.boardTip = `${caster.btd.name} 进行攻击`;
                 break;
                 case 2: // 施放技能
                     this.unitSpell(caster,skill,targetUnitList);
+                    this.boardTip = `${caster.btd.name} 发动 ${skill.n}`;
                 break;
                 case 3: // 防御
                     this.unitDefense(caster);
+                    this.boardTip = `${caster.btd.name} 恢复了防御`;
                 break;
                 case 4: // 躲避
                     this.unitDodge(caster);
+                    this.boardTip = `${caster.btd.name} 降低了存在感`;
                 break;
                 case 5: // 追踪
                     this.unitTrace(caster);
+                    this.boardTip = `${caster.btd.name} 进行追踪`;
                 break;
                 case 6: // 呼吸
                     this.unitBreath(caster);
+                    this.boardTip = `${caster.btd.name} 恢复了体力`;
                 break;
                 case 7: // 集气
                     this.unitConcentrate(caster);
+                    this.boardTip = `${caster.btd.name} 提升了潜能`;
                 break;
                 case 8: // 爆气
                     this.unitBurst(caster,burstAttr);
+                    this.boardTip = `${caster.btd.name} 消耗潜能提升了 ${CONFIG.attrMap[burstAttr]}`;
                 break;
                 case 9: // 劝降
                     this.unitPersuade(caster,targetUnitList);
+                    this.boardTip = `${caster.btd.name} 进行心理攻击`;
                 break;
                 case 10: // 撤离
                     this.unitFlee(caster);
+                    this.boardTip = `${caster.btd.name} 准备撤离了`;
                 break;
             }
         },
@@ -786,21 +908,20 @@ export default {
 
             // 攻击者体力消耗
             let consume = common.calcConsume({type:1,unit:caster,data:attack,});
-            caster.btd.changes.phy -= consume;
-            if(consume>caster.btd.phy[0]){ // 破限，掉精
-                caster.btd.changes.eng -= (consume-caster.btd.phy[0]);
-            }
+            this.consumeAction({consume,unit:caster,});
 
             // 攻击者存在感上升
-            let dodgeup = common.calcAttackAwaup({unit:caster,attack,});
+            let dodgeup = common.calcAttackDodgeup({unit:caster,});
             caster.btd.changes.dge += dodgeup;
 
-            this.pushEffectType(101,caster);
+            this.pushEffectType(201,caster);
 
             // 遍历每个攻击目标单位
             for(let target of targetUnitList){
                 this.attackOnTarget({caster,target,attack,});
             }
+
+            this.unitRoundEnd();
 
             // 遍历每个存活单位，根据 changes 生成并推送画布动画
             for(let unit of allAliveUnits){
@@ -808,14 +929,84 @@ export default {
             }
             // 计算完动作后，播放DOM动画+所有画布动画
             this.playAniList();
-
-            // TODO
-            // let names = ``;
-            // for(let unit of targetUnitList){ names += `${unit.btd.name}+`;}
-            // console.log(`${caster.btd.name} ${attack.n}攻击 ${names}`,attack);
         },
         unitSpell(caster,skill,targetUnitList){ // 单位施放技能
-            console.log(`${caster.btd.name} 对 ${targetUnitList[0].btd.name} 使用技能【${skill.n}】`,skill);
+            let allAliveUnits = this.getAllAliveUnits();
+            caster.btd.changes.domAni = "cast";
+
+            // 施放者体力消耗
+            let consume = common.calcConsume({type:1,unit:caster,data:skill,});
+            this.consumeAction({consume,unit:caster,});
+
+            if(skill.t>2){ // 目标为敌人
+                // 攻击者存在感上升
+                let dodgeup = common.calcSkillDodgeup({unit:caster,});
+                caster.btd.changes.dge += dodgeup;
+            }
+
+            this.pushEffectType(201,caster); // 注册通用数字动画
+
+            // 遍历每个攻击目标单位
+            for(let target of targetUnitList){
+                let hit = common.calcHit({caster,target});
+                if(!hit){ // 技能未命中
+                    this.pushEffectType(106,target);
+                }
+                else{ // 技能命中
+                    for(let e of skill.el){ // 遍历技能的每个效果 1攻击 2添加状态 3减弱一个状态 4治疗 5改甲 6改潜 7改心 8改存
+                        let { t, d, } = e;
+                        if(t==1){ // 攻击
+                            this.attackOnTarget({caster,target,attack,hit});
+                        }
+                        else if(t==2){ // 添加状态
+                            let { b, bl, } = d;
+                            for(let i=0;i<b.length;i++){
+                                let buffId = b[i], buffLevel = bl[i];
+                                target.btd.changes.buffList.push({ id:buffId, level:buffLevel, });
+                            }
+                        }
+                        else if(t==3||t==4){ // 减弱状态
+                            let editBuffList = getMatchList(target.btd.buffList,[['good',t==3?1:0]]);
+                            if(editBuffList.length>0){ // 如果 target 身上有符合条件的buff
+                                if(caster.isPlayer){ // 施放者是玩家
+                                    this.editLevel = d;
+                                    this.editBuffUnitList.push(target);
+                                    this.editBuffUnitIndex++;
+                                    this.editBuffList = editBuffList;
+                                }
+                                else{ // 施放者是敌人
+                                    let weakenBuff = ai.getWeakenBuff({caster,target,buffList:editBuffList,});
+                                    this.target.btd.changes.weakenBuff = { id:weakenBuff.id, level:d, };
+                                }
+                            }
+                        }
+                        else if(t==5){ // 治疗
+
+                        }
+                        else if(t==6){ // 改变护甲（弃用）
+
+                        }
+                        else if(t==7){ // 改变潜能
+
+                        }
+                        else if(t==8){ // 改变心理防御
+
+                        }
+                        else if(t==9){ // 改变存在感
+
+                        }
+                    }
+                }
+            }
+
+            this.unitRoundEnd();
+
+            // 遍历每个存活单位，根据 changes 生成并推送画布动画
+            for(let unit of allAliveUnits){
+                this.pushAniByChanges({caster,target:unit});
+            }
+            // 计算完动作后，播放DOM动画+所有画布动画
+            this.playAniList();
         },
         unitDefense(caster){ // 单位防御
             console.log(`${caster.btd.name} 进行防御`);
@@ -835,7 +1026,7 @@ export default {
             console.log(`${caster.btd.name} 进行集气`);
         },
         unitBurst(caster,attr){ // 单位爆气
-            console.log(`${caster.btd.name} ${[`力量`,`精准`,`速度`,`智力`,`定力`,`隐蔽`,`爆发`,][attr-4]}爆发`);
+            console.log(`${caster.btd.name} ${CONFIG.attrMap[attr]}爆发`);
         },
         unitPersuade(caster,targetUnitList){ // 单位劝降
             console.log(`${caster.btd.name} 劝降 ${targetUnitList[0].btd.name}`);
@@ -864,7 +1055,7 @@ export default {
                 // this._alert(`精力: ${btd.eng[0]} / ${btd.eng[1]}`);
             }
             else if(flag==103){ // 点击行动条
-                this._alert(`行动进度: ${Math.round(btd.move/100)} %`);
+                this._alert(`行动进度: ${Math.round(btd.mov/100)} %`);
             }
             else if(flag==104){ // 点击气条
                 this._alert(`潜力累积： ${Math.round(btd.ptc/100)} %`);
@@ -873,14 +1064,20 @@ export default {
                 this._alert(`存在感： ${Math.round(btd.dge/100)} %`);
             }
             else if(flag==106){ // 点击头像
-                let _unit = cloneObj(getMatchList(this.game.allUnits,[['id',unit.id]])[0]);
-                _unit.btd = common.getUnitBtd(unit,this.game);
+                let allUnits = [...this.playerTeam,...this.enemyTeam];
+                let _unit = cloneObj(getMatchList(allUnits,[['id',unit.id]])[0]);
                 this.viewingUnit = _unit;
             }
         },
         onTapPop(){ // 点击【弹窗-关闭】
             this.viewingUnit = null;
             this.showMenuGuide = 0;
+        },
+        onTapEditBuff(buff){ // 点击【弹窗-状态编辑弹窗-状态按钮】
+            this._alert(`将 ${this.editBuffUnit.btd.name} 的 ${buff.name} 状态削减 ${this.editLevel} 层。`,5);
+            this.editBuffList = [];
+            this.editLevel = 0;
+            this.editBuffUnit = {};
         },
         onTapMenuHelp(){ // 点击【菜单-？】
             this.showMenuGuide = !this.showMenuGuide;
@@ -893,8 +1090,17 @@ export default {
             this.menuData.state = this.menuData.stateRecordList[this.menuData.stateRecordList.length-1];
             this.menuData.stateRecordList.pop();
         },
-        onTapMenuAttack({flag,data,ban,}){ // 点击【菜单-攻击】
-            this.onTapMenu({flag:101,data,ban});
+        onTapMenuAttack({flag,data,ban,buffId,buffLevel,sp,spLevel}){ // 点击【菜单-攻击】
+            if(flag==1){ // 点击attack图标
+                this.onTapMenu({flag:101,data,ban});
+            }
+            else if(flag==2){ // 点击buff图标
+                let buff = common.getConfigBuff(buffId);
+                this._alert(`让敌人${buff.name}：${buff.desc}`,5);
+            }
+            else if(flag==3){ // 点击sp图标
+                this._alert(`${CONFIG.spAttackList[sp-1]}：${CONFIG.spAttackDescList[sp-1]}`,5);
+            }
         },
         onTapMenuSkill({flag,data,ban,}){ // 点击【菜单-技能】
             this.onTapMenu({flag:102,data,ban});
@@ -968,7 +1174,6 @@ export default {
             }
             else if(flag==101){ // 点击攻击方式
                 let attack = data;
-
                 if(attack.a){ // 全体攻击，则直接执行动作
                     this.unitAction({caster:curUnit,type:1,attack,targetUnitList:this.enemyTeam});
                 }
@@ -1000,17 +1205,20 @@ export default {
         /* 其他 */
         onTapCheat(){ // 点击【作弊】按钮
             this.goPageState(2);
-            // let cUnit = this.playerTeam[3],tUnit = this.enemyTeam[2],t2Unit = this.enemyTeam[3];
-            // let c_pos = this.getUnitDomPos(cUnit.id);
-            // let t_pos = this.getUnitDomPos(tUnit.id);
-            // let c_vdom = this.$refs[`u-${cUnit.id}`][0], t_vdom = this.$refs[`u-${tUnit.id}`][0], t2_vdom = this.$refs[`u-${t2Unit.id}`][0];
-            //
-            // let x = 250;
-            // c_vdom.trigAni('cast');
-            // // t_vdom.trigAni('shake');
+        },
+        onTapCanvas1(){
+            let cUnit = this.playerTeam[3],tUnit = this.enemyTeam[2],t2Unit = this.enemyTeam[3];
+            let c_pos = this.getUnitDomPos(tUnit.id);
+            let t_pos = this.getUnitDomPos(cUnit.id);
+            let c_vdom = this.$refs[`u-${cUnit.id}`][0], t_vdom = this.$refs[`u-${tUnit.id}`][0], t2_vdom = this.$refs[`u-${t2Unit.id}`][0];
+
+            let x = 250;
+            t_vdom.trigAni('cast');
+            c_vdom.trigAni('shake');
             // // t2_vdom.trigAni('shake');
-            //
-            // this.$refs.ani.trigger({name:'attack-slash-heavy',fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
+
+            this.$refs.ani.trigger({name:'attack-slash',fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
+            this.$refs.ani.trigger({name:'number-common',textList:[{val:-135,colorType:3},{val:-229,colorType:2}],fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
             // // let tl1 = [{val:'破',colorType:9,fontSize:.6,},];
             // // this.$refs.ani.trigger({name:'text',textList:tl1, fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
             // // let tl2 = [{val:-973,colorType:2,},];
@@ -1018,6 +1226,9 @@ export default {
             // // this.$refs.ani.trigger({name:'number-potency-damage',textList:[{val:3700,},], fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
             // // this.$refs.ani.trigger({name:'number-common',textList:[{val:-316,colorType:4},], fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
             // this.$refs.ani.trigger({name:'text',textList:[{val:'miss',colorType:10,fontSize:.66},], fromX:c_pos.x, fromY:c_pos.y, toX:t_pos.x, toY:t_pos.y, });
+        },
+        onTapCanvas2(){
+
         },
     },
     components:{
@@ -1028,6 +1239,7 @@ export default {
         Attack,
         Bar1,
         Bar2,
+        Buff,
         Ani,
         Pop,
         Toast,
@@ -1339,6 +1551,14 @@ export default {
         font-size: .4rem;
         line-height: 1.632rem;
     }
+    .menu-unit-wrap .btn-target-player{
+        border-color: #73d893;
+        box-shadow: 0 0 .42rem #73d893 inset;
+    }
+    .menu-unit-wrap .btn-target-enemy{
+        border-color: #a82313;
+        box-shadow: 0 0 .42rem #a82313 inset;
+    }
     /* 菜单-选择属性 */
     .menu-attr-wrap{
         display: flex;
@@ -1361,7 +1581,7 @@ export default {
         left: 0;
         right: 0;
         margin: auto;
-        z-index: 20000;
+        z-index: 1500;
         color: #131313;
         font-size: .4rem;
         display: flex;
@@ -1369,7 +1589,7 @@ export default {
         align-items: center;
     }
     .ani{
-        box-shadow: 0 0 .5rem #fff inset;
+        /* box-shadow: 0 0 .5rem #fff inset; */
     }
     /* pop */
     .unit-info-pop{

@@ -65,10 +65,11 @@ export default {
         border-radius: .04rem;
     }
     .buff-sm{
-        width: 30%;
+        width: 48%;
         height: .3rem;
         line-height: .3rem;
         font-size: .18rem;
+        margin: .01rem 1%;
     }
     .buff-lg{
         width: .86rem;

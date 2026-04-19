@@ -5,7 +5,7 @@
             <div class="bar-label">
                 <span class="txt" v-if="title">{{title}}</span>
                 <span class="num">
-                    <span class="crt" :class="`${crt<0?'crt-red':''}`">{{Math.round(this.crt)}}</span>
+                    <span class="crt" :class="`${crt<=0?'crt-red':''}`">{{Math.round(this.crt)}}</span>
                     /
                     <span class="max">{{Math.round(this.max)}}</span>
                 </span>
@@ -91,7 +91,9 @@ export default {
         text-shadow: 0 0 .1rem #000;
     }
     .crt-red{
-        color: #80A;
+        /* color: #80A; */
+        /* font-weight: bold; */
+        /* text-shadow: none; */
     }
     .bar-label{
         position: relative;

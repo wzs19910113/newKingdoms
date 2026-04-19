@@ -104,23 +104,26 @@ export default {
                     case 2: // 添加状态
                         effectTip += `赋予状态，`;
                     break;
-                    case 3: // 减弱一个状态
-                        effectTip += `状态强度-${d}，`;
+                    case 3: // 减弱正面状态
+                        effectTip += `正面状态强度-${d}，`;
                     break;
-                    case 4: // 恢复生命
+                    case 4: // 减弱负面状态
+                        effectTip += `负面状态强度-${d}，`;
+                    break;
+                    case 5: // 恢复生命
                         effectTip += `治疗${d.h}${d.rx>0?` + 智${common.genRXString(d.rx)}`:''}，`;
                     break;
-                    case 5: // 改变护甲
+                    case 6: // 改变护甲
                         // effectTip += `${d>0?'护甲+':'护甲'}${d}，`;
                     break;
-                    case 6: // 改变潜能
+                    case 7: // 改变潜能
                         effectTip += `${d.d>0?'潜能提升':'潜能'}${common.awaFormat(d.d)}%`;
                         if(d.rx){
                             effectTip += `+爆${common.genRXString(d.rx)}`;
                         }
                         effectTip += `，`;
                     break;
-                    case 7: // 改变心防
+                    case 8: // 改变心防
                         effectTip += `${d.d>0?'心理恢复':'心理伤害'}${Math.abs(d.d)}`;
                         if(d.rx1){
                             effectTip += `+定${common.genRXString(d.rx1)}`;
@@ -130,7 +133,7 @@ export default {
                         }
                         effectTip += `，`;
                     break;
-                    case 8: // 改变存在感
+                    case 9: // 改变存在感
                         effectTip += `存在感${d.d>0?'+':'降'}${Math.abs(common.awaFormat(d.d))}%`;
                         if(d.rx){
                             effectTip += `+隐${common.genRXString(d.rx)}`;
@@ -146,7 +149,7 @@ export default {
             return effectTip;
         },
         _onTap(){
-            this.$emit('onTap',{flag:1,skill:this.skill,});
+            this.$emit('onTap',{flag:1,data:this.skill,});
         },
         _onTapRx1(){
             this.$emit('onTap',{flag:3,text:`力量补正：力量带来的伤害提升`});

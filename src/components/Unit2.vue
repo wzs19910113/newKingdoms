@@ -5,8 +5,9 @@
             <a class="avatar avatar" v-if="!aniStyle" ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
             <a class="avatar" v-else ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
 
-            <div class="cur" v-show="unit.btd.cur&&unit.btd.alive"></div>
-            <Bar2 class="cir1" :current="unit.btd.move" :type="1" @onTap="_onTapFlag(103)" />
+            <div class="cur" v-if="pageState==3" v-show="unit.btd.cur&&unit.btd.alive"></div>
+
+            <Bar2 class="cir1" :current="unit.btd.mov" :type="1" @onTap="_onTapFlag(103)" />
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" @onTap="_onTapFlag(104)" />
             <Bar2 class="cir3" :current="unit.btd.dge" :type="3" @onTap="_onTapFlag(105)" />
         </div>
@@ -23,7 +24,7 @@
             <Bar3 class="bar" :type="2" :crt="unit.btd.phy[0]" :max="unit.btd.phy[1]" />
         </div>
         <div class="buff-wrap" :class="`${!unit.btd.alive?'dead':''}`">
-            <Buff v-for="buff in unit.btd.buffs" :key="buff.id" :buff="buff" @onTap="_onTapBuff(buff)" />
+            <Buff class="buff" v-for="buff in unit.btd.buffList" :key="buff.id" :buff="buff" @onTap="_onTapBuff(buff)" />
         </div>
         <div class="death-cover" v-if="!unit.btd.alive">战<br/>退</div>
     </a>
@@ -40,7 +41,7 @@ dex: 0, // 防御
 vig: 3, // 气力
 tvig: 50, // 精力（总体力）
 int: 8, // 智力
-buffs: [{ // 状态栏
+buffList: [{ // 状态栏
     id: 1,
     name: '急救',
     desc: '每回合恢复生命力',
@@ -49,7 +50,7 @@ buffs: [{ // 状态栏
     elapse: 9, // 剩余回合数
 },]
 mentalDef: 150, // 心理防御
-move: 1, // 本回合行动者顺序，由小到大【0:非本回合行动者】
+mov: 1, // 本回合行动者顺序，由小到大【0:非本回合行动者】
 alive: 1, // 存活
 isPlayer: 1, // 玩家可操控
 */
@@ -63,6 +64,10 @@ import { DEBUG, CONFIG } from '../config/config';
 export default {
     props:{
         unit: Object, // 角色数据
+        pageState: { // 当前页面
+            type: Number,
+            default: 0,
+        },
         onTap: { // 点击事件
             type: Function,
             default: function(){},
@@ -274,6 +279,7 @@ export default {
     .stat-row .sub-mark .sub-red{
         color: #80A;
     }
+
     /* buff行 */
     .buff-wrap{
         display: block;
@@ -283,6 +289,7 @@ export default {
         overflow-y: auto;
         text-align: left;
     }
+
     /* 战退 */
     .dead{
         opacity: .2;

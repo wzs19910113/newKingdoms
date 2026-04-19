@@ -24,6 +24,9 @@
             <div class="stat-row" v-if="mode==2">
                 心里防御：{{unit.btd.mdef}}
             </div>
+            <div class="stat-row" v-if="mode==2">
+                金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
+            </div>
             <div class="stat-row" v-if="stys.length>0">
                 <span class="stat-sty" v-for="sty in stys">【{{sty}}】</span>
             </div>
@@ -234,5 +237,8 @@ export default {
         to{
             transform: scaleX(100%);
         }
+    }
+    .money{
+        color: gold;
     }
 </style>

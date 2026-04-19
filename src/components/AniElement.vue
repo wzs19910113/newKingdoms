@@ -3,6 +3,7 @@
 </template>
 
 <script>
+const typeMap = ['text','thunder', 'arc', 'laser', 'blood', 'fire', 'explosion', 'heal', 'barrier', 'formation', 'moon', 'halo', 'cross', 'dark', 'lightning', ];
 export default {
   name: "AniElement",
   props: {
@@ -75,6 +76,8 @@ export default {
       canvasWidth: 0,
       canvasHeight: 0,
       isActive: true,
+
+      c: 0,
     };
   },
   computed: {
@@ -84,7 +87,7 @@ export default {
       // console.log(`Ccc mounted=>`,this);
     this.initCanvas();
     this.startTime = performance.now() + this.delay * 1000;
-    this.animate();
+    this._animate();
   },
   beforeDestroy() {
     if (this.animationFrame) {
@@ -140,13 +143,14 @@ export default {
     getCurrentAngle(progress) {
       return this.initAngle + this.spinSpeed * this.period * progress;
     },
-    animate() {
+    _animate() {
       if (!this.isActive) return;
       const now = performance.now();
+      this.c++;
 
       // 如果还在延迟期间，继续等待
       if (now < this.startTime) {
-        this.animationFrame = requestAnimationFrame(this.animate);
+        this.animationFrame = requestAnimationFrame(this._animate);
         return;
       }
 
@@ -155,12 +159,13 @@ export default {
         // 动画结束，移除自身
         // this.destroyComponent();
         this.$emit('onAnimationEnd',this.id);
+        // console.log(`动画（${this.type}）总帧数：`,this.c);
         return;
       }
       const { x, y } = this.getCurrentPosition(easedProgress);
       const angle = this.getCurrentAngle(progress);
       this.drawEffect(x, y, angle, alpha, progress);
-      this.animationFrame = requestAnimationFrame(this.animate);
+      this.animationFrame = requestAnimationFrame(this._animate);
     },
     destroyComponent() {
       if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
@@ -221,6 +226,9 @@ export default {
           break;
         case "dark":
           this.drawDark(ctx, progress);
+          break;
+        case "lightning":
+          this.drawLightning(ctx, progress);
           break;
         default:
           this.drawThunder(ctx, progress);
@@ -419,6 +427,30 @@ export default {
         ctx.beginPath();
         ctx.arc(x - Math.cos(particleAngle) * 4, y - Math.sin(particleAngle) * 4, 1.5, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(100, 60, 200, ${0.5 * alpha})`;
+        ctx.fill();
+      }
+
+      // 冲击波上的粒子（随冲击波扩散）
+      const easeIn = t * t;
+      const shockwaveRadius = 8 + 90 * easeIn;
+      const waveParticleCount = 30;
+      for (let i = 0; i < waveParticleCount; i++) {
+        const angle = (i / waveParticleCount) * Math.PI * 2 + t * 15;
+        const x = Math.cos(angle) * shockwaveRadius;
+        const y = Math.sin(angle) * shockwaveRadius;
+        ctx.beginPath();
+        ctx.arc(x, y, 2 + Math.sin(t * 25 + i) * 1.2, 0, Math.PI * 2);
+
+        // 冲击波粒子颜色（白/红/黄交替）
+        let waveR, waveG, waveB;
+        if (i % 3 === 0) {
+          waveR = 255; waveG = 220; waveB = 100; // 黄色
+        } else if (i % 3 === 1) {
+          waveR = 55; waveG = 255; waveB = 255;   // 红色
+        } else {
+          waveR = 255; waveG = 240; waveB = 200; // 白色
+        }
+        ctx.fillStyle = `rgba(${waveR}, ${waveG}, ${waveB}, ${0.7 * alpha * (1 - easeIn)})`;
         ctx.fill();
       }
 
@@ -623,137 +655,137 @@ export default {
       // ========== 圆形冲击波（多层） ==========
       // 第一层冲击波（主冲击波，白色）
       const shockwaveRadius = 8 + 90 * easeIn;
-      ctx.beginPath();
-      ctx.arc(0, 0, shockwaveRadius, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255, 220, 150, ${0.8 * fadeOutAlpha * (1 - easeIn * 0.4)})`;
-      ctx.lineWidth = 4;
-      ctx.stroke();
+      // ctx.beginPath();
+      // ctx.arc(0, 0, shockwaveRadius, 0, Math.PI * 2);
+      // ctx.strokeStyle = `rgba(255, 220, 150, ${0.8 * fadeOutAlpha * (1 - easeIn * 0.4)})`;
+      // ctx.lineWidth = 4;
+      // ctx.stroke();
 
       // 第二层冲击波（红色光晕）
       const shockwave2Progress = Math.max(0, Math.min(1, (easeIn - 0.08) / 0.92));
       if (shockwave2Progress > 0) {
-        const shockwave2Radius = 8 + 82 * shockwave2Progress;
+        const shockwave2Radius = 8 + 72 * shockwave2Progress;
         ctx.beginPath();
         ctx.arc(0, 0, shockwave2Radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(255, 80, 50, ${0.6 * fadeOutAlpha * (1 - shockwave2Progress)})`;
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = `rgba(255, 80, 50, ${1 * fadeOutAlpha * (1 - shockwave2Progress)})`;
+        ctx.lineWidth = 33;
         ctx.stroke();
       }
 
       // 第三层冲击波（黄色外圈）
-      const shockwave3Radius = 5 + 100 * easeIn;
-      ctx.beginPath();
-      ctx.arc(0, 0, shockwave3Radius, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255, 180, 60, ${0.45 * fadeOutAlpha * (1 - easeIn * 0.5)})`;
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
+      // const shockwave3Radius = 5 + 100 * easeIn;
+      // ctx.beginPath();
+      // ctx.arc(0, 0, shockwave3Radius, 0, Math.PI * 2);
+      // ctx.strokeStyle = `rgba(255, 180, 60, ${0.45 * fadeOutAlpha * (1 - easeIn * 0.5)})`;
+      // ctx.lineWidth = 2.5;
+      // ctx.stroke();
 
       // 冲击波上的粒子（随冲击波扩散）
-      const waveParticleCount = 30;
-      for (let i = 0; i < waveParticleCount; i++) {
-        const angle = (i / waveParticleCount) * Math.PI * 2 + t * 15;
-        const x = Math.cos(angle) * shockwaveRadius;
-        const y = Math.sin(angle) * shockwaveRadius;
-        ctx.beginPath();
-        ctx.arc(x, y, 2 + Math.sin(t * 25 + i) * 1.2, 0, Math.PI * 2);
-
-        // 冲击波粒子颜色（白/红/黄交替）
-        let waveR, waveG, waveB;
-        if (i % 3 === 0) {
-          waveR = 255; waveG = 220; waveB = 100; // 黄色
-        } else if (i % 3 === 1) {
-          waveR = 255; waveG = 80; waveB = 60;   // 红色
-        } else {
-          waveR = 255; waveG = 240; waveB = 200; // 白色
-        }
-        ctx.fillStyle = `rgba(${waveR}, ${waveG}, ${waveB}, ${0.7 * fadeOutAlpha * (1 - easeIn)})`;
-        ctx.fill();
-      }
+      // const waveParticleCount = 30;
+      // for (let i = 0; i < waveParticleCount; i++) {
+      //   const angle = (i / waveParticleCount) * Math.PI * 2 + t * 15;
+      //   const x = Math.cos(angle) * shockwaveRadius;
+      //   const y = Math.sin(angle) * shockwaveRadius;
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, 2 + Math.sin(t * 25 + i) * 1.2, 0, Math.PI * 2);
+      //
+      //   // 冲击波粒子颜色（白/红/黄交替）
+      //   let waveR, waveG, waveB;
+      //   if (i % 3 === 0) {
+      //     waveR = 255; waveG = 220; waveB = 100; // 黄色
+      //   } else if (i % 3 === 1) {
+      //     waveR = 255; waveG = 80; waveB = 60;   // 红色
+      //   } else {
+      //     waveR = 255; waveG = 240; waveB = 200; // 白色
+      //   }
+      //   ctx.fillStyle = `rgba(${waveR}, ${waveG}, ${waveB}, ${0.7 * fadeOutAlpha * (1 - easeIn)})`;
+      //   ctx.fill();
+      // }
 
       // ========== 第一层：主粒子群（大量向外扩散的圆形粒子）==========
-      const mainParticleCount = 100;
-      for (let i = 0; i < mainParticleCount; i++) {
-        // 粒子角度（均匀分布 + 随机偏移）
-        const angle = (i / mainParticleCount) * Math.PI * 2 + Math.random() * 0.5;
-        // 粒子距离（随进度向外扩散，使用 easeIn 实现由慢到快）
-        const distance = 5 + 80 * easeIn * (0.4 + Math.random() * 1);
-        // 粒子大小（越远越小）
-        const size = 2 + Math.random() * 3.5 * (1 - distance / 90);
-
-        const x = Math.cos(angle) * distance;
-        const y = Math.sin(angle) * distance;
-
-        ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
-
-        // 颜色：白/红/黄三种
-        const colorType = Math.random();
-        let r, g, b;
-        if (colorType < 0.34) {
-          // 白色
-          r = 255; g = 245; b = 220;
-        } else if (colorType < 0.67) {
-          // 红色
-          r = 235 + Math.random() * 20;
-          g = 50 + Math.random() * 50;
-          b = 30 + Math.random() * 30;
-        } else {
-          // 黄色
-          r = 255;
-          g = 180 + Math.random() * 75;
-          b = 40 + Math.random() * 40;
-        }
-
-        const particleAlpha = fadeOutAlpha * (1 - distance / 90) * (0.5 + Math.random() * 0.5);
-        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${particleAlpha})`;
-        ctx.fill();
-      }
+      // const mainParticleCount = 100;
+      // for (let i = 0; i < mainParticleCount; i++) {
+      //   // 粒子角度（均匀分布 + 随机偏移）
+      //   const angle = (i / mainParticleCount) * Math.PI * 2 + Math.random() * 0.5;
+      //   // 粒子距离（随进度向外扩散，使用 easeIn 实现由慢到快）
+      //   const distance = 5 + 80 * easeIn * (0.4 + Math.random() * 1);
+      //   // 粒子大小（越远越小）
+      //   const size = 2 + Math.random() * 3.5 * (1 - distance / 90);
+      //
+      //   const x = Math.cos(angle) * distance;
+      //   const y = Math.sin(angle) * distance;
+      //
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, size, 0, Math.PI * 2);
+      //
+      //   // 颜色：白/红/黄三种
+      //   const colorType = Math.random();
+      //   let r, g, b;
+      //   if (colorType < 0.34) {
+      //     // 白色
+      //     r = 255; g = 245; b = 220;
+      //   } else if (colorType < 0.67) {
+      //     // 红色
+      //     r = 235 + Math.random() * 20;
+      //     g = 50 + Math.random() * 50;
+      //     b = 30 + Math.random() * 30;
+      //   } else {
+      //     // 黄色
+      //     r = 255;
+      //     g = 180 + Math.random() * 75;
+      //     b = 40 + Math.random() * 40;
+      //   }
+      //
+      //   const particleAlpha = fadeOutAlpha * (1 - distance / 90) * (0.5 + Math.random() * 0.5);
+      //   ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${particleAlpha})`;
+      //   ctx.fill();
+      // }
 
       // ========== 第二层：拖尾粒子（带尾巴效果的粒子）==========
-      const tailParticleCount = 60;
-      for (let i = 0; i < tailParticleCount; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const distance = 5 + 75 * easeIn * Math.random();
-        // 拖尾长度随速度增加而变长
-        const tailLength = 4 + 15 * easeIn * Math.random();
-
-        const x = Math.cos(angle) * distance;
-        const y = Math.sin(angle) * distance;
-        const tailX = Math.cos(angle) * Math.max(0, distance - tailLength);
-        const tailY = Math.sin(angle) * Math.max(0, distance - tailLength);
-
-        // 绘制拖尾线条
-        ctx.beginPath();
-        ctx.moveTo(tailX, tailY);
-        ctx.lineTo(x, y);
-
-        // 拖尾颜色根据距离渐变
-        const tailColorType = Math.random();
-        let tailR, tailG, tailB;
-        if (tailColorType < 0.33) {
-          tailR = 255; tailG = 200; tailB = 100;
-        } else if (tailColorType < 0.66) {
-          tailR = 255; tailG = 70; tailB = 40;
-        } else {
-          tailR = 255; tailG = 235; tailB = 180;
-        }
-
-        ctx.strokeStyle = `rgba(${tailR}, ${tailG}, ${tailB}, ${0.6 * fadeOutAlpha * (1 - distance / 80)})`;
-        ctx.lineWidth = 1.5 + Math.random() * 2.5;
-        ctx.stroke();
-
-        // 头部粒子
-        ctx.beginPath();
-        ctx.arc(x, y, 1.5 + Math.random() * 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${tailR}, ${tailG}, ${tailB}, ${0.85 * fadeOutAlpha * (1 - distance / 80)})`;
-        ctx.fill();
-      }
+      // const tailParticleCount = 60;
+      // for (let i = 0; i < tailParticleCount; i++) {
+      //   const angle = Math.random() * Math.PI * 2;
+      //   const distance = 5 + 75 * easeIn * Math.random();
+      //   // 拖尾长度随速度增加而变长
+      //   const tailLength = 4 + 15 * easeIn * Math.random();
+      //
+      //   const x = Math.cos(angle) * distance;
+      //   const y = Math.sin(angle) * distance;
+      //   const tailX = Math.cos(angle) * Math.max(0, distance - tailLength);
+      //   const tailY = Math.sin(angle) * Math.max(0, distance - tailLength);
+      //
+      //   // 绘制拖尾线条
+      //   ctx.beginPath();
+      //   ctx.moveTo(tailX, tailY);
+      //   ctx.lineTo(x, y);
+      //
+      //   // 拖尾颜色根据距离渐变
+      //   const tailColorType = Math.random();
+      //   let tailR, tailG, tailB;
+      //   if (tailColorType < 0.33) {
+      //     tailR = 255; tailG = 200; tailB = 100;
+      //   } else if (tailColorType < 0.66) {
+      //     tailR = 255; tailG = 70; tailB = 40;
+      //   } else {
+      //     tailR = 255; tailG = 235; tailB = 180;
+      //   }
+      //
+      //   ctx.strokeStyle = `rgba(${tailR}, ${tailG}, ${tailB}, ${0.6 * fadeOutAlpha * (1 - distance / 80)})`;
+      //   ctx.lineWidth = 1.5 + Math.random() * 2.5;
+      //   ctx.stroke();
+      //
+      //   // 头部粒子
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, 1.5 + Math.random() * 2.5, 0, Math.PI * 2);
+      //   ctx.fillStyle = `rgba(${tailR}, ${tailG}, ${tailB}, ${0.85 * fadeOutAlpha * (1 - distance / 80)})`;
+      //   ctx.fill();
+      // }
 
       // ========== 第三层：火星溅射（细小颗粒）==========
       const sparkCount = 150;
       for (let i = 0; i < sparkCount; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const distance = 5 + 85 * easeIn * Math.random();
+        const distance = 5 + 185 * easeIn * Math.random();
         const size = 1 + Math.random() * 2;
 
         const x = Math.cos(angle) * distance;
@@ -782,36 +814,36 @@ export default {
       }
 
       // ========== 第四层：爆炸闪光核心（随进度减弱）==========
-      const coreSize = 10 + 8 * (1 - easeIn);
-      ctx.beginPath();
-      ctx.arc(0, 0, coreSize, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 220, 100, ${0.9 * fadeOutAlpha})`;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, coreSize * 0.6, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 120, 40, ${0.85 * fadeOutAlpha})`;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, coreSize * 0.3, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 200, ${fadeOutAlpha})`;
-      ctx.fill();
+      // const coreSize = 10 + 8 * (1 - easeIn);
+      // ctx.beginPath();
+      // ctx.arc(0, 0, coreSize, 0, Math.PI * 2);
+      // ctx.fillStyle = `rgba(255, 220, 100, ${0.9 * fadeOutAlpha})`;
+      // ctx.fill();
+      //
+      // ctx.beginPath();
+      // ctx.arc(0, 0, coreSize * 0.6, 0, Math.PI * 2);
+      // ctx.fillStyle = `rgba(255, 120, 40, ${0.85 * fadeOutAlpha})`;
+      // ctx.fill();
+      //
+      // ctx.beginPath();
+      // ctx.arc(0, 0, coreSize * 0.3, 0, Math.PI * 2);
+      // ctx.fillStyle = `rgba(255, 255, 200, ${fadeOutAlpha})`;
+      // ctx.fill();
 
       // 核心向外喷射的射线
-      for (let i = 0; i < 20; i++) {
-        const angle = (i / 20) * Math.PI * 2 + t * 10;
-        const distance = 5 + 30 * easeIn;
-        const x = Math.cos(angle) * distance;
-        const y = Math.sin(angle) * distance;
-
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(x, y);
-        ctx.strokeStyle = `rgba(255, 180, 80, ${0.6 * fadeOutAlpha * (1 - easeIn)})`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
+      // for (let i = 0; i < 20; i++) {
+      //   const angle = (i / 20) * Math.PI * 2 + t * 10;
+      //   const distance = 5 + 130 * easeIn;
+      //   const x = Math.cos(angle) * distance;
+      //   const y = Math.sin(angle) * distance;
+      //
+      //   ctx.beginPath();
+      //   ctx.moveTo(0, 0);
+      //   ctx.lineTo(x, y);
+      //   ctx.strokeStyle = `rgba(255, 180, 80, ${1 * fadeOutAlpha * (1 - easeIn)})`;
+      //   ctx.lineWidth = 18;
+      //   ctx.stroke();
+      // }
 
       ctx.restore();
     },
@@ -1755,6 +1787,276 @@ export default {
       ctx.fill();
 
       ctx.restore();
+    },
+    // 雷霆
+    // 闪电特效: 一道发光的叉状白色闪电，只要淡出不要淡入
+    drawLightning(ctx, progress) {
+      const t = progress;
+
+      // 透明度：只淡出（前50%完全不透明，之后线性淡出）
+      let alpha = 1;
+      const fadeOutStart = 0.45;
+      if (t > fadeOutStart) {
+        alpha = 1 - (t - fadeOutStart) / (1 - fadeOutStart);
+      }
+      alpha = Math.min(1, Math.max(0, alpha));
+
+      // 闪电绘制进度（前30%快速画出闪电）
+      let drawProgress;
+      if (t < 0.3) {
+        drawProgress = t / 0.3;
+      } else {
+        drawProgress = 1;
+      }
+      drawProgress = Math.min(1, Math.max(0, drawProgress));
+
+      // 闪烁强度（闪电特有的抖动效果）
+      const flicker = 0.7 + Math.sin(t * 50) * 0.3;
+
+      // 亮度系数（闪电保持高亮，淡出时衰减）
+      let brightness = 1;
+      if (t > fadeOutStart) {
+        brightness = 1 - (t - fadeOutStart) / (1 - fadeOutStart) * 0.4;
+      }
+      brightness = Math.min(1, Math.max(0.4, brightness)) * flicker;
+
+      const finalAlpha = alpha * brightness;
+
+      ctx.save();
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = `rgba(200, 220, 255, ${0.9 * finalAlpha})`;
+
+      // 闪电起点和终点（默认从上到下）
+      const startX = 0;
+      const startY = -55;
+      const endX = 0;
+      const endY = 55;
+
+      // ========== 主闪电（最亮的主干） ==========
+      // 生成主闪电路径（带锯齿效果）
+      const mainPoints = this.generateLightningPoints(startX, startY, endX, endY, 12, 12 * (1 - drawProgress * 0.3));
+
+      ctx.beginPath();
+      ctx.moveTo(mainPoints[0].x, mainPoints[0].y);
+      for (let i = 1; i < mainPoints.length; i++) {
+        ctx.lineTo(mainPoints[i].x, mainPoints[i].y);
+      }
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.98 * finalAlpha})`;
+      ctx.stroke();
+
+      // 主闪电内层高亮
+      ctx.beginPath();
+      ctx.moveTo(mainPoints[0].x, mainPoints[0].y);
+      for (let i = 1; i < mainPoints.length; i++) {
+        ctx.lineTo(mainPoints[i].x, mainPoints[i].y);
+      }
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.95 * finalAlpha})`;
+      ctx.stroke();
+
+      // ========== 第一分支（左侧分支） ==========
+      // const branch1Start = mainPoints[Math.floor(mainPoints.length * 0.4)];
+      // const branch1End = {
+      //   x: branch1Start.x - 35 - Math.random() * 10,
+      //   y: branch1Start.y + 15
+      // };
+      // const branch1Points = this.generateLightningPoints(branch1Start.x, branch1Start.y, branch1End.x, branch1End.y, 6, 8 * (1 - drawProgress * 0.3));
+      //
+      // ctx.beginPath();
+      // ctx.moveTo(branch1Points[0].x, branch1Points[0].y);
+      // for (let i = 1; i < branch1Points.length; i++) {
+      //   ctx.lineTo(branch1Points[i].x, branch1Points[i].y);
+      // }
+      // ctx.lineWidth = 3;
+      // ctx.strokeStyle = `rgba(220, 230, 255, ${0.8 * finalAlpha})`;
+      // ctx.stroke();
+
+      // ========== 第二分支（右侧分支） ==========
+      // const branch2Start = mainPoints[Math.floor(mainPoints.length * 0.6)];
+      // const branch2End = {
+      //   x: branch2Start.x + 30 + Math.random() * 10,
+      //   y: branch2Start.y + 20
+      // };
+      // const branch2Points = this.generateLightningPoints(branch2Start.x, branch2Start.y, branch2End.x, branch2End.y, 6, 8 * (1 - drawProgress * 0.3));
+      //
+      // ctx.beginPath();
+      // ctx.moveTo(branch2Points[0].x, branch2Points[0].y);
+      // for (let i = 1; i < branch2Points.length; i++) {
+      //   ctx.lineTo(branch2Points[i].x, branch2Points[i].y);
+      // }
+      // ctx.lineWidth = 3;
+      // ctx.strokeStyle = `rgba(220, 230, 255, ${0.8 * finalAlpha})`;
+      // ctx.stroke();
+      //
+      // // ========== 第三分支（左侧小分支，从分支1分出） ==========
+      // if (branch1Points.length > 3) {
+      //   const subBranchStart = branch1Points[Math.floor(branch1Points.length * 0.6)];
+      //   const subBranchEnd = {
+      //     x: subBranchStart.x - 20 - Math.random() * 8,
+      //     y: subBranchStart.y + 10
+      //   };
+      //   const subBranchPoints = this.generateLightningPoints(subBranchStart.x, subBranchStart.y, subBranchEnd.x, subBranchEnd.y, 4, 6);
+      //
+      //   ctx.beginPath();
+      //   ctx.moveTo(subBranchPoints[0].x, subBranchPoints[0].y);
+      //   for (let i = 1; i < subBranchPoints.length; i++) {
+      //     ctx.lineTo(subBranchPoints[i].x, subBranchPoints[i].y);
+      //   }
+      //   ctx.lineWidth = 2;
+      //   ctx.strokeStyle = `rgba(200, 210, 240, ${0.65 * finalAlpha})`;
+      //   ctx.stroke();
+      // }
+      //
+      // // ========== 第四分支（右侧小分支，从分支2分出） ==========
+      // if (branch2Points.length > 3) {
+      //   const subBranchStart = branch2Points[Math.floor(branch2Points.length * 0.5)];
+      //   const subBranchEnd = {
+      //     x: subBranchStart.x + 18 + Math.random() * 8,
+      //     y: subBranchStart.y + 8
+      //   };
+      //   const subBranchPoints = this.generateLightningPoints(subBranchStart.x, subBranchStart.y, subBranchEnd.x, subBranchEnd.y, 4, 6);
+      //
+      //   ctx.beginPath();
+      //   ctx.moveTo(subBranchPoints[0].x, subBranchPoints[0].y);
+      //   for (let i = 1; i < subBranchPoints.length; i++) {
+      //     ctx.lineTo(subBranchPoints[i].x, subBranchPoints[i].y);
+      //   }
+      //   ctx.lineWidth = 2;
+      //   ctx.strokeStyle = `rgba(200, 210, 240, ${0.65 * finalAlpha})`;
+      //   ctx.stroke();
+      // }
+
+      // ========== 闪电外发光层 ==========
+      ctx.beginPath();
+      ctx.moveTo(mainPoints[0].x, mainPoints[0].y);
+      for (let i = 1; i < mainPoints.length; i++) {
+        ctx.lineTo(mainPoints[i].x, mainPoints[i].y);
+      }
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = `rgba(150, 180, 255, ${0.35 * finalAlpha})`;
+      ctx.stroke();
+
+      // ========== 闪电节点光球（在每个转折点添加光晕） ==========
+      for (let i = 1; i < mainPoints.length - 1; i++) {
+        const point = mainPoints[i];
+        const size = 2.5 + Math.sin(t * 30 + i) * 1.5;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.85 * finalAlpha * (1 - i / mainPoints.length * 0.5)})`;
+        ctx.fill();
+
+        // 光晕
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, size * 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 220, 255, ${0.4 * finalAlpha * (1 - i / mainPoints.length * 0.5)})`;
+        ctx.fill();
+      }
+
+      // ========== 闪电起点光球 ==========
+      ctx.beginPath();
+      ctx.arc(startX, startY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * finalAlpha})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(startX, startY, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, 1)`;
+      ctx.fill();
+
+      // ========== 闪电终点光球 ==========
+      ctx.beginPath();
+      ctx.arc(endX, endY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.85 * finalAlpha})`;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(endX, endY, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, 1)`;
+      ctx.fill();
+
+      // ========== 闪电周围电弧粒子 ==========
+      const particleCount = 35;
+      for (let i = 0; i < particleCount; i++) {
+        // 沿着主闪电路径分布粒子
+        const segmentIndex = Math.floor(Math.random() * (mainPoints.length - 1));
+        const pointA = mainPoints[segmentIndex];
+        const pointB = mainPoints[segmentIndex + 1];
+        const lerp = Math.random();
+        const x = pointA.x + (pointB.x - pointA.x) * lerp;
+        const y = pointA.y + (pointB.y - pointA.y) * lerp;
+
+        // 垂直偏移
+        const angle = Math.atan2(pointB.y - pointA.y, pointB.x - pointA.x);
+        const perpX = -Math.sin(angle) * (Math.random() - 0.5) * 12;
+        const perpY = Math.cos(angle) * (Math.random() - 0.5) * 12;
+
+        const particleX = x + perpX;
+        const particleY = y + perpY;
+        const size = 1.5 + Math.random() * 3;
+
+        ctx.beginPath();
+        ctx.arc(particleX, particleY, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200, 220, 255, ${0.6 * finalAlpha * (1 - Math.random() * 0.5)})`;
+        ctx.fill();
+      }
+
+      // ========== 散逸电火花（细小粒子） ==========
+      const sparkCount = 50;
+      for (let i = 0; i < sparkCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 10 + Math.random() * 40 * (1 - t * 0.5);
+        const x = endX + Math.cos(angle) * distance * drawProgress;
+        const y = endY + Math.sin(angle) * distance * drawProgress;
+        const size = 0.8 + Math.random() * 2;
+
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(180, 200, 240, ${0.45 * finalAlpha * (1 - distance / 50)})`;
+        ctx.fill();
+      }
+
+      // ========== 闪电能量冲击波（向外扩散） ==========
+      // const waveRadius = 15 + 35 * t;
+      const waveRadius = 0;
+      ctx.beginPath();
+      ctx.arc(endX, endY, waveRadius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(180, 210, 255, ${0.5 * finalAlpha * (1 - t)})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(endX, endY, waveRadius * 0.6, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(220, 230, 255, ${0.7 * finalAlpha * (1 - t)})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.restore();
+    },
+
+    // 辅助函数：生成闪电路径点（带锯齿效果）
+    generateLightningPoints(startX, startY, endX, endY, segments, offset) {
+      const points = [{ x: startX, y: startY }];
+      const dx = endX - startX;
+      const dy = endY - startY;
+
+      for (let i = 1; i < segments; i++) {
+        const t = i / segments;
+        // 基础位置
+        let x = startX + dx * t;
+        let y = startY + dy * t;
+
+        // 添加随机偏移（越靠近中间偏移越大）
+        const midFactor = Math.sin(t * Math.PI);
+        const xOffset = (Math.random() - 0.5) * offset * midFactor;
+        const yOffset = (Math.random() - 0.5) * offset * midFactor;
+
+        x += xOffset;
+        y += yOffset;
+
+        points.push({ x, y });
+      }
+
+      points.push({ x: endX, y: endY });
+      return points;
     },
   },
 };

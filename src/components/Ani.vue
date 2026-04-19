@@ -29,13 +29,13 @@ import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj
 import * as common from '../tools/common';
 import { DEBUG, CONFIG, CACHE, } from '../config/config';
 
-const typeMap = ['text','thunder', 'arc', 'laser', 'blood', 'fire', 'explosion', 'heal', 'barrier', 'formation', 'moon', 'halo', 'cross', 'dark', ];
+const typeMap = ['text','thunder', 'arc', 'laser', 'blood', 'fire', 'explosion', 'heal', 'barrier', 'formation', 'moon', 'halo', 'cross', 'dark', 'lightning', ];
 
 const textColorMap = [
     {r:44,g:179,b:84}, // 1治疗
-    {r:255,g:15,b:15}, // 2伤害
+    {r:255,g:15,b:45}, // 2伤害
     {r:155,g:155,b:255}, // 3精力
-    {r:215,g:172,b:155}, // 4心防
+    {r:255,g:190,b:190}, // 4心防
     {r:0,g:168,b:0}, // 5行动力sp
     {r:139,g:0,b:139}, // 6潜能sp
     {r:255,g:165,b:0}, // 7存在感sp
@@ -97,16 +97,16 @@ export default {
                         let { val, colorType, fontSize, } = textList[i];
                         if(val<0){
                             text = `${val}`;
-                            toY2 = toY+17*sizeScale;
+                            toY2 = toY+37*sizeScale;
                             fromY2 = toY+8*sizeScale;
                         }
                         else{
                             text = `+${val}`;
-                            toY2 = toY-17*sizeScale;
+                            toY2 = toY-37*sizeScale;
                             fromY2 = toY-8*sizeScale;
                         }
                         if(colorType==8){
-                            text += '$';
+                            text += ' $';
                         }
                         this.triggerElement({type:1, fromX,fromY:fromY2, toX,toY:toY2, text,color:textColorMap[colorType-1], fontSize, delay: .5 +.3*i});
                     }
@@ -166,7 +166,7 @@ export default {
                 break;
                 case 'attack-fire': // 火枪攻击
                     fromY = toY<fromY?window.innerHeight:-100*sizeScale;
-                    toY2 = toY<fromY?-300*sizeScale:window.innerHeight;
+                    toY2 = toY<fromY?-50*sizeScale:window.innerHeight;
                     toX2 = toX+r(-15,15);
                     this.triggerElement({type:6,fromX:toX2,fromY, toX:toX2,toY:toY2,});
                     this.triggerElement({type:7,fromX,fromY, toX,toY, delay:.3});
@@ -184,6 +184,9 @@ export default {
                 break;
                 case 'attack-mental': // 心理攻击
                     this.triggerElement({type:14,toX,toY,delay:0});
+                break;
+                case 'attack-lightning': // 雷霆
+                    this.triggerElement({type:15,toX,toY,delay:0});
                 break;
                 case 'protect-cure': // 治疗
                     this.triggerElement({type:8,toX,toY,delay:0});
@@ -224,7 +227,7 @@ export default {
                 case 'attack-fire-heavy': // 火枪攻击·重
                     for(let i=0;i<6;i++){
                         fromY = toY<fromY?window.innerHeight:-100*sizeScale;
-                        toY2 = toY<fromY?-300*sizeScale:window.innerHeight;
+                        toY2 = toY<fromY?-50*sizeScale:window.innerHeight;
                         toX2 = toX+r(-15,15);
                         this.triggerElement({type:6,fromX:toX2,fromY, toX:toX2,toY:toY2,delay:.1+i*.045});
                     }
@@ -243,7 +246,9 @@ export default {
                 case 'attack-thunder-heavy': // 雷电攻击·重
                     for(let i=0;i<6;i++){
                         toX2 = toX+r(-15*sizeScale,15*sizeScale);
-                        this.triggerElement({type:2,fromX,fromY, toX:toX2,toY, delay:.1+i*.1});
+                        toY2 = toY+r(-35*sizeScale,35*sizeScale);
+                        this.triggerElement({type:2,fromX,fromY, toX:toX2,toY:toY2, delay:.1+i*.1});
+                        this.triggerElement({type:15,toX:toX2,toY,delay:0+i*.2});
                     }
                 break;
             }
@@ -296,18 +301,18 @@ export default {
                     res.fromY = toY;
                 break;
                 case 'fire': //
-                    res.period = .55;
+                    res.period = .35;
                     res.initAngle = 0;
                     res.spinSpeed = 0;
                     res.scaleX = .2;
                     res.scaleY = 3;
                 break;
                 case 'explosion': //
-                    res.period = .45;
+                    res.period = .35;
                     res.initAngle = 0;
                     res.spinSpeed = 0;
-                    res.scaleX = 1.4;
-                    res.scaleY = .6;
+                    res.scaleX = 1;
+                    res.scaleY = 1;
                     res.fromX = toX;
                     res.fromY = toY;
                     res.toY = toY;
@@ -374,7 +379,17 @@ export default {
                     res.fromX = toX;
                     res.fromY = toY;
                 break;
+                case 'lightning': //
+                    res.period = .55;
+                    res.initAngle = 0;
+                    res.spinSpeed = 0;
+                    res.scaleX = 1;
+                    res.scaleY = 1;
+                    res.fromX = toX;
+                    res.fromY = toY;
+                break;
             }
+            // res.period = .45;
             res.scaleX *= sizeScale;
             res.scaleY *= sizeScale;
             this.playList.push(res);

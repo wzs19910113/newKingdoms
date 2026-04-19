@@ -77,20 +77,20 @@ export default {
             }
         },
         onTapEquip(data){ // 点击【装备】
-            let { flag, equip, buffId, buffLevel, } = data;
+            let { flag, equip, buffId, buffLevel, sp, spLevel, } = data;
             if(flag==1){ //
 
             }
             else if(flag==2){ // 点击buff
                 this.onTapBuff(buffId,buffLevel);
             }
-            else if(flag==3&&text){ // 发送说明弹窗
-                this._alert(text,3);
+            else if(flag==3){ // 点击SP
+                this._alert(`${CONFIG.spAttackList[sp-1]}：${CONFIG.spAttackDescList[sp-1]}`,5);
             }
         },
         onTapBuff(id,level){ // 点击【buff】
             let buff = getMatchList(BUFF_LIST,[['id',id]])[0]||{};
-            this._alert(`${buff.name}（强度${level}）：${buff.desc}`,5);
+            this._alert(`让敌人${buff.name}（强度${level}）：${buff.desc}`,5);
         },
         onTapCheat(){ // 点击【作弊】按钮
 

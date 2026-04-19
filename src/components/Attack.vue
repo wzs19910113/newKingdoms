@@ -10,10 +10,14 @@
                     <Buff :buff="genBuff(buffId,attack.bl[index])" :mode="2" @onTap="_onTapBuff(buffId,attack.bl[index])" />
                 </span>
             </div>
-            <span class="attack-item sp" v-if="attack.s">{{CONFIG.spAttackList[attack.s-1]}}<br/>Lv.{{attack.sl}}</span>
+            <a class="attack-item sp" @click.stop="_onTapSp(attack.s,attack.sl)" v-if="attack.s">{{CONFIG.spAttackList[attack.s-1]}}<br/>Lv.{{attack.sl}}</a>
         </span>
         <span class="attack-mode" v-if="mode==2">
-            <span class="attack-shrink">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{common.calcConsume({type:1,data:attack,unit})}})</span></span>
+            <span class="attack-shrink">
+                <span class="attack-sp" v-if="attack.s">{{getSpName()}}</span>
+                {{attack.a?'全':''}}{{attack.n}}
+                <span class="attack-consume">({{getConsumeValue()}})</span>
+            </span>
         </span>
     </a>
 </template>
@@ -73,11 +77,22 @@ export default {
             }
             return res;
         },
+        getConsumeValue(){
+            let res = common.calcConsume({type:1,data:this.attack,unit:this.unit});
+            return res;
+        },
+        getSpName(){
+            let res = `${CONFIG.spAttackShrinkList[this.attack.s-1]}`;
+            return res;
+        },
         _onTap(){
             this.$emit('onTap',{flag:1,data:this.attack,ban:this.ban,});
         },
         _onTapBuff(buffId,buffLevel){
             this.$emit('onTap',{flag:2,buffId,buffLevel,});
+        },
+        _onTapSp(sp,spLevel){
+            this.$emit('onTap',{flag:3,sp,spLevel,});
         },
     },
     components: {
@@ -128,7 +143,7 @@ export default {
         width: .82rem;
         height: .82rem;
         line-height: .41rem;
-        background-color: rgba(96,72,14,.96);
+        background-color: rgba(96,72,114,.96);
     }
     /* 简略版本 */
     .mode-2{
@@ -144,6 +159,17 @@ export default {
     .mode-2 .attack-shrink{
         display: inline-block;
         width: 100%;
+    }
+    .mode-2 .attack-consume{
+        display: inline-block;
+    }
+    .mode-2 .attack-sp{
+        display: inline-block;
+        height: .34rem;
+        line-height: .34rem;
+        padding: 0 .04rem;
+        border-radius: .08rem;
+        background-color: rgba(96,72,114,.96);
     }
     /* 消耗 */
     .attack-consume{
@@ -169,7 +195,7 @@ export default {
         width: .82rem;
         height: .82rem;
         line-height: .41rem;
-        background-color: rgba(96,72,14,.96);
+        background-color: rgba(96,72,114,.96);
     }
     /* 禁用 */
     .attack-ban{

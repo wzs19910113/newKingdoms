@@ -13,18 +13,6 @@
         </div>
         <div class="row row-clm" v-if="equip.t==1">
             <Attack class="atk" v-for="(attack,index) in equip.k" :key="index" :attack="attack" :mode="1" @onTap="_onTapAttack" />
-            <!-- <div class="atk" v-for="atk in equip.k">
-                <span class="atk-item atk-name">{{atk.a?'全':''}}{{atk.n}} <span class="atk-consume">({{atk.c}})</span></span>
-                <span class="atk-item">伤害<br/>{{atk.d}}</span>
-                <span class="atk-item">力补<br/>{{common.genRXString(atk.r1)}}</span>
-                <span class="atk-item">精补<br/>{{common.genRXString(atk.r2)}}</span>
-                <div class="atk-item buff-wrap">
-                    <span class="buff" v-for="(buffId,index) in atk.b" :key="buffId">
-                        <Buff :buff="genBuff(buffId,atk.bl[index])" :mode="2" :onTap="onTap.bind(this,{flag:2,buffId,buffLevel:atk.bl[index]})" />
-                    </span>
-                </div>
-                <span class="atk-item sp" v-if="atk.s">{{[`硬直`,`破甲`,`削气`,`必中`,`削精`,`攻心`][atk.s-1]}}<br/>Lv.{{atk.sl}}</span>
-            </div> -->
         </div>
     </a>
 </template>
