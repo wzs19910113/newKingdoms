@@ -47,7 +47,6 @@ export default {
         margin: 0 auto;
         width: 90%;
         min-height: 5%;
-        max-height: 92%;
         box-shadow: 0 0 .04rem #8ae4f1;
         padding: .1rem .16rem;
         border-radius: .08rem;
@@ -56,6 +55,7 @@ export default {
         font-size: .22rem;
         line-height: .25rem;
         z-index: 5000;
+        overflow: hidden;
     }
     .pop-title{
         width: 100%;
@@ -73,5 +73,6 @@ export default {
     }
     .pop-content{
         overflow-y: auto;
+        max-height: 7.5rem;
     }
 </style>

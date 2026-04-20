@@ -111,36 +111,54 @@ export default {
                         this.triggerElement({type:1, fromX,fromY:fromY2, toX,toY:toY2, text,color:textColorMap[colorType-1], fontSize, delay: .5 +.3*i});
                     }
                 break;
-                case 'number-quell': // 压制
+                case 'number-quell': // 行动力增减
                     fromX2 = toX + 45*sizeScale;
-                    fromY2 = toY - 21*sizeScale;
                     toX2 = fromX2;
-                    toY2 = fromY2 + 2*sizeScale;
                     for(let i=0;i<textList.length;i++){
                         let { val, } = textList[i];
-                        text = `${common.awaFormat(val)}%`;
+                        if(val>0){
+                            fromY2 = toY + 2*sizeScale;
+                            toY2 = fromY2 - 21*sizeScale;
+                        }
+                        else{
+                            fromY2 = toY - 21*sizeScale;
+                            toY2 = fromY2 + 2*sizeScale;
+                        };
+                        text = `${val>0?'+':''}${common.awaFormat(val)}%`;
                         this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[4], fontSize:.22, delay: .5 +.3*i});
                     }
                 break;
-                case 'number-potency-damage': // 气溃
+                case 'number-potency-damage': // 潜能增减
                     fromX2 = toX + 47*sizeScale;
-                    fromY2 = toY - 3*sizeScale;
                     toX2 = fromX2;
-                    toY2 = fromY2 + 2*sizeScale;
                     for(let i=0;i<textList.length;i++){
                         let { val, } = textList[i];
-                        text = `${common.awaFormat(val)}%`;
+                        if(val>0){
+                            fromY2 = toY + 2*sizeScale;
+                            toY2 = fromY2 - 3*sizeScale;
+                        }
+                        else{
+                            fromY2 = toY - 3*sizeScale;
+                            toY2 = fromY2 + 2*sizeScale;
+                        };
+                        text = `${val>0?'+':''}${common.awaFormat(val)}%`;
                         this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[5], fontSize:.22, delay: .5 +.3*i});
                     }
                 break;
-                case 'number-lock-on': // 锁敌
+                case 'number-lock-on': // 存在感增减
                     fromX2 = toX + 45*sizeScale;
-                    fromY2 = toY + 18*sizeScale;
                     toX2 = fromX2;
-                    toY2 = fromY2 - 2*sizeScale;
                     for(let i=0;i<textList.length;i++){
                         let { val, } = textList[i];
-                        text = `+${common.awaFormat(val)}%`;
+                        if(val>0){
+                            fromY2 = toY + 18*sizeScale;
+                            toY2 = fromY2 - 5*sizeScale;
+                        }
+                        else{
+                            fromY2 = toY + 5*sizeScale;
+                            toY2 = fromY2 + 5*sizeScale;
+                        };
+                        text = `${val>0?'+':''}${common.awaFormat(val)}%`;
                         this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[6], fontSize:.22, delay: .5 +.3*i});
                     }
                 break;

@@ -237,10 +237,13 @@ module.exports = {
 		dodgeDeno: 1000, // 存在感计算分母
 		ptcDeno: 1000, // 潜能计算分母
 		mdefDeno: 1000, // 心理防御计算分母
+		IntCureDeno: 1000, // 智力（治疗）计算分母
 
 		defAutoRecoverFactor: .5, // 防御值自动回升系数
 		baseConsumeList: [1,1,1,0,1,1,2,3,], // 基础操作的体力消耗 0防御 1躲避 2追踪 3呼吸 4集气 5爆气 6劝降 7撤离
 		spAttackRate: 25, // 武器的 SP 效果触发概率
+
+		dodgeupByTrace: 1000, // 追踪带来的存在感提升值
 
     }
 }
@@ -278,7 +281,10 @@ skill = {
 	t: 1, // 1自己 2我方单体 3敌方单体
 	el: [{ // 技能效果数组
         t: 3, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
-        d: 7, // 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，固疗和百分疗 { h:100, rx:35},心防固伤和智力补正 { d:100, rx:35 }
+		// 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
+		// 固疗和百分疗 { h:100, rx:35, }，心防固伤和智力补正 { d:100, rx1:0, rx2:44, }
+		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
+		d: 7,
     },],
 	c: 6, // 体力消耗
 	d: 1200, // 存在感
@@ -350,6 +356,22 @@ role = {
 		weaponList: [{...equip数据}],
 		skillList: [{...skill数据}],
 
+		defaultAttack: {
+			n: '手刀',
+			d: 10, // 基础伤害
+			r1: 30, // 力量补正
+			r2: 0, // 精准补正
+			b: [], // buff制造表（buff id）
+			bl: [], // buff等级表（1-9）
+			s: 1, // SP效果 1压制 2破盾 3气溃 4精溃 5锁敌 6攻心 7摸金
+			sl: 1, // SP效果等级
+			a: 0, // 目标是否为全体
+			c: 1, // 体力消耗
+			et: 2, // 特效类型 1劈砍 2钝击 3子弹 4飞刀 5火炮 6雷击
+			sid: 0, // 所属的技能id
+			eid: 0, // 所属的武器id
+		},
+
 		buffList: [{ // 状态栏
 			id: 1,
 			name: '急救',
@@ -361,7 +383,6 @@ role = {
 		mdef: 150, // 心理防御
 		alive: 1, // 存活
 		isPlayer: 1, // 玩家可操控
-		roundRemainCount: 0, // 当前回合剩余的行动次数
 		roundTotal: 1, // 每回合可以行动的次数
 	},
 
@@ -381,7 +402,7 @@ role = {
 		buffList: [{ id:11, level:3, },], // 新增buff数组
 		removeBuff: { id: 1, level:3, }, // 要削减的buff
 
-		// 0无 1slash 2smash 3bullet 4range 5fire 6thunder 7cure 8power 9pure 10mental 11-15重攻击
+		// 0无 1slash 2smash 3bullet 4range 5fire 6thunder 7cure 8power 9pure 10mental 11-16重攻击
 		// 201浮动数字（血|精力|心防|钱） 102行动力 103潜能 104存在感 105破盾 106miss
 		effectTypeList: [12,101,104],
 		domAni: 'shake|cast',

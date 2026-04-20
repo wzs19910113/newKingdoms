@@ -5,7 +5,7 @@
             <a class="avatar avatar" v-if="!aniStyle" ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
             <a class="avatar" v-else ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
 
-            <div class="cur" v-if="pageState==3" v-show="unit.btd.cur&&unit.btd.alive"></div>
+            <div class="cur" v-show="unit.btd.cur&&unit.btd.alive"></div>
 
             <Bar2 class="cir1" :current="unit.btd.mov" :type="1" @onTap="_onTapFlag(103)" />
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" @onTap="_onTapFlag(104)" />

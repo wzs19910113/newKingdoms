@@ -45,7 +45,7 @@ export default{
     data(){
         return{
             pColor: ['','#00a800','#8B008B','#FFA500'][this.type],
-            bgColor: ['','#666','#666','#666'][this.type],
+            bgColor: ['','transparent','transparent','transparent'][this.type],
 
             common,DEBUG,CONFIG,
         }

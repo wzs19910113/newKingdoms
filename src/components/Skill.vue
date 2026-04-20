@@ -1,5 +1,5 @@
 <template>
-    <a class="skill" :class="`mode-${mode} ${isOption?'isoption':''}`" @click.stop="_onTap">
+    <a class="skill" :class="`mode-${mode} ${isOption?'isoption':''} ${ban?'skill-ban':''}`" @click.stop="_onTap">
         <div class="skill-mode" :class="`${skill.t==3?'harm':'beni'}`" v-if="mode==1">
             <span class="value money" v-if="!isOption" v-html="common.moneyFormat(skill.v,1)"></span>
             <div class="row">
@@ -12,7 +12,7 @@
             </div>
             <div class="row atk-wrap" v-if="atkEffectIndex!=-1">
                 <div class="wrap-item atk">
-                    <a class="atk-dmg">伤害{{skill.el[atkEffectIndex].d.d}}</a>
+                    <a class="atk-dmg">伤害{{skill.el[atkEffectIndex].d.d}}（{{[`劈砍`,`钝击`,`子弹`,`飞刀`,`火炮`,`雷击`,][skill.el[atkEffectIndex].d.et-1]}}）</a>
                     <a class="atk-r1" v-if="skill.el[atkEffectIndex].d.r1" @click.stop="_onTapRx1">（ 力补：{{common.genRXString(skill.el[atkEffectIndex].d.r1)}} ）</a>
                     <a class="atk-r2" v-if="skill.el[atkEffectIndex].d.r2" @click.stop="_onTapRx2">（ 精补：{{common.genRXString(skill.el[atkEffectIndex].d.r2)}} ）</a>
                 </div>
@@ -48,6 +48,10 @@ export default {
         unit: { // 持有者
             type: Object,
             default: function(){},
+        },
+        ban: { // 禁用
+            type: Boolean,
+            default: false,
         },
         isOption: { // 是选项
             type: Boolean,
@@ -105,10 +109,10 @@ export default {
                         effectTip += `赋予状态，`;
                     break;
                     case 3: // 减弱正面状态
-                        effectTip += `正面状态强度-${d}，`;
+                        effectTip += `正面强度-${d}，`;
                     break;
                     case 4: // 减弱负面状态
-                        effectTip += `负面状态强度-${d}，`;
+                        effectTip += `负面强度-${d}，`;
                     break;
                     case 5: // 恢复生命
                         effectTip += `治疗${d.h}${d.rx>0?` + 智${common.genRXString(d.rx)}`:''}，`;
@@ -149,7 +153,7 @@ export default {
             return effectTip;
         },
         _onTap(){
-            this.$emit('onTap',{flag:1,data:this.skill,});
+            this.$emit('onTap',{flag:1,data:this.skill,ban:this.ban,});
         },
         _onTapRx1(){
             this.$emit('onTap',{flag:3,text:`力量补正：力量带来的伤害提升`});
@@ -302,5 +306,30 @@ export default {
     }
     .isoption .harm{
         border-left: .2rem solid rgba(95,32,36,1);
+    }
+    /* 禁用 */
+    .skill-ban{
+        background-color: rgba(55,55,55,.4);
+        box-shadow: none;
+        border: none;
+        opacity: .7;
+        color: #000;
+    }
+    .skill-ban .name{
+        text-decoration: line-through;
+        color: #777;
+    }
+    .skill-ban .consume{
+        text-decoration: line-through;
+        color: #777;
+    }
+    .skill-ban .desc{
+        color: #777;
+    }
+    .skill-ban .beni{
+        border-color: #232;
+    }
+    .skill-ban .harm{
+        border-color: #322;
     }
 </style>

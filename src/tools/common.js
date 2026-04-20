@@ -15,8 +15,8 @@ const HARM_SKILL_EFFECT_LIST = [1,2,3,7,8,9,];
 const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添加状态 3减弱增益状态 4减弱减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感 】
     3, // 攻击
     3, // 添加状态
-    1, // 减弱增益状态
-    1, // 减弱减益状态
+    1, // 减弱增益状态 @test
+    1, // 减弱减益状态 @test
     2, // 治疗
     0, // 改变护甲
     1, // 改变潜能
@@ -241,6 +241,7 @@ export function genAttack({level=1,melee=1,names=[],skillId=0,equipId=0}){ // �
         }
     }
     name = randIn(availableNames);
+
     // 赋值
     newAtk = {
         n: name,
@@ -684,8 +685,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.weaponList = weaponList;
     btd.skillList = skillList;
     btd.money = unit.g;
-    btd.roundRemainCount = 0;
-    btd.roundTotal = 1;
+    btd.roundTotal = 9;
 
     // weapon 名字
     btd.weaponName1 = weaponList[0]?weaponList[0].n:'';
@@ -693,9 +693,35 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
 
     btd.isPlayer = btd.teamSeq>0?1:0; // 可操控角色
 
+    // 添加默认攻击方式
+    let strBase = btd.attrs[4]>=btd.attrs[5];
+    btd.defaultAttack = {
+		n: strBase?'挥拳':'扔石',
+		d: 3, // 基础伤害
+		r1: cl(btd.attrs[4]/30), // 力量补正
+		r2: cl(btd.attrs[5]/30), // 精准补正
+		b: [], // buff制造表（buff id）
+		bl: [], // buff等级表（1-9）
+		s: strBase?1:5, // SP效果 1压制 2破盾 3气溃 4精溃 5锁敌 6攻心 7摸金
+		sl: 1, // SP效果等级
+		a: 0, // 目标是否为全体
+		c: 1, // 体力消耗
+		et: strBase?2:3, // 特效类型 1劈砍 2钝击 3子弹 4飞刀 5火炮 6雷击
+		sid: 0, // 所属的技能id
+		eid: 0, // 所属的武器id
+    }
+
     // 设置数值范围
     btd.ptc = setInRange(btd.ptc,0,10000);
     btd.dge = setInRange(btd.dge,0,10000);
+
+    // @test
+    let allBuffs = shuffle([...CONFIG.goodBuffs,...CONFIG.badBuffs]);
+    for(let i=0;i<5;i++){
+        let newBuff = cloneObj(allBuffs[i]);
+        newBuff.level = i+1;
+        btd.buffList.push(newBuff);
+    }
 
     return btd;
 }
@@ -988,18 +1014,54 @@ export function calcDmg({caster,attack,}){ // 根据攻击计算伤害
     // res = 4;
     return res;
 }
+export function calcCure({caster,data,}){ // 计算治疗值 data={h:100,rx:35}
+    let res = 0;
+    res += data.h;
+    res += cl(caster.btd.attrs[7]/CONFIG.IntCureDeno*data.rx/100);
+    return res;
+}
+export function calcPotencyDmg({target,data,}){ // 计算潜能增减值 data={d:100,rx:35}
+    let res = 0;
+    res += data.d;
+    res += cl(target.btd.attrs[10]/CONFIG.ptcDeno*data.rx/100*.2);
+    return res;
+}
+export function calcMentalDmg({caster,target,data,}){ // 计算心理伤害增减值 data={d:100,rx1:35,rx2:0}
+    let res = 0;
+    res += data.d;
+    res += cl(target.btd.attrs[10]/CONFIG.mdefDeno*data.rx1/100*.5);
+    res += cl(caster.btd.attrs[10]/CONFIG.mdefDeno*data.rx2/100*.5);
+    return res;
+}
+export function calcDodgeDmg({target,data,}){ // 计算存在感伤害增减值 data={d:100,rx:35}
+    let res = 0;
+    res += data.d;
+    res += cl(target.btd.attrs[9]/CONFIG.dodgeDeno*data.rx/100*.5);
+    return res;
+}
+export function calcDodge({caster,}){ // 计算躲避值
+    let res = 0;
+    res += cl(caster.btd.attrs[9]/CONFIG.dodgeDeno*2500);
+    return res;
+}
+export function calcConcentrate({caster,}){ // 计算集气值
+    let res = 0;
+    res += cl(caster.btd.attrs[10]/CONFIG.ptcDeno*1250);
+    return res;
+}
+
 
 function hurtRate(unit){ // 获取一个单位的受伤程度
     return (1-unit.btd.hp[0]/unit.btd.hp[1])+0.5;
 }
-export function calcQuellDmg({caster,target,attack,dmg,}){ // 计算压制带来的行动力减值
+export function calcQuellSpDmg({caster,target,attack,dmg,}){ // 计算压制带来的行动力减值
     let res = 0;
     let dmgRate = dmg/target.btd.hp[0];
     dmgRate = setInRange(dmgRate,0,1);
     res = cl(dmgRate*CONFIG.spLevelMap[0][attack.sl-1]+500);
     return res;
 }
-export function calcPotencyDmg({target,attack,dmg,}){ // 计算气溃带来的潜能减值
+export function calcPotencySpDmg({target,attack,dmg,}){ // 计算气溃带来的潜能减值
     let res = 0;
     let dmgRate = dmg/target.btd.hp[0];
     let hr = hurtRate(target);
@@ -1007,19 +1069,19 @@ export function calcPotencyDmg({target,attack,dmg,}){ // 计算气溃带来的�
     res = cl(dmgRate*CONFIG.spLevelMap[2][attack.sl-1]*hr+100);
     return res;
 }
-export function calcEnergyDmg({target,attack,}){ // 计算精溃带来的精力减值
+export function calcEnergySpDmg({target,attack,}){ // 计算精溃带来的精力减值
     let res = 0;
     let hr = hurtRate(target);
     res = cl(CONFIG.spLevelMap[3][attack.sl-1]*hr);
     return res;
 }
-export function calcMentalDmg({caster,target,dmg,}){ // 计算攻心带来的心理伤害
+export function calcMentalSpDmg({caster,target,dmg,}){ // 计算攻心带来的心理伤害
     let res = 0;
     let hr = hurtRate(target);
     res = cl(caster.btd.attrs[7]/CONFIG.mdefDeno*dmg*hr);
     return res;
 }
-export function calcGoldDmg({target,attack,dmg,}){ // 计算赏金带来的金币伤害
+export function calcGoldSpDmg({target,attack,dmg,}){ // 计算赏金带来的金币伤害
     let res = 0;
     let hr = hurtRate(target);
     res = cl(CONFIG.spLevelMap[6][attack.sl-1]*dmg/1000*hr);
@@ -1052,7 +1114,7 @@ export function weakenBuffFrom({buffId,buffLevel,unit,}){ // 削减单位的buff
     let removeBuff;
     for(let buff of btd.buffList){
         if(buff.id==buffId){
-            buff.level -= level;
+            buff.level -= buffLevel;
             if(buff.level<=0){
                 removeBuff = buff;
             }
@@ -1123,13 +1185,15 @@ export function saveUnitChanges(unit){ // 结算changes，即根据 changes 获�
     btd.mdef = setInRange(btd.mdef,-999999,999999);
     btd.money = setInRange(btd.money,0,999999);
 
-    // 添加 buff
-    for(let buff of changes.buffList){
-        addBuffTo({buffId:buff.id,buffLevel:buff.level,unit,});
-    }
-    // 削减 buff
-    if(changes.weakenBuff){
-        weakenBuffFrom({buffId:changes.weakenBuff.id,level:changes.weakenBuff.level,unit});
+    if(btd.alive){
+        // 添加 buff
+        for(let buff of changes.buffList){
+            addBuffTo({buffId:buff.id,buffLevel:buff.level,unit,});
+        }
+        // 削减 buff
+        if(changes.weakenBuff){
+            weakenBuffFrom({buffId:changes.weakenBuff.id,level:changes.weakenBuff.level,unit});
+        }
     }
 
     // console.log(changes);
