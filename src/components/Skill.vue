@@ -138,9 +138,11 @@ export default {
                         effectTip += `，`;
                     break;
                     case 9: // 改变存在感
-                        effectTip += `存在感${d.d>0?'+':'降'}${Math.abs(common.awaFormat(d.d))}%`;
-                        if(d.rx){
-                            effectTip += `+隐${common.genRXString(d.rx)}`;
+                        if(d.d>0){
+                            effectTip += `存在感+${Math.abs(common.awaFormat(d.d))}%`;
+                        }
+                        else{
+                            effectTip += `存在感-隐${common.genRXString(d.rx)}`;
                         }
                         effectTip += `，`;
                     break;

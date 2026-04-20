@@ -22,7 +22,7 @@
                     <span class="stat-team-info" v-if="unit.tms>0">在队</span>{{(unit.nk?`${unit.nk}·`:``)+unit.nm}}，{{['男','女'][unit.gd-1]}} ，{{unit.age}}，信任度 <b>{{Math.floor(unit.rel/10000*100)}}</b> %
                 </div>
             <div class="stat-row" v-if="mode==2">
-                心里防御：{{unit.btd.mdef}}
+                心里防御：<span :class="unit.btd.mdef<=0?'red':''">{{unit.btd.mdef}}</span>
             </div>
             <div class="stat-row" v-if="mode==2">
                 金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
@@ -170,6 +170,7 @@ export default {
     }
     .stat-block-bars-row{
         position: relative;
+        height: .5rem;
         margin-bottom: .25rem;
     }
     /* 数据栏 */
@@ -240,5 +241,10 @@ export default {
     }
     .money{
         color: gold;
+    }
+    .red{
+        font-weight: bold;
+        color: #f84343;
+        /* text-shadow: 0 0 .02rem #fff; */
     }
 </style>

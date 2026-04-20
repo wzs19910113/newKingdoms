@@ -25,7 +25,7 @@ export default{
             required: true,
             validator: (value) => value >= 0
         },
-        type: {  // [1:行动|2:隐蔽]
+        type: {  // [1:行动|2:隐蔽|3:潜能]
             type: Number,
             default: 1
         },
@@ -44,8 +44,8 @@ export default{
     },
     data(){
         return{
-            pColor: ['','#00a800','#8B008B','#FFA500'][this.type],
-            bgColor: ['','transparent','transparent','transparent'][this.type],
+            pColor: ['','#00a800','#8B008B','#FFA500','#00a800','#a21821'][this.type],
+            bgColor: ['','transparent','transparent','transparent','transparent','transparent'][this.type],
 
             common,DEBUG,CONFIG,
         }

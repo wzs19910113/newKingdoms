@@ -1,7 +1,7 @@
 <template>
     <a class="bar-wrap" @click.stop="_onTap">
         <div class="bar">
-            <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2,'bar-flee':type==3,}" :style="{width:`${calcBarLength()}%`}"></div>
+            <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2}" :style="{width:`${calcBarLength()}%`}"></div>
             <div class="bar-label">
                 <span class="txt" v-if="title">{{title}}</span>
                 <span class="num" v-if="mode==1">
@@ -22,7 +22,7 @@ export default {
     name: 'Bar1',
     props:{
         title: String,
-        type: Number, // [1：生命值|2：精力|3：逃跑]
+        type: Number, // [1：生命值|2：精力]
         mode: { // 模式 1简约 2详细
             type: Number,
             default: 1,
@@ -69,7 +69,8 @@ export default {
     .bar{
         position: relative;
         border: none;
-        height: 100%;
+        border-bottom-right-radius: .2rem;
+        height: .4rem;
         width: 100%;
         overflow: hidden;
         background-image: radial-gradient(closest-side at 90% 50%, rgba(188,188,188,.8) 2%, rgba(255,255,255,.9) 400%);
@@ -78,8 +79,9 @@ export default {
         position: absolute;
         top: 0;
         left: 0;
-        height: 100%;
+        height: .4rem;
         transition: all .2s;
+        border-bottom-right-radius: .2rem;
         z-index: 2;
     }
     /* .bar-full::after{
@@ -107,9 +109,6 @@ export default {
     }
     .bar-eng{
         background-image: radial-gradient(closest-corner, #6495ED 0%, #6A5ACD 100%);
-    }
-    .bar-flee{
-        background-image: radial-gradient(closest-corner, #BD611C 0%, #A2A138 100%);
     }
     .bar-label{
         position: absolute;

@@ -15,7 +15,10 @@
                     </div>
                     <!-- 公示信息区域 -->
                     <div class="board-container">
-                        <div class="board-row" v-if="pageState!=4&&boardTip">{{boardTip}}</div>
+                        <div class="board-flee-wrap" v-if="isFleeing">
+                            <Bar1 class="board-flee-bar" title="撤离：" :mode="2" :type="3" :crt="fleeMove" :max="totalFleeMove" />
+                        </div>
+                        <div class="board-row" v-if="pageState!=4&&boardText">{{boardText}}</div>
                         <div class="board-row skill-name-flash" v-if="pageState==4&&boardSkill&&boardSkill.n">
                             <i class="flashing flashing-left">{{boardSkill.n}}</i>
                             <i class="flashing-skill">{{boardSkill.n}}</i>
@@ -39,29 +42,36 @@
                             <a class="btn menu-block menu-btn menu-btn-1" @click="onTapMenu({flag:1})">攻击</a>
                             <a class="btn menu-block menu-btn menu-btn-2" @click="onTapMenu({flag:2})">技能</a>
                             <div class="menu-block menu-block-lg">
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[0]}`" @click="onTapMenu({flag:3})">防御️</a>
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[1]}`" @click="onTapMenu({flag:4})">躲避</a>
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[2]}`" @click="onTapMenu({flag:5})">追踪</a>
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[3]}`" @click="onTapMenu({flag:6})">呼吸</a>
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[4]}`" @click="onTapMenu({flag:7})">集气</a>
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[5]}`" @click="onTapMenu({flag:8})">爆气</a>
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[6]}`" @click="onTapMenu({flag:9})">劝降</a>
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[7]}`" @click="onTapMenu({flag:10})">撤离</a>
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[0]} ${checkMenuButtonBan({flag:1,checkCrumble:1})?'btn-ban':''}`" @click="onTapMenu({flag:3,ban:checkMenuButtonBan({flag:1,checkCrumble:1}),})">防御️</a>
+
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[1]} ${checkMenuButtonBan({flag:2,checkCrumble:1})?'btn-ban':''}`" @click="onTapMenu({flag:4,ban:checkMenuButtonBan({flag:2,checkCrumble:1}),})">躲避</a>
+
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[2]} ${checkMenuButtonBan({flag:3,})?'btn-ban':''}`" @click="onTapMenu({flag:5,ban:checkMenuButtonBan({flag:3,}),})">追踪</a>
+
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[3]} ${checkMenuButtonBan({flag:4,})?'btn-ban':''}`" @click="onTapMenu({flag:6,ban:checkMenuButtonBan({flag:4,}),})">呼吸</a>
+
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[4]} ${checkMenuButtonBan({flag:5,})?'btn-ban':''}`" @click="onTapMenu({flag:7,ban:checkMenuButtonBan({flag:5,}),})">集气</a>
+
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[5]} ${checkMenuButtonBan({flag:6,})?'btn-ban':''}`" @click="onTapMenu({flag:8,ban:checkMenuButtonBan({flag:6,}),})">爆气</a>
+
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[6]} ${checkMenuButtonBan({flag:7,checkCrumble:1})?'btn-ban':''}`" @click="onTapMenu({flag:9,ban:checkMenuButtonBan({flag:7,checkCrumble:1}),})">话术</a>
+
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[7]} ${checkMenuButtonBan({flag:8,})?'btn-ban':''}`" @click="onTapMenu({flag:10,ban:checkMenuButtonBan({flag:8,}),})">撤离</a>
                             </div>
                         </div>
                         <div class="menu-tag" v-if="menuData.state==2">
                             <div class="menu-sub-wrap menu-attack-wrap">
                                 <div class="menu-weapon" v-for="(weapon,index) in curUnitList[curUnitListIndex].btd.weaponList" :key="index">
-                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" v-for="(attack,index) in weapon.k" :key="index" :attack="attack" :mode="menuData.expand?1:2"  :ban="checkBan({unit:curUnitList[curUnitListIndex],data:attack})" @onTap="onTapMenuAttack" />
+                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" v-for="(attack,index) in weapon.k" :key="index" :attack="attack" :mode="menuData.expand?1:2"  :ban="checkSubMenuButtonBan({unit:curUnitList[curUnitListIndex],data:attack})" @onTap="onTapMenuAttack" />
                                 </div>
                                 <div class="menu-weapon">
-                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" :attack="curUnitList[curUnitListIndex].btd.defaultAttack" :mode="menuData.expand?1:2"  :ban="checkBan({unit:curUnitList[curUnitListIndex],data:curUnitList[curUnitListIndex].btd.defaultAttack,})" @onTap="onTapMenuAttack" />
+                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" :attack="curUnitList[curUnitListIndex].btd.defaultAttack" :mode="menuData.expand?1:2"  :ban="checkSubMenuButtonBan({unit:curUnitList[curUnitListIndex],data:curUnitList[curUnitListIndex].btd.defaultAttack,})" @onTap="onTapMenuAttack" />
                                 </div>
                             </div>
                         </div>
                         <div class="menu-tag" v-if="menuData.state==3">
                             <div class="menu-sub-wrap menu-skill-wrap">
-                                <Skill class="btn" :class="menuData.expand?'menu-skill-expand':'menu-skill-shrink'" v-for="(skill,index) in curUnitList[curUnitListIndex].btd.skillList" :key="index" :unit="curUnitList[curUnitListIndex]" :ban="checkBan({unit:curUnitList[curUnitListIndex],data:skill,})" :skill="skill" :mode="menuData.expand?1:2" :isOption="true" @onTap="onTapMenuSkill" />
+                                <Skill class="btn" :class="menuData.expand?'menu-skill-expand':'menu-skill-shrink'" v-for="(skill,index) in curUnitList[curUnitListIndex].btd.skillList" :key="index" :unit="curUnitList[curUnitListIndex]" :ban="checkSubMenuButtonBan({unit:curUnitList[curUnitListIndex],data:skill,})" :skill="skill" :mode="menuData.expand?1:2" :isOption="true" @onTap="onTapMenuSkill" />
                             </div>
                         </div>
                         <div class="menu-tag" v-if="menuData.state==4">
@@ -111,6 +121,7 @@ import Skill from '../components/Skill';
 import Attack from '../components/Attack';
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
+import Bar4 from '../components/Bar4';
 import Buff from '../components/Buff';
 import Ani from '../components/Ani';
 import Pop from '../components/Pop';
@@ -148,7 +159,7 @@ export default {
         return {
             pageState: 0, // 页面状态【0:读取数据中|1：战斗准备完成|2：累积行动条|3：战斗-操作中|4：动画|5：buff编辑|99：离开】
 
-            boardTip: '', // 战场公示文字
+            boardText: '', // 战场公示文字
             boardSkill: {}, // 战场公示特效技能
 
             menuData: { // 菜单数据
@@ -158,7 +169,7 @@ export default {
                 tip: '', // 菜单公示主文字
                 extip: '', // 菜单公示副文字
                 expand: 0, // 菜单展开标识
-                unitOptionType: 0, // 选择单位对应的行动【1攻击|2技能施放|3劝降】
+                unitOptionType: 0, // 选择单位对应的行动【1攻击|2技能施放|3话术】
                 unitOptionData: {}, // 选择单位对应的行动相关的数据
                 stateRecordList: [],
             },
@@ -181,7 +192,11 @@ export default {
 
             game: null,
 
-            roundCount: 0,
+            roundCount: 0, // 经历的回合次数
+
+            isFleeing: 0, // 当前正在撤离
+            fleeMove: 0, // 当前撤离进度
+            totalFleeMove: 1, // 撤离进度总值
 
             aniList: [], // 播放画布动画的数据数组
 
@@ -200,6 +215,7 @@ export default {
 
             timerList: [],
 
+            common,
             CONFIG,
             DEBUG,
         };
@@ -378,19 +394,16 @@ export default {
             this.menuData.stateRecordList.push(this.menuData.state);
             this.menuData.state = flag;
         },
-        resetMenu(){ // 重置Menu
-            this.menuData.state = 0;
-            this.menuData.unitList = [];
-            this.menuData.tip = '';
-            this.menuData.extip = '';
-            this.menuData.expand = 0;
-            this.menuData.unitOptionType = 0;
-            this.menuData.unitOptionData = {};
-            this.menuData.stateRecordList = [];
-        },
         movementProcess(){ // 行动条进展，计算出本帧行动者数组
-            let allAliveUnits = this.getAllAliveUnits();
-            let stop = 0, tickCount = 0;
+            let allAliveUnits;
+            if(this.isFleeing){ // 如果正在撤离
+                let allEnemyUnits = [...this.enemyTeam];
+                allAliveUnits = getSubMatchList(allEnemyUnits,[['alive',1]],'btd');
+            }
+            else{
+                allAliveUnits = this.getAllAliveUnits();
+            }
+            let tickCount = 0;
             let _curUnitList = []; // 可行动单位数组
             let curUnitList = []; // 可行动多重单位数组
             let genCurUnitList = _ =>{
@@ -409,6 +422,7 @@ export default {
                         smallestTickCount = unit.tickCount;
                     }
                 }
+                tickCount = smallestTickCount;
                 // 所有人推进行动条
                 for(let unit of allAliveUnits){
                     unit.btd.mov += smallestTickCount*unit.btd.speed;
@@ -432,19 +446,37 @@ export default {
 
             // 计算出本帧行动者数组（curUnitList）
             genCurUnitList();
-
-            // 所有本帧行动者行动条归零
-            for(let _unit of this.curUnitList){
-                _unit.btd.mov = 0;
+            if(this.isFleeing){ // 如果正在撤离
+                let allPlayerUnits = [...this.playerTeam];
+                let allAlivePlayerUnits = getSubMatchList(allPlayerUnits,[['alive',1]],'btd');
+                let fleeMoveIncresement = 0; // 所有存活我方单位的速度总和
+                for(let unit of allAlivePlayerUnits){
+                    fleeMoveIncresement += unit.btd.attrs[6];
+                }
+                this.fleeMove += Math.round(fleeMoveIncresement*tickCount*.01);
             }
+            if(this.isFleeing&&this.fleeMove>=this.totalFleeMove){
+                this.fleeMove = this.totalFleeMove;
+                this.battleEnd(3);
+            }
+            else{
+                // 所有本帧行动者行动条归零
+                for(let _unit of this.curUnitList){
+                    _unit.btd.mov = 0;
+                }
 
-            // 回合开始
-            let curUnit = this.curUnitList[this.curUnitListIndex];
-            this.roundStart(curUnit);
+                // 回合开始
+                let curUnit = this.curUnitList[this.curUnitListIndex];
+                this.roundStart(curUnit);
+            }
         },
 
         roundStart(unit){ // 单位回合开始
             // console.log(`单位回合开始`,unit.btd.name);
+            if(this.isFleeing&&unit.btd.isPlayer){
+                this.roundEnd();
+                return;
+            }
             // 当前行动者标识
             unit.btd.cur = 1;
             // 回合次数+1
@@ -459,7 +491,7 @@ export default {
                 this.menuData.extip = ``;
             }
             else{ // 人机 TODO
-                this.unitAction({caster:unit,type:6,});
+                this.unitAction({caster:unit,type:5,});
             }
         },
         unitRoundPrologue(unit){ // 单位回合的通用前置动作
@@ -550,17 +582,7 @@ export default {
             // 检查是否满足结束条件
             let checkEndResult = this.checkEnd();
             if(checkEndResult){ // 战斗结束
-                if(checkEndResult==1){ // 获胜
-                    this._alert(`获胜`);
-                }
-                else{ // 战败
-                    this._alert(`战败`);
-                }
-                this.goPageState(99);
-                let resultData = {
-                    result: checkEndResult,
-                };
-                this.$emit('onBattleEnd',resultData);
+                this.battleEnd(checkEndResult);
             }
             else{ // 战斗未结束
                 // 当前行动者标识
@@ -583,16 +605,64 @@ export default {
                 }
             }
         },
+        battleEnd(result){ // 战斗结束
+            if(result==1){ // 获胜
+                this._alert(`获胜！`);
+            }
+            else if(result==2){ // 战败
+                this._alert(`战败...`);
+            }
+            else if(result==3){ // 撤离
+                this.boardTip(`撤离成功！`);
+            }
+            this.goPageState(99);
+            let resultData = {
+                result,
+            };
+            this.$emit('onBattleEnd',resultData);
+        },
 
         /* 快捷功能 */
         _alert(text,time){ // 弹出提示
             this.$refs.toast.trigger(text,time);
         },
+        boardTip(text){ // 公共信息提示
+            this.boardText = text;
+        },
+        resetMenu(){ // 重置Menu
+            this.menuData.state = 0;
+            this.menuData.unitList = [];
+            this.menuData.tip = '';
+            this.menuData.extip = '';
+            this.menuData.expand = 0;
+            this.menuData.unitOptionType = 0;
+            this.menuData.unitOptionData = {};
+            this.menuData.stateRecordList = [];
+        },
+        resetFlee(){ // 重置撤离数据
+            this.isFleeing = 0;
+            this.fleeMove = 0;
+            this.totalFleeMove = 1;
+        },
         getAllAliveUnits(){ // 获取所有存活单位
             let allUnits = [...this.playerTeam,...this.enemyTeam];
             return getSubMatchList(allUnits,[['alive',1]],'btd');
         },
-        checkBan({unit,data}){ // 检查按钮是否禁用
+        checkMenuButtonBan({flag,checkCrumble=0,}){ // 检查菜单的基本操作按钮是否该禁用
+            let res = 0;
+            let consume = CONFIG.baseConsumeList[flag-1];
+            let curUnit = this.curUnitList[this.curUnitListIndex];
+            if(consume>(curUnit.btd.phy[0]+curUnit.btd.eng[0])){
+                res = 1;
+            }
+            if(checkCrumble){
+                if(common.isCrumble(curUnit)){
+                    res = 1;
+                }
+            }
+            return res;
+        },
+        checkSubMenuButtonBan({unit,data}){ // 检查菜单的攻击和技能按钮是否该禁用
             return !common.canConsume({unit,consume:common.calcConsume({type:1,unit,data,})});
         },
         consumeAction({consume,unit,}){ // 单位动作消耗体力并计算 changes
@@ -606,7 +676,7 @@ export default {
             unit.btd.changes.ptc += Math.round(consume*10*unit.btd.attrs[10]/CONFIG.ptcDeno);
             return res;
         },
-        checkEnd(){ // 检查胜负 0未结束 1我方获胜 2敌人获胜 3无人获胜
+        checkEnd(){ // 检查胜负 0未结束 1我方获胜 2敌人获胜 3撤离成功
             let res = 0;
             let playerDefeat = 1, enemyDefeat = 1;
             for(let unit of this.playerTeam){
@@ -692,7 +762,7 @@ export default {
                             this.pushEffectType(201,target);
                         }
                     }
-                    else if(attack.s==7){ // 赏金sppp，计算金币伤害
+                    else if(attack.s==7){ // 偷窃sppp，计算金币伤害
                         let goldDmg = common.calcGoldSpDmg({caster,target,attack,dmg,});
                         if(goldDmg>0){
                             let gain = goldDmg;
@@ -899,50 +969,50 @@ export default {
         /* 单位动作 */
         unitAction({caster,type,targetUnitList,burstAttr,skill,attack}){ // 单位执行动作
             /*action = {
-                type: 1, // 动作类型 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9劝降 10撤离
+                type: 1, // 动作类型 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9话术 10撤离
                 targetUnitList: [], // 目标单位数组
             }*/
             this.resetMenu();
             switch(type){
                 case 1: // 进行攻击
+                    this.boardTip(`${caster.btd.name} 进行攻击`);
                     this.unitAttack(caster,attack,targetUnitList);
-                    this.boardTip = `${caster.btd.name} 进行攻击`;
                 break;
                 case 2: // 施放技能
+                    this.boardTip(`${caster.btd.name} 发动 ${skill.n}`);
                     this.unitSpell(caster,skill,targetUnitList);
-                    this.boardTip = `${caster.btd.name} 发动 ${skill.n}`;
                 break;
                 case 3: // 防御
+                    this.boardTip(`${caster.btd.name} 恢复了防御`);
                     this.unitDefense(caster);
-                    this.boardTip = `${caster.btd.name} 恢复了防御`;
                 break;
                 case 4: // 躲避
+                    this.boardTip(`${caster.btd.name} 降低了存在感`);
                     this.unitDodge(caster);
-                    this.boardTip = `${caster.btd.name} 降低了存在感`;
                 break;
                 case 5: // 追踪
+                    this.boardTip(`${caster.btd.name} 进行追踪`);
                     this.unitTrace(caster);
-                    this.boardTip = `${caster.btd.name} 进行追踪`;
                 break;
                 case 6: // 呼吸
+                    this.boardTip(`${caster.btd.name} 恢复了体力`);
                     this.unitBreath(caster);
-                    this.boardTip = `${caster.btd.name} 恢复了体力`;
                 break;
                 case 7: // 集气
+                    this.boardTip(`${caster.btd.name} 提升了潜能`);
                     this.unitConcentrate(caster);
-                    this.boardTip = `${caster.btd.name} 提升了潜能`;
                 break;
                 case 8: // 爆气
+                    this.boardTip(`${caster.btd.name} 消耗潜能提升了 ${CONFIG.attrMap[burstAttr]}`);
                     this.unitBurst(caster,burstAttr);
-                    this.boardTip = `${caster.btd.name} 消耗潜能提升了 ${CONFIG.attrMap[burstAttr]}`;
                 break;
-                case 9: // 劝降
+                case 9: // 话术
+                    this.boardTip(`${caster.btd.name} 进行心理攻击`);
                     this.unitPersuade(caster,targetUnitList);
-                    this.boardTip = `${caster.btd.name} 进行心理攻击`;
                 break;
                 case 10: // 撤离
+                    this.boardTip(`${caster.btd.name} 准备撤离了`);
                     this.unitFlee(caster);
-                    this.boardTip = `${caster.btd.name} 准备撤离了`;
                 break;
             }
         },
@@ -1063,24 +1133,34 @@ export default {
             this.unitRoundEpilog(caster);
         },
         unitDefense(caster){ // 单位防御
-            caster.btd.changes.def += caster.btd.def[1];
-            if(this.consumeAction({consume:CONFIG.baseConsumeList[0],unit:caster,})){
+            if(!common.isCrumble(caster)){
+                caster.btd.def[0] = caster.btd.def[1];
+            }
+            else{
+                this.boardTip(`${caster.btd.name} 心理防御奔溃，无法恢复防御`);
+            }
+            if(this.consumeAction({consume:CONFIG.baseConsumeList[0],unit:caster,})){ // 结算消耗
                 this.pushEffectType(201,caster);
             }
             this.unitRoundEpilog(caster);
         },
         unitDodge(caster){ // 单位躲避
-            let dodgeValue = common.calcDodge({caster});
-            caster.btd.changes.dge -= dodgeValue;
-            caster.btd.changes.domAni = "cast";
-            if(this.consumeAction({consume:CONFIG.baseConsumeList[1],unit:caster,})){
+            if(!common.isCrumble(caster)){
+                let dodgeValue = common.calcDodge({caster});
+                caster.btd.changes.dge -= dodgeValue;
+                caster.btd.changes.domAni = "cast";
+                this.pushEffectType(104,caster);
+            }
+            else{
+                this.boardTip(`${caster.btd.name} 心理防御奔溃，无法躲避`);
+            }
+            if(this.consumeAction({consume:CONFIG.baseConsumeList[1],unit:caster,})){ // 结算消耗
                 this.pushEffectType(201,caster);
             }
-            this.pushEffectType(104,caster);
             this.unitRoundEpilog(caster);
         },
         unitTrace(caster){ // 单位追踪
-            let enemyAliveTeam = getSubMatchList(this.enemyTeam,[['alive',1]],'btd');
+            let enemyAliveTeam = getSubMatchList(caster.isPlayer?this.enemyTeam:this.playerTeam,[['alive',1]],'btd');
             let sfdEnemyList = shuffle(enemyAliveTeam);
             let sortedEnemy = bulbsort2(sfdEnemyList,'btd','dge',1);
             let target = sortedEnemy[0];
@@ -1095,13 +1175,16 @@ export default {
             this.unitRoundEpilog(caster);
         },
         unitBreath(caster){ // 单位呼吸
-            if(caster.btd.mdef>0){
+            if(!common.isCrumble(caster)){
                 caster.btd.phy[0] = caster.btd.phy[1];
             }
             else{
-                this._alert(`心理防御奔溃，无法恢复体力`);
+                if(caster.btd.phy[0]<1){
+                    caster.btd.phy[0] = 1;
+                }
+                this.boardTip(`${caster.btd.name} 心理防御奔溃，体力最多恢复到1点`);
             }
-            if(this.consumeAction({consume:CONFIG.baseConsumeList[3],unit:caster,})){
+            if(this.consumeAction({consume:CONFIG.baseConsumeList[3],unit:caster,})){ // 结算消耗
                 this.pushEffectType(201,caster);
             }
             this.unitRoundEpilog(caster);
@@ -1126,15 +1209,44 @@ export default {
             this.pushEffectType(9,caster);
             this.unitRoundEpilog(caster);
         },
-        unitPersuade(caster,targetUnitList){ // 单位劝降
-            if(this.consumeAction({consume:CONFIG.baseConsumeList[6],unit:caster,})){
+        unitPersuade(caster,targetUnitList){ // 单位话术
+            if(this.consumeAction({consume:CONFIG.baseConsumeList[6],unit:caster,})){ // 结算消耗
                 this.pushEffectType(201,caster);
             }
+            if(!common.isCrumble(caster)){
+                caster.btd.changes.domAni = "cast";
+                for(let target of targetUnitList){
+                    let hit = common.calcHit({caster,target});
+                    if(!hit){ // 话术未命中
+                        this.pushEffectType(106,target);
+                    }
+                    else{ // 话术命中
+                        let psyValue = common.calcPersuade({caster,target,});
+                        target.btd.changes.domAni = "shake";
+                        target.btd.changes.mdef -= psyValue;
+                        this.pushEffectType(201,target);
+                        this.boardTip(`${caster.btd.name} 对 ${target.btd.name} 说：“${CONFIG.balderdashs[r(0,CONFIG.balderdashs.length-1)]}”`);
+                    }
+                }
+            }
+            else{
+                this.boardTip(`${caster.btd.name} 心理防御奔溃，无法使用话术`);
+            }
+            this.unitRoundEpilog(caster);
         },
         unitFlee(caster){ // 单位撤离
-            if(this.consumeAction({consume:CONFIG.baseConsumeList[7],unit:caster,})){
+            let allEnemyUnits = [...this.enemyTeam];
+            let allAliveEnemyUnits = getSubMatchList(allEnemyUnits,[['alive',1]],'btd');
+            let fleeMoveIncresement = 0; // 所有存活敌方单位的速度总和
+            for(let unit of allAliveEnemyUnits){
+                fleeMoveIncresement += unit.btd.attrs[6];
+            }
+            this.isFleeing = 1;
+            this.totalFleeMove = fleeMoveIncresement*25;
+            if(this.consumeAction({consume:CONFIG.baseConsumeList[7],unit:caster,})){ // 结算消耗
                 this.pushEffectType(201,caster);
             }
+            this.unitRoundEpilog(caster);
         },
 
         /* 点击事件 */
@@ -1235,8 +1347,8 @@ export default {
             else if(flag==8){ // 爆气
                 this.goMenuState(5);
             }
-            else if(flag==9){ // 劝降
-                this.menuData.unitOptionType = 3; // 以单位为目标的行动类型：劝降
+            else if(flag==9){ // 话术
+                this.menuData.unitOptionType = 3; // 以单位为目标的行动类型：话术
                 this.goMenuState(4,{type:1,caster:curUnit});
             }
             else if(flag==10){ // 撤离
@@ -1260,7 +1372,7 @@ export default {
                             targetUnitList: [data],
                         });
                     break;
-                    case 3: // 劝降
+                    case 3: // 话术
                         this.unitAction({
                             type: 9,
                             caster: curUnit,
@@ -1344,6 +1456,7 @@ export default {
         Attack,
         Bar1,
         Bar2,
+        Bar4,
         Buff,
         Ani,
         Pop,
@@ -1354,6 +1467,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+    @import '../style/battle-menu.css';
     .main{
         position: relative;
         text-align: center;
@@ -1431,18 +1545,25 @@ export default {
     .team-pan-bottom{
         top: 6rem;
     }
+
+    /* 战场-board */
     .board-container{
         position: relative;
         width: 100%;
         height: 1rem;
-        line-height: 1rem;
         z-index: 1050;
     }
     .battle-field .board-container .board-row{
+        position: relative;
+        z-index: 10;
+        height: 1rem;
+        padding: 0 .2rem;
+        line-height: .3rem;
         font-size: .24rem;
         color: #fff;
     }
     .board-container .btn-start{
+        position: relative;
         display: block;
         margin: 0 auto;
         width: 4rem;
@@ -1452,6 +1573,7 @@ export default {
         font-size: .4rem;
         font-weight: bold;
         color: #8ae4f1;
+        z-index: 15;
         box-shadow: 0 0 .5rem .2rem #2F4F4F inset;
         animation: startBtn 1.33s ease-in-out infinite alternate;
     }
@@ -1461,252 +1583,29 @@ export default {
         }
     }
 
-    /* 菜单 */
-    .menu-wrap{
+    /* time */
+    .board-flee-wrap{
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        height: 2.5rem;
-        background-color: #2F4F4F;
-        background-image: url('./../assets/bg-menu.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        z-index: 2000;
-        box-shadow: 0 -.03rem .04rem #8ae4f1;
-        transition: all .2s;
-    }
-    .menu-wrap-expand{
-        height: 100%;
-    }
-    .menu-wrap .btn-expand,
-    .menu-wrap .btn-back{
-        display: inline-block;
-        position: absolute;
-        top: 0;
-        width: .88rem;
-        height: .76rem;
-        line-height: .76rem;
-        text-align: center;
-        border: none;
-        box-shadow: none;
-        color: #8ae4f1;
-    }
-    .menu-wrap .btn-expand{
-        right: 0;
-        font-weight: bold;
-        font-size: .4rem;
-    }
-    .menu-wrap .btn-back{
-        right: .88rem;
-        font-size: .24rem;
-    }
-    .menu{
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-        padding: .2rem .35rem;
-        padding-bottom: .04rem;
-        overflow: hidden;
-    }
-    .menu .menu-tip{
-        height: .44rem;
-        line-height: .44rem;
-        margin-bottom: .12rem;
-        width: 100%;
-        font-size: .24rem;
-        color: #fff;
-        text-align: left;
-    }
-    .menu-tag{
-        display: flex;
-        justify-content: space-around;
-        align-items: flex-start;
-        overflow-y: auto;
-        width: 100%;
-        height: 100%;
-    }
-
-    /* 菜单 block */
-    .menu-block{
-        width: 22%;
-        height: 1.5rem;
-        /* box-shadow: 0 0 2px #fff inset; */
-    }
-    .menu-btn{
-        line-height: 1.5rem;
-        font-size: .4rem;
-        text-align: center;
-    }
-    .menu-block-lg{
-        width: 50%;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        flex-wrap: wrap;
-    }
-    .menu-block-lg .btn{
-        display: inline-block;
-        width: .75rem;
-        height: .7rem;
-        line-height: .7rem;
-        margin-right: .1rem;
-        margin-bottom: .1rem;
-    }
-
-    /* 菜单 row */
-    .menu .menu-row{
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        height: .75rem;
-        line-height: .75rem;
-    }
-    .menu .menu-row .btn{
-        display: inline-block;
-        width: .8rem;
-        height: .6rem;
-        line-height: .6rem;
-        margin-right: .1rem;
-    }
-    .menu .menu-row .btn-lg{
-        width: 2rem;
-    }
-
-    /* 菜单-基础选项 */
-    .btn-mop{
-        position: relative;
-    }
-    .btn-cdot::after{
-        position: absolute;
-        top: .12rem;
-        right: .09rem;
-        width: .06rem;
-        height: .1rem;
-        line-height: .1rem;
-        color: #05cFd3;
-        font-weight: bold;
-        text-align: center;
-        font-size: .2rem;
-    }
-    .btn-cdot-1::after{
-        content: '1';
-    }
-    .btn-cdot-2::after{
-        content: '2';
-    }
-    .btn-cdot-3::after{
-        content: '3';
-    }
-
-    /* 菜单-选择攻击 */
-    .menu .menu-sub-wrap{
-        width: 100%;
-    }
-    .menu .menu-attack-wrap{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-    .menu .menu-weapon{
-        width: 100%;
-        color: #fff;
-        margin-bottom: .12rem;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-    .menu .menu-weapon .menu-attack-shrink{
-        width: 32%;
-        margin-right: 1%;
-        margin-bottom: .04rem;
-        height: .68rem;
-        line-height: .68rem;
-    }
-
-    /* 菜单-选择技能 */
-    .menu-skill-wrap{
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-bottom: .12rem;
-    }
-    .menu .menu-skill-shrink{
-        width: 49%;
-        margin-right: 1%;
-        margin-bottom: .08rem;
-        height: .5rem;
-        line-height: .5rem;
-    }
-    .menu .menu-skill-expand{
-        height: auto;
-        width: 100%;
-        margin-bottom: .08rem;
-    }
-
-    /* 菜单-选择单位 */
-    .menu-unit-wrap{
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-    }
-    .menu-unit-wrap .btn{
-        width: 24%;
-        margin-right: 1%;
-        height: 1.632rem;
-        font-size: .4rem;
-        line-height: 1.632rem;
-    }
-    .menu-unit-wrap .btn-target-player{
-        border-color: #73d893;
-        box-shadow: 0 0 .42rem #73d893 inset;
-    }
-    .menu-unit-wrap .btn-target-enemy{
-        border-color: #a82313;
-        box-shadow: 0 0 .42rem #a82313 inset;
-    }
-
-    /* 菜单-选择属性 */
-    .menu-attr-wrap{
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-    }
-    .menu-attr-wrap .btn{
-        width: 13.2%;
-        margin-right: 1%;
-        height: .8977rem;
-        line-height: .8977rem;
-    }
-
-    /* 动画 */
-    .canvas-cover{
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-        z-index: 1500;
-        color: #131313;
-        font-size: .4rem;
         display: flex;
         justify-content: center;
         align-items: center;
+        flex-wrap: wrap;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 1rem;
+        z-index: 8;
     }
-    .ani{
-        /* box-shadow: 0 0 .5rem #fff inset; */
+    .board-flee-wrap .board-flee-bar{
+        margin: 0 auto;
+        width: 5rem;
+        height: .38rem;
+        border: .01rem solid #888;
+        border-radius: .04rem;
+        box-shadow: 0 0 .04rem #000;
     }
+
+    /* 技能名动画 */
     .skill-name-flash{
         min-width: 120px;
         min-height: 30px;
@@ -1859,6 +1758,27 @@ export default {
             opacity: 0;
             transform: translate(0,0);
         }
+    }
+
+    /* 动画 */
+    .canvas-cover{
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        z-index: 1500;
+        color: #131313;
+        font-size: .4rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .ani{
+        /* box-shadow: 0 0 .5rem #fff inset; */
     }
 
     /* pop */

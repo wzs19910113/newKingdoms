@@ -2,8 +2,8 @@
     <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'} ${aniStyle}`" @click.stop="_onTap">
         <div class="avatar-wrap" :class="`${!unit.btd.alive?'dead':''}`">
 
-            <a class="avatar avatar" v-if="!aniStyle" ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
-            <a class="avatar" v-else ref="unit-icon" :class="" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
+            <a class="avatar" v-if="!aniStyle" ref="unit-icon" :class="common.isCrumble(unit)?'avatar-crumble':''" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
+            <a class="avatar" v-else ref="unit-icon" :class="common.isCrumble(unit)?'avatar-crumble':''" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
 
             <div class="cur" v-show="unit.btd.cur&&unit.btd.alive"></div>
 
@@ -178,6 +178,9 @@ export default {
         z-index: 100;
         box-shadow: 0 0 .06rem .02rem #aaa;
     }
+    .avatar-crumble{
+        box-shadow: 0 0 .4rem #e81313 inset;
+    }
     .cur{
         position: absolute;
         z-index: 90;
@@ -245,9 +248,9 @@ export default {
     /* 数据行 */
     .stat-row{
         position: relative;
-        height: .4rem;
+        height: .66rem;
         width: 100%;
-        margin-bottom: .13rem;
+        margin-bottom: .2rem;
         z-index: 120;
     }
     .stat-row .sub-mark{

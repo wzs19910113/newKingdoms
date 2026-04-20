@@ -21,7 +21,7 @@ const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添�
     0, // 改变护甲
     1, // 改变潜能
     1, // 改变心防
-    1, // 改变存在感
+    991, // 改变存在感
 ];
 const REJUST_LEVELS_MAP = [ // 补正等级描述表
     [``,0,],
@@ -46,7 +46,7 @@ function randIn(arr){
     return arr[r(0,arr.length-1)];
 }
 
-/* 生成 */
+/* ---------------------------- 生成 ---------------------------- */
 export function genEquipName(type,melee=1){ // 生成装备名字
     let regularName = (suffixList) =>{ // 通用装备生成格式
         let res;
@@ -303,7 +303,6 @@ export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge
     if(!name){
         name = genRoleName(gender);
     }
-    let epo = 1.5; // 属性分布指数
     let res = {
         id,
         l: level,
@@ -317,8 +316,8 @@ export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge
         as: [
             exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],3), // 血量
             exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],3), // 精力
-            exptr(1+level,cl(0+pow(1.5,level+3)),1), // 体力
-            0, // 防御
+            exptr(level,level*2+1,1), // 体力
+            exptr(1,3,5), // 防御
 
             genAtr(), // 力量
             genAtr(), // 精准
@@ -331,11 +330,15 @@ export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge
         ss: [],
         es: [0,0,0,0,0,0,0,],
     };
-    if(level>5){ // 设置定力最小值
+    // 设置定力最小值
+    if(level>5){
         res.as[8] = setInRange(res.as[8],pow(level)+r(pow(level,1.8),pow(level,2.2)+5),Infinity);
     }
+    // 当前状态
     res.st = [res.as[0],res.as[1],];
+    // 性格
     res.sty = genRandomPersonalities(res.gd,res.age);
+    // 给7维属性限定范围
     for(let i=4;i<11;i++){
         res.as[i] = setInRange(res.as[i],1,9999);
     }
@@ -607,15 +610,12 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
             break;
             case 9: // 改变存在感
                 newEffect.d = { d:0, rx:0, };
-                if(beni){
-                    newEffect.d.d = exptr(80,100+level*15,1)*25*(-fact);
-                }
-                else{
-                    newEffect.d.d = exptr(80,100+level*30,1)*25*(-fact);
-                }
-                newEffect.d.d = setInRange(newEffect.d.d,-10000,10000);
-                if(beni&&level>=r(2,4)){ // 目标单位的隐蔽补正
+                if(beni){ // 增益效果，设置隐蔽补正
                     newEffect.d.rx = genRx(level);
+                }
+                else{ // 减益效果，设置存在感提升值
+                    newEffect.d.d = exptr(80,100+level*30,1)*25*(-fact);
+                    newEffect.d.d = setInRange(newEffect.d.d,-10000,10000);
                 }
             break;
         }
@@ -638,7 +638,7 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
 }
 
 
-/* 计算 */
+/* ---------------------------- 计算 ---------------------------- */
 export function getUnitBtd(unit,game){ // 获取单位战斗数据
     let equips = [], weaponList = [], skillList = [], btd = {}, _unit = cloneObj(unit);
     let awa = 0;
@@ -678,14 +678,15 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
 
     btd.mov = 0; // 行动
     btd.mdef = btd.attrs[8]*25; // 心理防御
-    btd.ptc = btd.attrs[10]*4; // 潜能
+    // btd.mdef = 0; // 心理防御
+    btd.ptc = btd.attrs[10]*5; // 潜能
     btd.alive = 1; // 存活
     btd.teamSeq = _unit.tms;
     btd.buffList = [];
     btd.weaponList = weaponList;
     btd.skillList = skillList;
     btd.money = unit.g;
-    btd.roundTotal = 9;
+    btd.roundTotal = 1;
 
     // weapon 名字
     btd.weaponName1 = weaponList[0]?weaponList[0].n:'';
@@ -697,12 +698,12 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     let strBase = btd.attrs[4]>=btd.attrs[5];
     btd.defaultAttack = {
 		n: strBase?'挥拳':'扔石',
-		d: 3, // 基础伤害
+		d: 1, // 基础伤害
 		r1: cl(btd.attrs[4]/30), // 力量补正
 		r2: cl(btd.attrs[5]/30), // 精准补正
 		b: [], // buff制造表（buff id）
 		bl: [], // buff等级表（1-9）
-		s: strBase?1:5, // SP效果 1压制 2破盾 3气溃 4精溃 5锁敌 6攻心 7摸金
+		s: strBase?1:5, // SP效果 1压制 2破盾 3气溃 4精溃 5锁敌 6攻心 7偷窃
 		sl: 1, // SP效果等级
 		a: 0, // 目标是否为全体
 		c: 1, // 体力消耗
@@ -788,7 +789,7 @@ export function getStyleTip(style){ // 获取角色性格介绍
     return res;
 }
 export function genRXString(val){ // 生成补正等级描述文本
-    // return val; // TODO
+    return val; // TODO
     if(val<=0){
         return `-`;
     }
@@ -907,7 +908,7 @@ export function calcSkillValue(skill){ // 计算技能价值
             break;
             case 9: // 改变存在感
                 if(beni){ // 技能倾向为利好
-                    res += 100 + cl(pow(Math.abs(d.d)/1000,1.31)*650); // 固定值
+                    // res += 100 + cl(pow(Math.abs(d.d)/1000,1.31)*650); // 固定值
                     res += cl(pow(Math.abs(d.rx),1.28)*9); // 补正
                 }
                 else{ // 技能倾向为伤害
@@ -970,15 +971,18 @@ export function calcDodgeRate(dodge){ // 计算躲避因素
     res = 1-dodge/CONFIG.dodgeDeno;
     return res;
 }
+export function isCrumble(unit){ // 计算是否已心理崩溃
+    return unit.btd.mdef<=0;
+}
 
-/* 战斗相关 */
+/* ---------------------------- 战斗相关 ---------------------------- */
 export function canConsume({unit,consume,}){ // 检查体力
     let res = 0;
     let remain = unit.btd.phy[0]+unit.btd.eng[0];
     res = consume<=remain;
     return res;
 }
-export function calcConsume({type,unit,data,}){ // 计算体力消耗 type 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9劝降 10撤离
+export function calcConsume({type,unit,data,}){ // 计算体力消耗 type 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9话术 10撤离
     let res = 0;
     if(type==1){ // 攻击，data就是attack
         res = data.c;
@@ -1003,7 +1007,7 @@ export function calcHit({caster,target,}){ // 计算是否命中
     else{ // 同阵营直接命中
         res = 1;
     }
-    // res = 1;
+    res = 1;
     return res;
 }
 export function calcDmg({caster,attack,}){ // 根据攻击计算伤害
@@ -1029,19 +1033,31 @@ export function calcPotencyDmg({target,data,}){ // 计算潜能增减值 data={d
 export function calcMentalDmg({caster,target,data,}){ // 计算心理伤害增减值 data={d:100,rx1:35,rx2:0}
     let res = 0;
     res += data.d;
-    res += cl(target.btd.attrs[10]/CONFIG.mdefDeno*data.rx1/100*.5);
-    res += cl(caster.btd.attrs[10]/CONFIG.mdefDeno*data.rx2/100*.5);
+    if(data.d<0){ // 削减心理防御
+        let mdmg = caster.btd.attrs[7]/CONFIG.IntMdefDmgDeno*data.rx2/100*1000; // 计算 caster 的智力补正攻击力
+        let mdef = target.btd.attrs[8]/CONFIG.mdefDeno; // 计算 target 的定力补正防御力
+        res -= cl(mdmg*(1-mdef));
+    }
+    else{ // 提升心理防御
+        res += cl(target.btd.attrs[8]/CONFIG.mdefDeno*data.rx1/100*20); //  计算 target 的定力补正
+    }
     return res;
 }
 export function calcDodgeDmg({target,data,}){ // 计算存在感伤害增减值 data={d:100,rx:35}
     let res = 0;
-    res += data.d;
-    res += cl(target.btd.attrs[9]/CONFIG.dodgeDeno*data.rx/100*.5);
+    if(data.d>0){ // 减益
+        res = data.d;
+    }
+    else{ // 增益
+        res = -cl(1000+target.btd.attrs[9]/CONFIG.dodgeDeno*data.rx/100*2.5*10000);
+    }
     return res;
 }
+
+/* 基础操作 */
 export function calcDodge({caster,}){ // 计算躲避值
     let res = 0;
-    res += cl(caster.btd.attrs[9]/CONFIG.dodgeDeno*2500);
+    res += cl(caster.btd.attrs[9]/CONFIG.dodgeDeno*2.5*1000);
     return res;
 }
 export function calcConcentrate({caster,}){ // 计算集气值
@@ -1049,8 +1065,16 @@ export function calcConcentrate({caster,}){ // 计算集气值
     res += cl(caster.btd.attrs[10]/CONFIG.ptcDeno*1250);
     return res;
 }
+export function calcPersuade({caster,target,}){ // 计算话术值
+    let res = 0;
+    let mdmg = caster.btd.attrs[7]/CONFIG.IntPersuadeDeno*250;
+    let mdef = target.btd.attrs[8]/CONFIG.mdefDeno;
+    res += cl(mdmg*(1-mdef));
+    res = setInRange(res,1,Infinity);
+    return res;
+}
 
-
+/* sp攻击特效 */
 function hurtRate(unit){ // 获取一个单位的受伤程度
     return (1-unit.btd.hp[0]/unit.btd.hp[1])+0.5;
 }
@@ -1081,16 +1105,16 @@ export function calcMentalSpDmg({caster,target,dmg,}){ // 计算攻心带来的�
     res = cl(caster.btd.attrs[7]/CONFIG.mdefDeno*dmg*hr);
     return res;
 }
-export function calcGoldSpDmg({target,attack,dmg,}){ // 计算赏金带来的金币伤害
+export function calcGoldSpDmg({target,attack,dmg,}){ // 计算偷窃带来的金币伤害
     let res = 0;
     let hr = hurtRate(target);
     res = cl(CONFIG.spLevelMap[6][attack.sl-1]*dmg/1000*hr);
     return res;
 }
 
-export function getBuff({unit,buffId,}){ // 根据 buffId 获取单位当前的 buff
+export function getBuff({unit,id,}){ // 根据 buffId 获取单位当前的 buff
     let res;
-    res = getMatchList(unit.btd.buffList,[['id',buffId]])[0];
+    res = cloneObj(getMatchList(unit.btd.buffList,[['id',id]])[0]||{})||null;
     return res;
 }
 export function getConfigBuff(buffId){ // 获取buff原始数据
@@ -1145,34 +1169,47 @@ export function calcSkillDodgeup({unit,skill,}){ // 计算发动技能时的存�
 export function saveUnitChanges(unit){ // 结算changes，即根据 changes 获得改变后的 unit 数据
     let btd = unit.btd;
     let changes = btd.changes;
+    let val = 0, buff = null;
 
     if(changes.hp!=0){ // 血
-        btd.hp[0] += changes.hp;
+        val = changes.hp;
+        // if(buff=getBuff({unit,id:1,})){ // 疗愈bufff
+        //     val *=
+        // }
+        btd.hp[0] += val;
         btd.alive = btd.hp[0]>0;
     }
     if(changes.def!=0){ // 防御
-        btd.def[0] += changes.def;
+        val = changes.def;
+        btd.def[0] += val;
     }
     if(changes.eng!=0){ // 精力
-        btd.eng[0] += changes.eng;
+        val = changes.eng;
+        btd.eng[0] += val;
     }
     if(changes.phy!=0){ // 体力
-        btd.phy[0] += changes.phy;
+        val = changes.phy;
+        btd.phy[0] += val;
     }
     if(changes.dge!=0){ // 存在感
-        btd.dge += changes.dge;
+        val = changes.dge;
+        btd.dge += val;
     }
     if(changes.mov!=0){ // 行动力
-        btd.mov += changes.mov;
+        val = changes.mov;
+        btd.mov += val;
     }
     if(changes.ptc!=0){ // 潜能
-        btd.ptc += changes.ptc;
+        val = changes.ptc;
+        btd.ptc += val;
     }
     if(changes.mdef!=0){ // 心理防御
-        btd.mdef += changes.mdef;
+        val = changes.mdef;
+        btd.mdef += val;
     }
     if(changes.money!=0){ // 金币
-        btd.money += changes.money;
+        val = changes.money;
+        btd.money += val;
     }
 
     btd.hp[0] = setInRange(btd.hp[0],0,btd.hp[1]);
@@ -1200,6 +1237,7 @@ export function saveUnitChanges(unit){ // 结算changes，即根据 changes 获�
 }
 
 
+/* ---------------------------- 其他 ---------------------------- */
 export function _q(){ // ???
     let res;
     return res;
