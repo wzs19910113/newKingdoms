@@ -225,13 +225,13 @@ export default {
         // TODO
         let _nus = [];
         _nus.push(common.genUnit({id:1,name:'赵日天',age:20,gender:1,level:5,tms:1,rel:100,game:this.game,}));
-        _nus.push(common.genUnit({id:2,gender:2,level:6,tms:2,rel:100,game:this.game,}));
-        _nus.push(common.genUnit({id:3,tms:3,level:7,rel:80,game:this.game,}));
-        _nus.push(common.genUnit({id:4,tms:4,level:8,rel:50,game:this.game,}));
+        _nus.push(common.genUnit({id:2,gender:2,level:1,tms:2,rel:100,game:this.game,}));
+        _nus.push(common.genUnit({id:3,tms:3,level:1,rel:80,game:this.game,}));
+        _nus.push(common.genUnit({id:4,tms:4,level:1,rel:50,game:this.game,}));
         _nus.push(common.genUnit({id:11,gender:1,level:1,game:this.game,}));
         _nus.push(common.genUnit({id:12,gender:1,level:2,game:this.game,}));
-        _nus.push(common.genUnit({id:13,gender:1,level:3,game:this.game,}));
-        _nus.push(common.genUnit({id:14,gender:1,level:9,game:this.game,}));
+        _nus.push(common.genUnit({id:13,gender:1,level:1,game:this.game,}));
+        _nus.push(common.genUnit({id:14,gender:1,level:1,game:this.game,}));
         window.GLOBAL = {};
         window.GLOBAL.game = {
         	money: 1000,
@@ -279,7 +279,8 @@ export default {
         _nus[3].es[4] = 8;
         _nus[3].g = 5000;
 
-        _nus[3].as[6] = 656;
+        // _nus[7].as[6] = 556;
+        // _nus[0].as[6] = 456;
         _nus[4].es[0] = 9;
         _nus[4].es[5] = 10;
         _nus[7].es[4] = 10;
@@ -287,16 +288,16 @@ export default {
         _nus[4].g = 1000;
         _nus[7].g = 10000;
 
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:1,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:2,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:3,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:4,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:5,game:{},level:r(9,9),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:6,game:{},level:r(9,9),type:r(3,3)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:7,game:{},level:r(9,9),type:r(5,5)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:8,game:{},level:r(9,9),type:r(5,5)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:1,game:{},level:r(1,1),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:2,game:{},level:r(1,1),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:3,game:{},level:r(1,1),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:4,game:{},level:r(1,1),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:5,game:{},level:r(1,1),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:6,game:{},level:r(1,1),type:r(3,3)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:7,game:{},level:r(1,1),type:r(5,5)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:8,game:{},level:r(1,1),type:r(5,5)}));
         window.GLOBAL.game.allEquips.push(common.genEquip({id:9,game:{},level:r(1,1),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:10,game:{},level:r(9,9),type:r(5,5)}));
+        window.GLOBAL.game.allEquips.push(common.genEquip({id:10,game:{},level:r(1,1),type:r(5,5)}));
         // 预设技能
         for(let i=0;i<10;i++){
             _nus[3].ss[i] = i+1;
@@ -410,7 +411,7 @@ export default {
                 let smallestTickCount = Infinity; // 最先行动者的所需行动步数
                 // 计算每个人的【所需行动步数】和【超出行动力】
                 for(let unit of allAliveUnits){
-                    let speed = unit.btd.speed; // 3
+                    let speed = common.getSpeed(unit); // 3
                     let diff= 10000-unit.btd.mov; // 10
                     let divisor = Math.ceil(diff/speed); // 除数=4
                     unit.tickCount = divisor; // 需要 4 步才能行动
@@ -425,7 +426,7 @@ export default {
                 tickCount = smallestTickCount;
                 // 所有人推进行动条
                 for(let unit of allAliveUnits){
-                    unit.btd.mov += smallestTickCount*unit.btd.speed;
+                    unit.btd.mov += smallestTickCount*common.getSpeed(unit);
                 }
                 // 得出最小行动步数为 3，筛选出本帧行动者
                 for(let unit of allAliveUnits){
@@ -451,7 +452,7 @@ export default {
                 let allAlivePlayerUnits = getSubMatchList(allPlayerUnits,[['alive',1]],'btd');
                 let fleeMoveIncresement = 0; // 所有存活我方单位的速度总和
                 for(let unit of allAlivePlayerUnits){
-                    fleeMoveIncresement += unit.btd.attrs[6];
+                    fleeMoveIncresement += common.getSpeed(unit);
                 }
                 this.fleeMove += Math.round(fleeMoveIncresement*tickCount*.01);
             }
@@ -490,8 +491,9 @@ export default {
                 this.menuData.tip = `${unit.btd.name}行动`; // 更新菜单提示文本
                 this.menuData.extip = ``;
             }
-            else{ // 人机 TODO
-                this.unitAction({caster:unit,type:5,});
+            else{ // 人机
+                let unitAction = ai.genAction({unit,meTeam:this.enemyTeam,youTeam:this.playerTeam});
+                this.unitAction(unitAction);
             }
         },
         unitRoundPrologue(unit){ // 单位回合的通用前置动作
@@ -545,6 +547,7 @@ export default {
                         this.playAni(aniData);
                     }
                 }
+                // console.log(`播放所有单位的dom动画，同时逐一播放 aniList 中的全部画布动画`,this.aniList);
             });
         },
         onAnimationEnd(){ // 当动画结束
@@ -647,6 +650,10 @@ export default {
         getAllAliveUnits(){ // 获取所有存活单位
             let allUnits = [...this.playerTeam,...this.enemyTeam];
             return getSubMatchList(allUnits,[['alive',1]],'btd');
+        },
+        getUnit(id){ // 根据unitId获取unit
+            let allUnits = [...this.playerTeam,...this.enemyTeam];
+            return getSubMatchList(allUnits,[['id',id]],'btd')[0];
         },
         checkMenuButtonBan({flag,checkCrumble=0,}){ // 检查菜单的基本操作按钮是否该禁用
             let res = 0;
@@ -784,6 +791,10 @@ export default {
                         target.btd.changes.buffList.push({ id:buffId, level:buffLevel, });
                     }
                 }
+                if(this.isFleeing){
+                    this.resetFlee();
+                    this._alert(`撤离失败`);
+                }
             }
             else{ // 未命中
                 this.pushEffectType(106,target);
@@ -919,6 +930,7 @@ export default {
         pushAniByChanges({caster,target}){ // 根据 changes 生成并推送多个‘单动画数据’进入aniList用于稍后播放
             let changes = target.btd.changes;
             let effectTypeList = changes.effectTypeList;
+            // console.log(`根据 changes 生成并推送多个‘单动画数据’进入aniList用于稍后播放`,caster.btd.name,effectTypeList);
             for(let effectType of effectTypeList){
                 if((effectType>0&&effectType<17)||effectType==105||effectType==106){ // 动画效果+破盾+miss
                     this.aniList.push({caster,target,effectType,});
@@ -937,10 +949,10 @@ export default {
                 }
             }
         },
-        pushEffectType(type,unit,){ // 为单位添加 effectType，用于播放画布动画
-            // console.log(`为单位添加 effectType`,arrContains(unit.btd.changes.effectTypeList,type));
+        pushEffectType(type,unit,){ // 为单位的 changes 添加 effectType，用于播放画布动画
             if(arrContains(unit.btd.changes.effectTypeList,type)==-1){
                 unit.btd.changes.effectTypeList.push(type);
+                // console.log(`!!!!!!!!!!!${unit.btd.name}`,unit.btd.changes.effectTypeList);
             }
         },
         getUnitDomPos(id){ // 获取单位dom的坐标
@@ -970,49 +982,56 @@ export default {
         unitAction({caster,type,targetUnitList,burstAttr,skill,attack}){ // 单位执行动作
             /*action = {
                 type: 1, // 动作类型 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9话术 10撤离
+                burstAttr: 1, // 4力量 5精准 6速度 7智力 8定力 9隐蔽 10爆发
                 targetUnitList: [], // 目标单位数组
             }*/
             this.resetMenu();
+            let oTargetUnitList = [], oCaster = this.getUnit(caster.btd.id);
+            if(targetUnitList&&targetUnitList.length){
+                for(let target of targetUnitList){
+                    oTargetUnitList.push(this.getUnit(target.btd.id));
+                }
+            }
             switch(type){
                 case 1: // 进行攻击
-                    this.boardTip(`${caster.btd.name} 进行攻击`);
-                    this.unitAttack(caster,attack,targetUnitList);
+                    this.boardTip(`${oCaster.btd.name} 进行攻击`);
+                    this.unitAttack(oCaster,attack,oTargetUnitList);
                 break;
                 case 2: // 施放技能
-                    this.boardTip(`${caster.btd.name} 发动 ${skill.n}`);
-                    this.unitSpell(caster,skill,targetUnitList);
+                    this.boardTip(`${oCaster.btd.name} 发动 ${skill.n}`);
+                    this.unitSpell(oCaster,skill,oTargetUnitList);
                 break;
                 case 3: // 防御
-                    this.boardTip(`${caster.btd.name} 恢复了防御`);
-                    this.unitDefense(caster);
+                    this.boardTip(`${oCaster.btd.name} 恢复了防御`);
+                    this.unitDefense(oCaster);
                 break;
                 case 4: // 躲避
-                    this.boardTip(`${caster.btd.name} 降低了存在感`);
-                    this.unitDodge(caster);
+                    this.boardTip(`${oCaster.btd.name} 降低了存在感`);
+                    this.unitDodge(oCaster);
                 break;
                 case 5: // 追踪
-                    this.boardTip(`${caster.btd.name} 进行追踪`);
-                    this.unitTrace(caster);
+                    this.boardTip(`${oCaster.btd.name} 进行追踪`);
+                    this.unitTrace(oCaster);
                 break;
                 case 6: // 呼吸
-                    this.boardTip(`${caster.btd.name} 恢复了体力`);
-                    this.unitBreath(caster);
+                    this.boardTip(`${oCaster.btd.name} 恢复了体力`);
+                    this.unitBreath(oCaster);
                 break;
                 case 7: // 集气
-                    this.boardTip(`${caster.btd.name} 提升了潜能`);
-                    this.unitConcentrate(caster);
+                    this.boardTip(`${oCaster.btd.name} 提升了潜能`);
+                    this.unitConcentrate(oCaster);
                 break;
                 case 8: // 爆气
-                    this.boardTip(`${caster.btd.name} 消耗潜能提升了 ${CONFIG.attrMap[burstAttr]}`);
-                    this.unitBurst(caster,burstAttr);
+                    this.boardTip(`${oCaster.btd.name} 消耗潜能提升了 ${CONFIG.attrMap[burstAttr]}`);
+                    this.unitBurst(oCaster,burstAttr);
                 break;
                 case 9: // 话术
-                    this.boardTip(`${caster.btd.name} 进行心理攻击`);
-                    this.unitPersuade(caster,targetUnitList);
+                    this.boardTip(`${oCaster.btd.name} 进行心理攻击`);
+                    this.unitPersuade(oCaster,oTargetUnitList);
                 break;
                 case 10: // 撤离
-                    this.boardTip(`${caster.btd.name} 准备撤离了`);
-                    this.unitFlee(caster);
+                    this.boardTip(`${oCaster.btd.name} 准备撤离了`);
+                    this.unitFlee(oCaster);
                 break;
             }
         },
@@ -1115,6 +1134,10 @@ export default {
                             this.pushEffectType(201,target);
                             this.pushEffectType(mentalDmg>0?8:10,target);
                         }
+                    }
+                    if(target.btd.isPlayer&&this.isFleeing){
+                        this.resetFlee();
+                        this._alert(`撤离失败`);
                     }
                 }
                 // 不论是否命中，执行存在感增减
@@ -1239,10 +1262,10 @@ export default {
             let allAliveEnemyUnits = getSubMatchList(allEnemyUnits,[['alive',1]],'btd');
             let fleeMoveIncresement = 0; // 所有存活敌方单位的速度总和
             for(let unit of allAliveEnemyUnits){
-                fleeMoveIncresement += unit.btd.attrs[6];
+                fleeMoveIncresement += common.getSpeed(unit);
             }
             this.isFleeing = 1;
-            this.totalFleeMove = fleeMoveIncresement*25;
+            this.totalFleeMove = fleeMoveIncresement*CONFIG.fleeTotalMoveFactor;
             if(this.consumeAction({consume:CONFIG.baseConsumeList[7],unit:caster,})){ // 结算消耗
                 this.pushEffectType(201,caster);
             }
@@ -1778,7 +1801,7 @@ export default {
         align-items: center;
     }
     .ani{
-        /* box-shadow: 0 0 .5rem #fff inset; */
+        box-shadow: 0 0 .5rem #fff inset;
     }
 
     /* pop */

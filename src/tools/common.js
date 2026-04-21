@@ -672,7 +672,6 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.def = [btd.attrs[3],btd.attrs[3],], // 护甲
     btd.eng = [btd.attrs[1],btd.attrs[1],], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
-    btd.speed = Math.sqrt([btd.attrs[6]]); // 真速度
 
     btd.dge = cl(awa*calcDodgeRate(btd.attrs[9])); // 隐蔽
 
@@ -814,6 +813,9 @@ export function genRXString(val){ // 生成补正等级描述文本
     let res = `${name}${suffix}`;
     return res;
 };
+export function getSpeed(unit){ // 获取真实速度
+    return Math.sqrt([unit.btd.attrs[6]]);
+}
 
 export function calcAtkValue(atk){ // 计算攻击方式的价值
     let score = 100, res = 0;
@@ -976,12 +978,6 @@ export function isCrumble(unit){ // 计算是否已心理崩溃
 }
 
 /* ---------------------------- 战斗相关 ---------------------------- */
-export function canConsume({unit,consume,}){ // 检查体力
-    let res = 0;
-    let remain = unit.btd.phy[0]+unit.btd.eng[0];
-    res = consume<=remain;
-    return res;
-}
 export function calcConsume({type,unit,data,}){ // 计算体力消耗 type 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9话术 10撤离
     let res = 0;
     if(type==1){ // 攻击，data就是attack
@@ -993,6 +989,12 @@ export function calcConsume({type,unit,data,}){ // 计算体力消耗 type 1攻�
     else{
         res = CONFIG.baseConsumeList[type-3]||0;
     }
+    return res;
+}
+export function canConsume({unit,consume,}){ // 检查体力
+    let res = 0;
+    let remain = unit.btd.phy[0]+unit.btd.eng[0];
+    res = consume<=remain;
     return res;
 }
 export function calcHit({caster,target,}){ // 计算是否命中
@@ -1016,6 +1018,7 @@ export function calcDmg({caster,attack,}){ // 根据攻击计算伤害
     let acrDmg = cl(caster.btd.attrs[5]*attack.r2/100);
     res = attack.d + strDmg + acrDmg;
     // res = 4;
+    res = setInRange(res,1,Infinity);
     return res;
 }
 export function calcCure({caster,data,}){ // 计算治疗值 data={h:100,rx:35}
@@ -1232,8 +1235,6 @@ export function saveUnitChanges(unit){ // 结算changes，即根据 changes 获�
             weakenBuffFrom({buffId:changes.weakenBuff.id,level:changes.weakenBuff.level,unit});
         }
     }
-
-    // console.log(changes);
 }
 
 
