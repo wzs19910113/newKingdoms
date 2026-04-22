@@ -1,5 +1,5 @@
 import { DEBUG, CONFIG } from '../config/config';
-import { query, r, rr, exptr, setInRange, bulbsort, cloneObj, shuffle, getParentNode, getMatchList, removeFromList, arrContains, removeFromNumberList, } from '../tools/utils';
+import { query, r, rr, exptr, setInRange, bulbsort, cloneObj, shuffle, getParentNode, getMatchList, getSubMatchList, removeFromList, arrContains, removeFromNumberList, } from '../tools/utils';
 import * as common from '../tools/common';
 import * as NAMES from '../tools/namestock';
 
@@ -20,9 +20,12 @@ export function genAction({unit,meTeam,youTeam,}){ // 生成 AI 动作 TODO
         score: 105, // 动作的执行价值，越高越倾向于执行
     */
     let res = {};
-    res.caster = unit;
 
-    let cbtd = unit.btd;
+    let copyUnit = cloneObj(unit);
+    let copyAliveYouTeam = cloneObj(getSubMatchList(youTeam,[['alive',1]],'btd'));
+    let copyAliveMeTeam = cloneObj(getSubMatchList(meTeam,[['alive',1]],'btd'));
+
+    let cbtd = copyUnit.btd;
     let actionList = [];
     let attackActionList = [], skillActionList = [], defAction, dodgeAction, traceAction, breathAction, concentrateAction, burstActionList = [], persuadeActionList = [];
     let consume;
@@ -53,15 +56,15 @@ export function genAction({unit,meTeam,youTeam,}){ // 生成 AI 动作 TODO
         eid: 1, // 所属的武器id
     },*/
     for(let attack of myAttackList){
-        consume = common.calcConsume({type:1,unit,data:attack}); // 本攻击的消耗
-        if(common.canConsume({unit,consume,})){ // 如果体力足够
+        consume = common.calcConsume({type:1,unit:copyUnit,data:attack}); // 本攻击的消耗
+        if(common.canConsume({unit:copyUnit,consume,})){ // 如果体力足够
             if(attack.a){ // 全体攻击
-                let newAttackAction = { caster:unit, type:1, targetUnitList:cloneObj(youTeam), attack, score:0, };
+                let newAttackAction = { caster:copyUnit, type:1, targetUnitList:copyAliveYouTeam, attack, score:0, };
                 attackActionList.push(newAttackAction);
             }
             else{ // 单体攻击
-                for(let youUnit of youTeam){
-                    let newAttackAction = { caster:unit, type:1, targetUnitList:[cloneObj(youUnit)], attack, score:0, };
+                for(let youUnit of copyAliveYouTeam){
+                    let newAttackAction = { caster:copyUnit, type:1, targetUnitList:[youUnit], attack, score:0, };
                     attackActionList.push(newAttackAction);
                 }
             }
@@ -86,97 +89,131 @@ export function genAction({unit,meTeam,youTeam,}){ // 生成 AI 动作 TODO
     	v: 133, // 价值
     },*/
     for(let skill of mySkillList){
-        consume = common.calcConsume({type:2,unit,data:skill}); // 本技能的消耗
-        if(common.canConsume({unit,consume,})){ // 如果体力足够
-            for(let youUnit of youTeam){
-                let newSkillAction = { caster:unit, type:2, targetUnitList:[cloneObj(youUnit)], skill, score:0, };
+        consume = common.calcConsume({type:2,unit:copyUnit,data:skill}); // 本技能的消耗
+        if(common.canConsume({unit:copyUnit,consume,})){ // 如果体力足够
+            if(skill.t==1){ // 目标为自己
+                let newSkillAction = { caster:copyUnit, type:2, targetUnitList:[copyUnit], skill, score:0, };
                 skillActionList.push(newSkillAction);
+            }
+            else if(skill.t==2){ // 目标为友方单体
+                for(let youUnit of copyAliveMeTeam){
+                    if(youUnit.id!=unit.id){
+                        let newSkillAction = { caster:copyUnit, type:2, targetUnitList:[youUnit], skill, score:0, };
+                        skillActionList.push(newSkillAction);
+                    }
+                }
+            }
+            else if(skill.t==3){ // 目标为敌方单体
+                for(let youUnit of copyAliveYouTeam){
+                    let newSkillAction = { caster:copyUnit, type:2, targetUnitList:[youUnit], skill, score:0, };
+                    skillActionList.push(newSkillAction);
+                }
             }
         }
     }
 
     // 生成防御行动
-    consume = common.calcConsume({type:3,unit,}); // 防御的消耗
-    if(!common.isCrumble(unit)&&common.canConsume({unit,consume,})){ // 若单位未崩溃，同时体力足够
-        defAction = { caster:unit, type:3, score:0, };
+    consume = common.calcConsume({type:3,unit:copyUnit,}); // 防御的消耗
+    if(!common.isCrumble(copyUnit)&&common.canConsume({unit:copyUnit,consume,})){ // 若单位未崩溃，同时体力足够
+        defAction = { caster:copyUnit, type:3, score:0, };
     }
 
     // 生成躲避行动
-    consume = common.calcConsume({type:4,unit,}); // 躲避的消耗
-    if(!common.isCrumble(unit)&&common.canConsume({unit,consume,})){ // 若单位未崩溃，同时体力足够
-        dodgeAction = { caster:unit, type:4, score:0, };
+    consume = common.calcConsume({type:4,unit:copyUnit,}); // 躲避的消耗
+    if(!common.isCrumble(copyUnit)&&common.canConsume({unit:copyUnit,consume,})){ // 若单位未崩溃，同时体力足够
+        dodgeAction = { caster:copyUnit, type:4, score:0, };
     }
 
     // 生成追踪行动
-    consume = common.calcConsume({type:5,unit,}); // 追踪的消耗
-    if(common.canConsume({unit,consume,})){ // 若单位体力足够
-        traceAction = { caster:unit, type:5, score:0, };
+    consume = common.calcConsume({type:5,unit:copyUnit,}); // 追踪的消耗
+    if(common.canConsume({unit:copyUnit,consume,})){ // 若单位体力足够
+        traceAction = { caster:copyUnit, type:5, score:0, };
     }
 
     // 生成呼吸行动
-    consume = common.calcConsume({type:6,unit,}); // 呼吸的消耗
-    if(common.canConsume({unit,consume,})){ // 若单位体力足够
-        breathAction = { caster:unit, type:6, score:0, };
+    consume = common.calcConsume({type:6,unit:copyUnit,}); // 呼吸的消耗
+    if(common.canConsume({unit:copyUnit,consume,})){ // 若单位体力足够
+        breathAction = { caster:copyUnit, type:6, score:0, };
     }
 
     // 生成集气行动
-    consume = common.calcConsume({type:7,unit,}); // 集气的消耗
-    if(common.canConsume({unit,consume,})){ // 若单位体力足够
-        concentrateAction = { caster:unit, type:7, score:0, };
+    consume = common.calcConsume({type:7,unit:copyUnit,}); // 集气的消耗
+    if(common.canConsume({unit:copyUnit,consume,})){ // 若单位体力足够
+        concentrateAction = { caster:copyUnit, type:7, score:0, };
     }
 
     // 生成爆气行动
-    consume = common.calcConsume({type:8,unit,}); // 爆气的消耗
-    if(common.canConsume({unit,consume,})){ // 若单位体力足够
+    consume = common.calcConsume({type:8,unit:copyUnit,}); // 爆气的消耗
+    if(common.canConsume({unit:copyUnit,consume,})){ // 若单位体力足够
         for(let i=4;i<11;i++){
-            let newBurstAction = { caster:unit, type:8, score:0, burstAttr:i, };
+            let newBurstAction = { caster:copyUnit, type:8, score:0, burstAttr:i, };
             burstActionList.push(newBurstAction);
         }
     }
 
     // 生成话术行动
-    consume = common.calcConsume({type:9,unit,}); // 话术的消耗
-    if(!common.isCrumble(unit)&&common.canConsume({unit,consume,})){ // 若单位未崩溃，同时体力足够
-        for(let youUnit of youTeam){
-            let newPersuadeAction = { caster:unit, type:9, score:0, targetUnitList:[youUnit], };
+    consume = common.calcConsume({type:9,unit:copyUnit,}); // 话术的消耗
+    if(!common.isCrumble(copyUnit)&&common.canConsume({unit:copyUnit,consume,})){ // 若单位未崩溃，同时体力足够
+        for(let youUnit of copyAliveYouTeam){
+            let newPersuadeAction = { caster:copyUnit, type:9, score:0, targetUnitList:[youUnit], };
             persuadeActionList.push(newPersuadeAction);
         }
     }
 
     // 集成所有行动
     actionList = [
-        // defAction,
-        // dodgeAction,
-        // traceAction,
-        // breathAction,
-        // concentrateAction,
         // ...burstActionList,
         // ...persuadeActionList,
-        ...attackActionList,
+        // ...attackActionList,
         ...skillActionList,
     ];
+    if(breathAction){
+        actionList.push(breathAction);
+    }
+    // if(defAction){
+    //     actionList.push(defAction);
+    // }
+    // if(traceAction){
+    //     actionList.push(traceAction);
+    // }
+    // if(dodgeAction){
+    //     actionList.push(dodgeAction);
+    // }
+    // if(concentrateAction){
+    //     actionList.push(concentrateAction);
+    // }
 
     // 从所有可执行的行动中选择一个
+    console.log(actionList);
     actionList = bulbsort(actionList,'score',);
-    // res = actionList[0];
-    res = actionList[r(0,actionList.length-1)];
+
+    let minRange = 9999;
+    if(minRange>actionList.length){
+        minRange = actionList.length;
+    }
+    res = actionList[r(0,minRange-1)];
 
     // console.log(actionList);
+    // console.log(res,attackActionList);
     let actionDesc = getActionDesc(res);
-    // console.log(actionDesc);
+    console.log(actionDesc);
 
     return res;
 }
 
 export function getActionDesc(action){
     let res = ``;
-    res += `${action.caster.btd.name}执行动作【${ACTION_TYPE_NAMES[action.type-1]}】`;
+    res += `${action.caster.btd.name}执行动作【${ACTION_TYPE_NAMES[action.type-1]}`;
     if(action.type==1){
-        res += `（${action.attack.n}）`;
+        res += `:${action.attack.n}`;
     }
-    if(action.burstAttr){
-        res += `（${BURST_NAMES[action.burstAttr-4]}）`;
+    else if(action.type==2){
+        res += `:${action.skill.n}`;
     }
+    else if(action.burstAttr){
+        res += `:${BURST_NAMES[action.burstAttr-4]}`;
+    }
+    res += `】`;
     if(action.targetUnitList&&action.targetUnitList.length>0){
         res += `：`;
         for(let i=0;i<action.targetUnitList.length;i++){

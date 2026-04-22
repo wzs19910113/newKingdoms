@@ -1,4 +1,8 @@
 import { DEBUG, CONFIG } from '../config/config';
+
+export function cl(n){
+    return Math.ceil(n);
+}
 /*
   获取随机整数
   random(3,8) 的随机区间为 3-8

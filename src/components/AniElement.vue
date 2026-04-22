@@ -1634,7 +1634,7 @@ export default {
 
       ctx.save();
       ctx.shadowBlur = 15;
-      ctx.shadowColor = `rgba(0, 0, 0, ${0.9 * finalAlpha})`;
+      ctx.shadowColor = `rgba(140, 0, 100, ${0.9 * finalAlpha})`;
 
       // 弧线参数
       const radius = 35;
@@ -1683,17 +1683,17 @@ export default {
         const endY = Math.sin(currentEndAngle) * radius;
         ctx.beginPath();
         ctx.arc(endX, endY, 6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 0, 0, ${0.85 * finalAlpha})`;
+        ctx.fillStyle = `rgba(140, 0, 100, ${0.85 * finalAlpha})`;
         ctx.fill();
         ctx.beginPath();
         ctx.arc(endX, endY, 3, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 0, 0, 1)`;
+        ctx.fillStyle = `rgba(140, 0, 100, 1)`;
         ctx.fill();
 
         // 终点拖尾光晕
         ctx.beginPath();
         ctx.arc(endX, endY, 10, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 0, 0, ${0.3 * finalAlpha})`;
+        ctx.fillStyle = `rgba(140, 0, 0, ${0.3 * finalAlpha})`;
         ctx.fill();
       }
       //

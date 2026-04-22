@@ -109,6 +109,9 @@ export default {
             else if(name=='shake'){
                 this.aniStyle = `unit-${name}`;
             }
+            else if(name=='strand'){
+                this.aniStyle = `unit-${name}`;
+            }
             else{
                 this.aniStyle = '';
             }
@@ -380,4 +383,21 @@ export default {
         }
     }
 
+    .unit-strand .avatar{
+        animation: strand .5s ease-in-out forwards;
+    }
+    @keyframes strand {
+        40%{
+            transform: scale(1.5);
+        }
+        60%{
+            transform: scale(.9);
+        }
+        80%{
+            transform: scale(1.2);
+        }
+        100%{
+            transform: scale(1);
+        }
+    }
 </style>

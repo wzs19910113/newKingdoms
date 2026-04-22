@@ -211,8 +211,12 @@ export default {
                 break;
                 case 'protect-power': // 强化
                     toY2 = toY+15*sizeScale;
-                    this.triggerElement({type:9,toX,toY,});
+                    // this.triggerElement({type:9,toX,toY,});
                     this.triggerElement({type:10,toX,toY:toY2,});
+                break;
+                case 'protect-shield': // 护盾
+                    this.triggerElement({type:9,toX,toY,});
+                    // this.triggerElement({type:10,toX,toY:toY2,});
                 break;
                 case 'protect-pure': // 净化
                     this.triggerElement({type:12,toX,toY,delay:0});
@@ -390,7 +394,7 @@ export default {
                 break;
                 case 'dark': //
                     res.period = .95;
-                    res.initAngle = 0;
+                    res.initAngle = r(0,Math.PI);
                     res.spinSpeed = 0;
                     res.scaleX = 1;
                     res.scaleY = 1;
