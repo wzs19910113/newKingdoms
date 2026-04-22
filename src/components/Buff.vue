@@ -68,14 +68,14 @@ export default {
         width: 48%;
         height: .3rem;
         line-height: .3rem;
-        font-size: .18rem;
+        font-size: .24rem;
         margin: .01rem 1%;
     }
     .buff-lg{
         width: .86rem;
         height: .4rem;
         line-height: .4rem;
-        font-size: .24rem;
+        font-size: .28rem;
     }
     .buff .buff-bg,
     .buff .buff-name{
@@ -99,6 +99,9 @@ export default {
     }
     .buff-bad .buff-bg{
         background-image: radial-gradient(#131313 0%, #800000 100%);
+    }
+    .buff-good{
+        
     }
     .buff-good .buff-bg-shadow{
         border: .01rem solid #fff;

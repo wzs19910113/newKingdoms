@@ -133,11 +133,11 @@ export default {
             // 生成角色
             // 生成装备
             for(let i=0;i<9;i++){
-                this.genEquip(i+1,r(1,5));
+                this.genEquip(1,r(1,5));
             }
             for(let i=0;i<9;i++){
                 // this.genSkill(r(1,9),1);
-                this.genSkill(i+1,);
+                this.genSkill(1,);
             }
         },
         genEquip(level,type){ // 生成一个装备

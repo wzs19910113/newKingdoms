@@ -164,8 +164,8 @@ export function genAction({unit,meTeam,youTeam,}){ // 生成 AI 动作 TODO
     actionList = [
         // ...burstActionList,
         // ...persuadeActionList,
-        // ...attackActionList,
-        ...skillActionList,
+        ...attackActionList,
+        // ...skillActionList,
     ];
     if(breathAction){
         actionList.push(breathAction);

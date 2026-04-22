@@ -62,10 +62,10 @@
                         <div class="menu-tag" v-if="menuData.state==2">
                             <div class="menu-sub-wrap menu-attack-wrap">
                                 <div class="menu-weapon" v-for="(weapon,index) in curUnitList[curUnitListIndex].btd.weaponList" :key="index">
-                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" v-for="(attack,index) in weapon.k" :key="index" :attack="attack" :mode="menuData.expand?1:2"  :ban="checkSubMenuButtonBan({unit:curUnitList[curUnitListIndex],data:attack})" @onTap="onTapMenuAttack" />
+                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" v-for="(attack,index) in weapon.k" :key="index" :unit="curUnitList[curUnitListIndex]" :attack="attack" :mode="menuData.expand?1:2"  :ban="checkSubMenuButtonBan({unit:curUnitList[curUnitListIndex],data:attack})" @onTap="onTapMenuAttack" />
                                 </div>
                                 <div class="menu-weapon">
-                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" :attack="curUnitList[curUnitListIndex].btd.defaultAttack" :mode="menuData.expand?1:2"  :ban="checkSubMenuButtonBan({unit:curUnitList[curUnitListIndex],data:curUnitList[curUnitListIndex].btd.defaultAttack,})" @onTap="onTapMenuAttack" />
+                                    <Attack class="menu-attack btn" :class="menuData.expand?'':'menu-attack-shrink'" :attack="curUnitList[curUnitListIndex].btd.defaultAttack" :unit="curUnitList[curUnitListIndex]" :mode="menuData.expand?1:2"  :ban="checkSubMenuButtonBan({unit:curUnitList[curUnitListIndex],data:curUnitList[curUnitListIndex].btd.defaultAttack,})" @onTap="onTapMenuAttack" />
                                 </div>
                             </div>
                         </div>
@@ -780,7 +780,7 @@ export default {
                 unit.btd.changes.eng -= res;
             }
             // 把消耗转化为潜能
-            unit.btd.changes.ptc += Math.round(consume*10*unit.btd.attrs[10]/CONFIG.ptcDeno);
+            unit.btd.changes.ptc += common.calcPotencyByConsume({unit,consume,});
             return res;
         },
         checkEnd(){ // 检查胜负 0未结束 1我方获胜 2敌人获胜 3撤离成功
@@ -809,14 +809,79 @@ export default {
             }
             return res;
         },
+        stealAction({caster,target,gold,}){ // 结算偷钱行为
+            let gain = gold;
+            gain = setInRange(gain,0,target.btd.money);
+            if(gain>0){
+                target.btd.changes.money -= gain;
+                caster.btd.changes.money += gain;
+                this.registerAniEffect(201,target);
+                this.registerAniEffect(201,caster);
+            }
+        },
+        painAction({target, dmg,}){ // 结算常规伤害
+            let penetrate = 0;
+            let { defPain, hpPain, } = common.calcPain({unit:target,dmg,}); // pain = { defPain, hpPain, }
+            target.btd.changes.def -= defPain;
+            if(hpPain>0){ // 破防，掉血
+                target.btd.changes.hp -= hpPain;
+                this.registerAniEffect(201,target);
+                penetrate = 1;
+            }
+            return penetrate;
+        },
         attackOnTarget({caster,target,attack,hit=0,skill}){ // 单位受到攻击并计算 changes，hit是否确定命中
+            let hitBuffActions = ({dmg,}) =>{ // 结算所有的 buff 效果
+                let buff;
+
+                if(buff=common.getBuff(caster,7)){ // 财迷bufff
+                    let goldDmg = common.calcStealBuff({buff,});
+                    this.stealAction({ caster, target, gold:goldDmg, });
+                }
+
+                if(buff=common.getBuff(caster,)){ // 架势bufff
+                    let defRecover = common.calcPoseBuff({target,buff,});
+                    target.btd.changes.def += defRecover;
+                }
+
+                if(buff=common.getBuff(caster,9)){ // 内息bufff
+                    let phyRecover = common.calcAuraBuff({target,buff,});
+                    target.btd.changes.phy += phyRecover;
+                }
+
+                if(buff=common.getBuff(caster,10)){ // 狂暴bufff
+                    let movRecover = common.calcRageBuff({buff,});
+                    target.btd.changes.mov += movRecover;
+                    this.registerAniEffect(102,target);
+                }
+
+                if(buff=common.getBuff(caster,11)){ // 反伤bufff
+                    let rebounceDmg = common.calcRebounceBuff({buff,dmg,});
+                    this.painAction({target:caster,dmg:rebounceDmg,});
+                }
+
+                if(buff=common.getBuff(caster,12)){ // 嗜血bufff
+                    let hpRecover = common.calcDrainingBuff({buff,dmg,});
+                    caster.btd.changes.hp += hpRecover;
+                    this.registerAniEffect(201,caster);
+                }
+
+                if(buff=common.getBuff(caster,16)){ // 亢奋bufff
+                    let phyRecover = common.calcExcitedBuff({buff,dmg,});
+                    caster.btd.changes.phy += phyRecover;
+                }
+            }
+
             if(hit||common.calcHit({caster,target})){ // 命中，结算伤害
                 let btd = target.btd;
                 let changes = btd.changes;
                 let penetrate = 0; // 是否穿透防御
+
                 changes.domAni = "shake";
+
                 // 推送攻击画布动画
-                this.pushEffectType(attack.et+(skill?10:0),target);
+                this.registerAniEffect(attack.et+(skill?10:0),target);
+
                  // 计算伤害
                 let dmg = common.calcAttackDmg({caster,attack,});
 
@@ -824,19 +889,16 @@ export default {
                 if(attack.s&&attack.s==2&&r(1,100)<CONFIG.spAttackRate){
                     let extraTrueDmg = Math.round(dmg*CONFIG.spLevelMap[1][attack.sl-1]); // 额外增加的真实伤害值
                     if(extraTrueDmg>0){
-                        this.pushEffectType(201,target);
-                        this.pushEffectType(105,target);
+                        this.registerAniEffect(201,target);
+                        this.registerAniEffect(105,target);
                         penetrate = 1;
                         changes.hp -= extraTrueDmg;
                     }
                 }
 
-                // 常规伤害结算规则
-                let { defPain, hpPain, } = common.calcPain({unit:target,dmg}); // pain = { defPain, hpPain, }
-                changes.def -= defPain;
-                if(hpPain>0){ // 破防，掉血
-                    changes.hp -= hpPain;
-                    this.pushEffectType(201,target);
+                // 结算伤害
+                let hpDamaged = this.painAction({target,dmg,});
+                if(!penetrate&&hpDamaged){
                     penetrate = 1;
                 }
 
@@ -846,41 +908,34 @@ export default {
                         let movDmg = common.calcQuellSpDmg({caster,target,attack,dmg});
                         if(movDmg>0){
                             changes.mov -= movDmg;
-                            this.pushEffectType(102,target);
+                            this.registerAniEffect(102,target);
                         }
                     }
                     else if(attack.s==3){ // 气溃sppp，计算潜能伤害
                         let ptcDmg = common.calcPotencySpDmg({caster,target,attack,dmg});
                         if(ptcDmg>0){
                             changes.ptc -= ptcDmg;
-                            this.pushEffectType(103,target);
+                            this.registerAniEffect(103,target);
                         }
                     }
                     else if(attack.s==4){ // 精溃sppp，计算精力伤害
                         let engDmg = common.calcEnergySpDmg({caster,target,attack,dmg});
                         if(engDmg>0){
                             changes.eng -= engDmg;
-                            this.pushEffectType(201,target);
+                            this.registerAniEffect(201,target);
                         }
                     }
                     else if(attack.s==6){ // 攻心sppp，计算心灵伤害
                         let mentalDmg = common.calcMentalSpDmg({caster,target,attack,dmg});
                         if(mentalDmg>0){
                             changes.mdef -= mentalDmg;
-                            this.pushEffectType(201,target);
+                            this.registerAniEffect(201,target);
                         }
                     }
                     else if(attack.s==7){ // 偷窃sppp，计算金币伤害
                         let goldDmg = common.calcGoldSpDmg({caster,target,attack,dmg,});
                         if(goldDmg>0){
-                            let gain = goldDmg;
-                            gain = setInRange(gain,0,target.btd.money);
-                            if(gain>0){
-                                changes.money -= goldDmg;
-                                caster.btd.changes.money += gain;
-                                this.pushEffectType(201,target);
-                                this.pushEffectType(201,caster);
-                            }
+                            this.stealAction({ caster, target, gold:goldDmg, });
                         }
                     }
                 }
@@ -892,16 +947,20 @@ export default {
                         target.btd.changes.buffList.push({ id:buffId, level:buffLevel, });
                     }
                 }
-                if(this.isFleeing){
+
+                hitBuffActions({dmg,});
+
+                // 撤离失败
+                if(target.btd.isPlayer&&this.isFleeing){
                     this.resetFlee();
                     this._alert(`撤离失败`);
                 }
             }
             else{ // 未命中
-                this.pushEffectType(106,target);
+                this.registerAniEffect(106,target);
             }
             if(attack.s&&attack.s==5&&r(1,100)<CONFIG.spAttackRate){ // 锁敌sppp
-                this.pushEffectType(104,target);
+                this.registerAniEffect(104,target);
                 target.btd.changes.dge += CONFIG.spLevelMap[4][attack.sl-1];
             }
         },
@@ -1038,7 +1097,7 @@ export default {
             let effectTypeList = changes.effectTypeList;
             // console.log(`根据 changes 生成并推送多个‘单动画数据’进入aniList用于稍后播放`,caster.btd.name,effectTypeList);
             for(let effectType of effectTypeList){
-                if((effectType>0&&effectType<17)||effectType==105||effectType==106){ // 动画效果+破盾+miss
+                if((effectType>0&&effectType<99)||effectType==105||effectType==106){ // 动画效果+破盾+miss
                     this.aniList.push({caster,target,effectType,});
                 }
                 else if(effectType==201&&(changes.hp||changes.eng||changes.mdef||changes.money)){ // 通用数字（血精心钱）
@@ -1055,7 +1114,7 @@ export default {
                 }
             }
         },
-        pushEffectType(type,unit,){ // 为单位的 changes 添加 effectType，用于播放画布动画
+        registerAniEffect(type,unit,){ // 为单位的 changes 添加 effectType，用于播放画布动画
             if(arrContains(unit.btd.changes.effectTypeList,type)==-1){
                 unit.btd.changes.effectTypeList.push(type);
                 // console.log(`!!!!!!!!!!!${unit.btd.name}`,unit.btd.changes.effectTypeList);
@@ -1150,14 +1209,15 @@ export default {
             let consume = common.calcConsume({type:1,unit:caster,data:attack,});
             this.consumeAction({consume,unit:caster,});
             if(consume>0){
-                this.pushEffectType(103,caster);
+                this.registerAniEffect(103,caster);
             }
 
             // 攻击者存在感上升
             let dodgeup = common.calcAttackDodgeup({unit:caster,});
             caster.btd.changes.dge += dodgeup;
+            this.registerAniEffect(104,caster);
 
-            this.pushEffectType(201,caster);
+            this.registerAniEffect(201,caster);
 
             // 遍历每个攻击目标单位
             for(let target of targetUnitList){
@@ -1175,22 +1235,22 @@ export default {
             let consume = common.calcConsume({type:1,unit:caster,data:skill,});
             this.consumeAction({consume,unit:caster,});
             if(consume>0){
-                this.pushEffectType(103,caster);
+                this.registerAniEffect(103,caster);
             }
 
-            if(skill.t>2){ // 目标为敌人
-                // 攻击者存在感上升
+            if(skill.t>2){ // 目标为敌人，攻击者存在感上升
                 let dodgeup = common.calcSkillDodgeup({unit:caster,skill,});
                 caster.btd.changes.dge += dodgeup;
+                this.registerAniEffect(104,caster);
             }
 
-            this.pushEffectType(201,caster); // 注册通用数字动画
+            this.registerAniEffect(201,caster); // 注册通用数字动画
 
             // 遍历每个攻击目标单位
             for(let target of targetUnitList){
                 let hit = common.calcHit({caster,target});
                 if(!hit){ // 技能未命中
-                    this.pushEffectType(106,target);
+                    this.registerAniEffect(106,target);
                 }
                 else{ // 技能命中
                     for(let e of skill.el){ // 遍历技能的每个效果 1攻击 2添加状态 3减弱一个状态 4治疗 5改甲 6改潜 7改心 8改存
@@ -1203,20 +1263,26 @@ export default {
                             let { b, bl, } = d;
 
                             // 祝福bufff
-                            let buff = common.getBuff(target,3);
-                            let negativeThrottling = buff.level;
+                            let blessBuff = common.getBuff(target,3);
+
+                            // 诅咒bufff
+                            let curseBuff = common.getBuff(target,103);
 
                             for(let i=0;i<b.length;i++){
                                 let canBuff = 1; // target是否可以获得这个buff
                                 let buffId = b[i], buffLevel = bl[i];
                                 let oBuff = common.getConfigBuff(buffId);
-                                if(!oBuff.good&&buffLevel<=negativeThrottling){ // 负面buff
+                                if(!oBuff.good&&blessBuff&&buffLevel<=blessBuff.level){ // 祝福bufff抵挡负面buff
                                     canBuff = 0;
-                                    this._alert(`免疫负面状态`);
+                                    this._alert(`祝福免疫`);
                                 }
-                                if(canBuff){
+                                if(oBuff.good&&curseBuff&&buffLevel<=curseBuff.level){ // 诅咒bufff抵挡正面buff
+                                    canBuff = 0;
+                                    this._alert(`诅咒侵蚀`);
+                                }
+                                if(canBuff){ // 可以获得buff
                                     target.btd.changes.buffList.push({ id:buffId, level:buffLevel, });
-                                    this.pushEffectType(oBuff.good?50:10,target);
+                                    this.registerAniEffect(oBuff.good?50:10,target);
                                     target.btd.changes.domAni = oBuff.good?'strand':'shake';
                                 }
                             }
@@ -1235,15 +1301,15 @@ export default {
                                     target.btd.changes.weakenBuff = { id:weakenBuff.id, level:d, };
                                 }
                             }
-                            this.pushEffectType(10,target);
+                            this.registerAniEffect(10,target);
                             target.btd.changes.domAni = skill.t==3?'shake':'strand';
                         }
                         else if(t==5){ // 治疗
                             let cureDmg = common.calcCure({caster,target,data:d,});
                             target.btd.changes.hp += cureDmg;
 
-                            this.pushEffectType(7,target);
-                            this.pushEffectType(201,target);
+                            this.registerAniEffect(7,target);
+                            this.registerAniEffect(201,target);
                             target.btd.changes.domAni = 'strand';
                         }
                         else if(t==6){ // 改变护甲（弃用）
@@ -1252,15 +1318,15 @@ export default {
                         else if(t==7){ // 改变潜能
                             let ptcDmg = common.calcPotencyDmg({target,data:d,});
                             target.btd.changes.ptc += ptcDmg;
-                            this.pushEffectType(103,target);
-                            this.pushEffectType(ptcDmg>0?8:10,target);
+                            this.registerAniEffect(103,target);
+                            this.registerAniEffect(ptcDmg>0?8:10,target);
                             target.btd.changes.domAni = skill.t==3?'shake':'strand';
                         }
                         else if(t==8){ // 改变心理防御
                             let mentalDmg = common.calcMentalDmg({caster,target,data:d,});
                             target.btd.changes.mdef += mentalDmg;
-                            this.pushEffectType(201,target);
-                            this.pushEffectType(mentalDmg>0?8:10,target);
+                            this.registerAniEffect(201,target);
+                            this.registerAniEffect(mentalDmg>0?8:10,target);
                             target.btd.changes.domAni = skill.t==3?'shake':'strand';
                         }
                     }
@@ -1275,8 +1341,8 @@ export default {
                     if(t==9){
                         let dodgeDmg = common.calcDodgeDmg({target,data:d,});
                         target.btd.changes.dge += dodgeDmg;
-                        this.pushEffectType(104,target);
-                        this.pushEffectType(dodgeDmg<0?8:10,target);
+                        this.registerAniEffect(104,target);
+                        this.registerAniEffect(dodgeDmg<0?8:10,target);
                         target.btd.changes.domAni = skill.t==3?'':'strand';
                     }
                 }
@@ -1294,7 +1360,7 @@ export default {
                 this.boardTip(`${caster.btd.name} 心理防御奔溃，无法恢复防御`);
             }
             if(this.consumeAction({consume:CONFIG.baseConsumeList[0],unit:caster,})){ // 结算消耗
-                this.pushEffectType(201,caster);
+                this.registerAniEffect(201,caster);
             }
             this.unitRoundEpilog(caster);
         },
@@ -1303,13 +1369,13 @@ export default {
                 let dodgeValue = common.calcDodge({caster});
                 caster.btd.changes.dge -= dodgeValue;
                 caster.btd.changes.domAni = "strand";
-                this.pushEffectType(104,caster);
+                this.registerAniEffect(104,caster);
             }
             else{
                 this.boardTip(`${caster.btd.name} 心理防御奔溃，无法躲避`);
             }
             if(this.consumeAction({consume:CONFIG.baseConsumeList[1],unit:caster,})){ // 结算消耗
-                this.pushEffectType(201,caster);
+                this.registerAniEffect(201,caster);
             }
             this.unitRoundEpilog(caster);
         },
@@ -1322,9 +1388,9 @@ export default {
                 caster.btd.changes.domAni = "cast";
                 target.btd.changes.dge += CONFIG.dodgeupByTrace;
                 if(this.consumeAction({consume:CONFIG.baseConsumeList[2],unit:caster,})){
-                    this.pushEffectType(201,caster);
+                    this.registerAniEffect(201,caster);
                 }
-                this.pushEffectType(104,target);
+                this.registerAniEffect(104,target);
             }
             this.unitRoundEpilog(caster);
         },
@@ -1340,7 +1406,7 @@ export default {
                 this.boardTip(`${caster.btd.name} 心理防御奔溃，体力最多恢复到1点`);
             }
             if(this.consumeAction({consume:CONFIG.baseConsumeList[3],unit:caster,})){ // 结算消耗
-                this.pushEffectType(201,caster);
+                this.registerAniEffect(201,caster);
             }
             this.unitRoundEpilog(caster);
         },
@@ -1349,9 +1415,9 @@ export default {
             caster.btd.changes.ptc += potencyValue;
             caster.btd.changes.domAni = "strand";
             if(this.consumeAction({consume:CONFIG.baseConsumeList[4],unit:caster,})){
-                this.pushEffectType(201,caster);
+                this.registerAniEffect(201,caster);
             }
-            this.pushEffectType(103,caster);
+            this.registerAniEffect(103,caster);
             this.unitRoundEpilog(caster);
         },
         unitBurst(caster,attr){ // 单位爆气
@@ -1359,14 +1425,14 @@ export default {
             caster.btd.changes.ptc -= caster.btd.ptc;
             caster.btd.changes.domAni = "strand";
             if(this.consumeAction({consume:CONFIG.baseConsumeList[5],unit:caster,})){
-                this.pushEffectType(201,caster);
+                this.registerAniEffect(201,caster);
             }
-            this.pushEffectType(9,caster);
+            this.registerAniEffect(9,caster);
             this.unitRoundEpilog(caster);
         },
         unitPersuade(caster,targetUnitList){ // 单位话术
             if(this.consumeAction({consume:CONFIG.baseConsumeList[6],unit:caster,})){ // 结算消耗
-                this.pushEffectType(201,caster);
+                this.registerAniEffect(201,caster);
             }
             if(!common.isCrumble(caster)){
                 caster.btd.changes.domAni = "cast";
@@ -1375,19 +1441,19 @@ export default {
                 let dodgeup = common.calcPersuadeDodgeup({unit:caster,});
                 caster.btd.changes.dge += dodgeup;
 
-                this.pushEffectType(201,caster);
+                this.registerAniEffect(201,caster);
 
                 // 遍历每个目标对象
                 for(let target of targetUnitList){
                     let hit = common.calcHit({caster,target});
                     if(!hit){ // 话术未命中
-                        this.pushEffectType(106,target);
+                        this.registerAniEffect(106,target);
                     }
                     else{ // 话术命中
                         let psyValue = common.calcPersuade({caster,target,});
                         target.btd.changes.domAni = "shake";
                         target.btd.changes.mdef -= psyValue;
-                        this.pushEffectType(201,target);
+                        this.registerAniEffect(201,target);
                         this.boardTip(`${caster.btd.name} 对 ${target.btd.name} 说：“${CONFIG.balderdashs[r(0,CONFIG.balderdashs.length-1)]}”`);
                     }
                 }
@@ -1407,7 +1473,7 @@ export default {
             this.isFleeing = 1;
             this.totalFleeMove = fleeMoveIncresement*CONFIG.fleeTotalMoveFactor;
             if(this.consumeAction({consume:CONFIG.baseConsumeList[7],unit:caster,})){ // 结算消耗
-                this.pushEffectType(201,caster);
+                this.registerAniEffect(201,caster);
             }
             this.unitRoundEpilog(caster);
         },

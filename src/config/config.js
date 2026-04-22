@@ -17,73 +17,74 @@ module.exports = {
 			},{
 				id: 3,name: '祝福',trend:1,good:1,
 				desc: '不会获得低于祝福强度的所有负面状态',
-				construction: [, , , , , , , , ,],
+				construction: [0, 0, 0, 0, 0, 0, 0, 0, 0,],
 			},{
 				id: 4,name: '屏息',trend:2,good:1,
 				desc: '减少攻击和技能的体力消耗',
-				construction: [, , , , , , , , ,],
+				construction: [.84, .8, .76, .72, .68, .64, .6, .56, .52,],
 			},{
 				id: 5,name: '蓄能',trend:2,good:1,
 				desc: '潜能累积速度更快',
-				construction: [, , , , , , , , ,],
+				construction: [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2,],
 			},{
 				id: 6,name: '潜行',trend:1,good:1,
 				desc: '存在感下降更多',
-				construction: [, , , , , , , , ,],
+				construction: [2, 2.4, 2.8, 3.2, 3.6, 4, 4.4, 4.8, 5.2,],
 			},{
 				id: 7,name: '财迷',trend:1,good:1,
-				desc: '造成伤害后能获得金币',
-				construction: [, , , , , , , , ,],
+				desc: '攻击命中后能获得金币',
+				construction: [10, 15, 25, 50, 80, 125, 200, 300, 500,],
 			},{
 				id: 8,name: '架势',trend:1,good:1,
 				desc: '受到伤害后立刻恢复防御力',
-				construction: [, , , , , , , , ,],
+				construction: [.1, .125, .15, .175, .2, .225, .25, .275, .3,],
 			},{
 				id: 9,name: '内息',trend:2,good:1,
 				desc: '受到伤害后立刻恢复体力',
-				construction: [, , , , , , , , ,],
+				construction: [.1, .125, .15, .175, .2, .225, .25, .275, .3,],
 			},{
 				id: 10,name: '狂暴',trend:2,good:1,
-				desc: '受到伤害后立刻提升行动力',
-				construction: [, , , , , , , , ,],
+				desc: '无视压制，受到伤害后立刻提升行动力',
+				construction: [1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000,],
 			},{
 				id: 11,name: '反伤',trend:1,good:1,
 				desc: '对伤害来源造成伤害',
-				construction: [, , , , , , , , ,],
+				construction: [.2, .225, .25, 275, .3, .325, .35, .375, .4,],
 			},{
 				id: 12,name: '嗜血',trend:1,good:1,
 				desc: '造成伤害后恢复自己的生命',
-				construction: [, , , , , , , , ,],
+				construction: [.2, .225, .25, 275, .3, .325, .35, .375, .4,],
 			},{
 				id: 13,name: '猛攻',trend:2,good:1,
 				desc: '提升力量补正',
-				construction: [, , , , , , , , ,],
+				construction: [1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8,],
 			},{
 				id: 14,name: '鹰眼',trend:2,good:1,
 				desc: '提升精准补正',
-				construction: [, , , , , , , , ,],
+				construction: [1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8,],
 			},{
 				id: 15,name: '迅捷',trend:2,good:1,
 				desc: '提升行动力增速',
-				construction: [, , , , , , , , ,],
+				construction: [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9,],
 			},{
 				id: 16,name: '亢奋',trend:2,good:1,
 				desc: '造成伤害后恢复自己的体力',
-				construction: [, , , , , , , , ,],
+				construction: [2, 4, 6, 8, 10, 12, 16, 18, 20,],
 			},{
 				id: 17,name: '隐匿',trend:1,good:1,
 				desc: '减少存在感的提升',
-				construction: [, , , , , , , , ,],
+				// construction: [, , , , , , , , ,],
+				construction: [100, 100, 100, 100, 100, 100, 100, 100, 100,],
 			},{
 				id: 18,name: '战气',trend:2,good:1,
 				desc: '造成伤害的同时削弱精力',
 				construction: [, , , , , , , , ,],
 			},{
-				id: 19,name: '战魂',trend:2,good:1,
+				id: 19,name: '霸气',trend:2,good:1,
 				desc: '造成伤害的同时削弱潜能',
 				construction: [, , , , , , , , ,],
 			},{
-				id: 20,name: '看透',trend:2,good:1,
+				id: 20,name: '识破',trend:2,good:1,
 				desc: '对敌人的心里防御造成更多伤害',
 				construction: [, , , , , , , , ,],
 			},{
@@ -100,12 +101,12 @@ module.exports = {
 				desc: '进行攻击时会损失生命',
 				construction: [, , , , , , , , ,],
 			},{
-				id: 103,name: '感染',trend:3,good:0,
-				desc: '受到的治疗效果减弱',
+				id: 103,name: '诅咒',trend:3,good:0,
+				desc: '不会获得低于诅咒强度的所有正面状态',
 				construction: [, , , , , , , , ,],
 			},{
-				id: 104,name: '诅咒',trend:3,good:0,
-				desc: '不会获得低于诅咒强度的所有正面状态',
+				id: 104,name: '感染',trend:3,good:0,
+				desc: '受到的治疗效果减弱',
 				construction: [, , , , , , , , ,],
 			},{
 				id: 105,name: '紊乱',trend:4,good:0,
@@ -287,7 +288,7 @@ module.exports = {
 
 		defAutoRecoverFactor: .5, // 防御值自动回升系数
 		baseConsumeList: [1,1,1,0,1,1,2,3,], // 基础操作的体力消耗 0防御 1躲避 2追踪 3呼吸 4集气 5爆气 6劝降 7撤离
-		spAttackRate: 25, // 武器的 SP 效果触发概率
+		spAttackRate: 80, // 武器的 SP 效果触发概率
 
 		dodgeupByTrace: 1000, // 追踪带来的存在感提升值
 		fleeTotalMoveFactor: 50, // 撤离需要的总撤离值倍数
