@@ -79,7 +79,7 @@ export default {
         onTapEquip(data){ // 点击【装备】
             let { flag, equip, buffId, buffLevel, sp, spLevel, } = data;
             if(flag==1){ //
-
+                // console.log(equip);
             }
             else if(flag==2){ // 点击buff
                 this.onTapBuff(buffId,buffLevel);
@@ -90,7 +90,7 @@ export default {
         },
         onTapBuff(id,level){ // 点击【buff】
             let buff = getMatchList(BUFF_LIST,[['id',id]])[0]||{};
-            this._alert(`让敌人${buff.name}（强度${level}）：${buff.desc}`,5);
+            this._alert(`获得状态：${buff.name}（强度${level}），${buff.desc}`,5);
         },
         onTapCheat(){ // 点击【作弊】按钮
 

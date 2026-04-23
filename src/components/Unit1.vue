@@ -21,6 +21,9 @@
             <div class="stat-row">
                     <span class="stat-team-info" v-if="unit.tms>0">在队</span>{{(unit.nk?`${unit.nk}·`:``)+unit.nm}}，{{['男','女'][unit.gd-1]}} ，{{unit.age}}，信任度 <b>{{Math.floor(unit.rel/10000*100)}}</b> %
                 </div>
+            <div class="stat-row stat-score" v-if="mode==2">
+                战斗价值：{{unit.btd.score}} （ {{unit.btd.attrScore}} + {{unit.btd.equipScore}} + {{unit.btd.skillScore}} ）
+            </div>
             <div class="stat-row" v-if="mode==2">
                 心里防御：<span :class="unit.btd.mdef<=0?'red':''">{{unit.btd.mdef}}</span>
             </div>
@@ -215,6 +218,11 @@ export default {
         display: inline-block;
         width: 100%;
         text-align: right;
+    }
+    .stat-score{
+        margin: .08rem 0;
+        padding: .08rem;
+        background-color: #111;
     }
     .line-wrap{
         position: relative;

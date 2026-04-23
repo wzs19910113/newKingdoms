@@ -132,10 +132,10 @@ export default {
         genGameData({}){ // 生成随机的游戏数据
             // 生成角色
             // 生成装备
-            for(let i=0;i<9;i++){
+            for(let i=0;i<3;i++){
                 this.genEquip(1,r(1,5));
             }
-            for(let i=0;i<9;i++){
+            for(let i=0;i<2;i++){
                 // this.genSkill(r(1,9),1);
                 this.genSkill(1,);
             }

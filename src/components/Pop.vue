@@ -73,6 +73,6 @@ export default {
     }
     .pop-content{
         overflow-y: auto;
-        max-height: 7.5rem;
+        max-height: 11.5rem;
     }
 </style>

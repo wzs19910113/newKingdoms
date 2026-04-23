@@ -5,14 +5,14 @@
             <div class="row">
                 <span class="name">{{skill.n}}</span>
                 <a class="consume">（{{common.calcConsume({type:2,data:skill,unit})}}）</a>
+                <span class="awa" v-if="skill.t==3">存在感+{{common.awaFormat(skill.d)}}%</span>
             </div>
             <div class="row row-desc">
-                <span class="awa" v-if="skill.t==3">存在感+{{common.awaFormat(skill.d)}}%</span>
                 <span class="desc" v-html="getSkillTip()"></span>
             </div>
             <div class="row atk-wrap" v-if="atkEffectIndex!=-1">
                 <div class="wrap-item atk">
-                    <a class="atk-dmg">伤害{{skill.el[atkEffectIndex].d.d}}（{{[`劈砍`,`钝击`,`子弹`,`飞刀`,`火炮`,`雷击`,][skill.el[atkEffectIndex].d.et-1]}}）</a>
+                    <a class="atk-dmg">伤害 {{skill.el[atkEffectIndex].d.d}}</a>
                     <a class="atk-r1" v-if="skill.el[atkEffectIndex].d.r1" @click.stop="_onTapRx1">（ 力补：{{common.genRXString(skill.el[atkEffectIndex].d.r1)}} ）</a>
                     <a class="atk-r2" v-if="skill.el[atkEffectIndex].d.r2" @click.stop="_onTapRx2">（ 精补：{{common.genRXString(skill.el[atkEffectIndex].d.r2)}} ）</a>
                 </div>
@@ -98,42 +98,48 @@ export default {
         },
         getSkillTip(){ // 获取技能描述
             let effectTip = ``;
-            effectTip += `对${['自己','友方','敌方'][this.skill.t-1]}：`;
+            effectTip += `令${['自己','友方','敌方'][this.skill.t-1]}：`;
             for(let i=0;i<this.skill.el.length;i++){
                 let { t, d, } = this.skill.el[i];
                 switch(t){
                     case 1: // 攻击
-                        effectTip += `伤害，`;
+                        effectTip += `受到伤害，`;
                     break;
                     case 2: // 添加状态
-                        effectTip += `赋予状态，`;
+                        effectTip += `获得状态，`;
                     break;
                     case 3: // 减弱正面状态
-                        effectTip += `正面强度-${d}，`;
+                        effectTip += `状态强度-${d}，`;
                     break;
                     case 4: // 减弱负面状态
-                        effectTip += `负面强度-${d}，`;
+                        effectTip += `状态强度-${d}，`;
                     break;
                     case 5: // 恢复生命
-                        effectTip += `治疗${d.h}${d.rx>0?` + 智${common.genRXString(d.rx)}`:''}，`;
+                        effectTip += `治疗（${d.h}${d.rx>0?`+智${common.genRXString(d.rx)}）`:'）'}，`;
                     break;
                     case 6: // 改变护甲
                         // effectTip += `${d>0?'护甲+':'护甲'}${d}，`;
                     break;
                     case 7: // 改变潜能
-                        effectTip += `${d.d>0?'潜能提升':'潜能'}${common.awaFormat(d.d)}%`;
+                        effectTip += `${d.d>0?'潜能提升':'潜能'}（${common.awaFormat(d.d)}%`;
                         if(d.rx){
-                            effectTip += `+爆${common.genRXString(d.rx)}`;
+                            effectTip += `+爆${common.genRXString(d.rx)}）`;
+                        }
+                        else{
+                            effectTip += `）`;
                         }
                         effectTip += `，`;
                     break;
                     case 8: // 改变心防
-                        effectTip += `${d.d>0?'心理恢复':'心理伤害'}${Math.abs(d.d)}`;
+                        effectTip += `${d.d>0?'心理恢复':'心理伤害'}（${Math.abs(d.d)}`;
                         if(d.rx1){
-                            effectTip += `+定${common.genRXString(d.rx1)}`;
+                            effectTip += `+定${common.genRXString(d.rx1)}）`;
                         }
                         else if(d.rx2){
-                            effectTip += `+智${common.genRXString(d.rx2)}`;
+                            effectTip += `+智${common.genRXString(d.rx2)}）`;
+                        }
+                        else{
+                            effectTip += `）`;
                         }
                         effectTip += `，`;
                     break;
@@ -142,9 +148,9 @@ export default {
                             effectTip += `存在感+${Math.abs(common.awaFormat(d.d))}%`;
                         }
                         else{
-                            effectTip += `存在感-隐${common.genRXString(d.rx)}`;
+                            effectTip += `存在感下降（隐${common.genRXString(d.rx)})`;
                         }
-                        effectTip += `，`;
+                        effectTip += `， `;
                     break;
                     break;
                 }

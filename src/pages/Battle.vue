@@ -261,9 +261,13 @@ export default {
         window.GLOBAL.game.allUnits = _nus;
         window.GLOBAL.game.allEquips = [];
 
-        _nus[3].as[6] = 800;
-        _nus[3].as[1] = 1800;
-        // _nus[7].as[6] = 800;
+        // _nus[3].as[6] = 800;
+        // _nus[3].as[1] = 1800;
+        // _nus[3].as[7] = 100;
+        // _nus[3].as[10] = 1000;
+        // _nus[3].as[9] = 250;
+        _nus[7].as[6] = 120;
+        _nus[7].as[2] = 100;
 
         _nus[0].es[0] = 1;
         _nus[1].es[0] = 2;
@@ -551,7 +555,16 @@ export default {
 
         roundStart(unit){ // 单位回合开始
             // console.log(`单位回合开始`,unit.btd.name);
+            let allUnits = [...this.playerTeam,...this.enemyTeam];
             this.clearAllTimers();
+            // 初始化所有单位的 changes
+            for(let _unit of allUnits){
+                _unit.btd.changes = cloneObj(INIT_CHANGES);
+                _unit.btd.followChanges = cloneObj(INIT_CHANGES);
+            }
+            // 防页面停滞
+            this.jk(unit);
+            // 撤离中的话玩家不能行动
             if(this.isFleeing&&unit.btd.isPlayer){
                 this.roundEnd();
                 return;
@@ -559,6 +572,7 @@ export default {
             this.$nextTick(_=>{
                 // 当前行动者标识
                 unit.btd.cur = 1;
+                this.jk(unit);
                 // 回合次数+1
                 this.roundCount++;
                 // 通用前置动作
@@ -580,28 +594,62 @@ export default {
             });
         },
         unitRoundPrologue(unit){ // 单位回合的通用前置动作
-            let allUnits = [...this.playerTeam,...this.enemyTeam];
-            // 初始化所有单位的 changes
-            for(let _unit of allUnits){
-                _unit.btd.changes = cloneObj(INIT_CHANGES);
-            }
-            // 防页面停滞
-            this.jk(unit);
-
             let btd = unit.btd;
             // 防御值自动回升
             if(btd.mdef>0){ // 判断是否心理崩溃，若没有则防御值自动回升
-                btd.def[0] += Math.round(btd.def[1]*btd.hp[0]/btd.hp[1]*CONFIG.defAutoRecoverFactor);
+                let defRecover = common.calcDefRecover({unit,});
+                btd.def[0] += defRecover;
                 btd.def[0] = setInRange(btd.def[0],0,btd.def[1]);
             }
         },
         unitRoundEpilog(curUnit){ // 单位回合的通用后置动作（已计算好所有单位的changes，还未触发动画）
             let allAliveUnits = this.getAllAliveUnits();
-            // 根据buff，重新计算每个单位的 changes @TODO
-            for(let unit of allAliveUnits){
-                let btd = unit.btd;
-                let changes = btd.changes;
+            let buff;
+
+            /* 根据buff，重新计算当前单位的 changes */
+
+            // 蓄能bufff
+            if(buff=common.getBuff(curUnit,5)){
+                let ptcRecover = common.calcPotencyBuff({caster:curUnit,buff,});
+                curUnit.btd.followChanges.ptc += ptcRecover;
+                this.registerAniEffect(103,curUnit,1);
             }
+
+            // 隐匿bufff
+            if(buff=common.getBuff(curUnit,17)){
+                let dgeRecover = common.calcHideBuff({caster:curUnit,buff,});
+                curUnit.btd.followChanges.dge -= dgeRecover;
+                this.registerAniEffect(104,curUnit,1);
+            }
+
+            // 疗愈bufff
+            if(buff=common.getBuff(curUnit,22)){
+                let hpRecover = common.calcHealBuff({caster:curUnit,buff,});
+                curUnit.btd.followChanges.hp += hpRecover;
+                this.registerAniEffect(201,curUnit,1);
+            }
+
+            // 恐惧bufff
+            if(buff=common.getBuff(curUnit,116)){
+                let mentalDmg = common.calcFearBuff({buff,});
+                curUnit.btd.followChanges.mdef -= mentalDmg;
+                this.registerAniEffect(201,curUnit,1);
+            }
+
+            // 干毒bufff
+            if(buff=common.getBuff(curUnit,119)){
+                let hpDmg = common.calcFixPoisonBuff({buff,});
+                curUnit.btd.followChanges.hp -= hpDmg;
+                this.registerAniEffect(201,curUnit,1);
+            }
+
+            // 湿毒bufff
+            if(buff=common.getBuff(curUnit,122)){
+                let hpDmg = common.calcPctPoisonBuff({caster:curUnit,buff,});
+                curUnit.btd.followChanges.hp -= hpDmg;
+                this.registerAniEffect(201,curUnit,1);
+            }
+
             // 遍历每个存活单位，根据 changes 生成并推送画布动画
             for(let unit of allAliveUnits){
                 this.pushAniByChanges({caster:curUnit,target:unit});
@@ -650,6 +698,7 @@ export default {
                 let vdom = this.$refs[`u-${unit.id}`][0];
                 vdom.trigAni();
                 unit.btd.changes = {};
+                unit.btd.followChanges = {};
             }
             // 清空所有动画
             this.aniList = [];
@@ -755,34 +804,6 @@ export default {
             let allUnits = [...this.playerTeam,...this.enemyTeam];
             return getMatchList(allUnits,[['id',id]])[0];
         },
-        checkMenuButtonBan({flag,checkCrumble=0,}){ // 检查菜单的基本操作按钮是否该禁用
-            let res = 0;
-            let consume = CONFIG.baseConsumeList[flag-1];
-            let curUnit = this.curUnitList[this.curUnitListIndex];
-            if(consume>(curUnit.btd.phy[0]+curUnit.btd.eng[0])){
-                res = 1;
-            }
-            if(checkCrumble){
-                if(common.isCrumble(curUnit)){
-                    res = 1;
-                }
-            }
-            return res;
-        },
-        checkSubMenuButtonBan({unit,data}){ // 检查菜单的攻击和技能按钮是否该禁用
-            return !common.canConsume({unit,consume:common.calcConsume({type:1,unit,data,})});
-        },
-        consumeAction({consume,unit,}){ // 单位动作消耗体力并计算 changes
-            let res = 0;
-            unit.btd.changes.phy -= consume;
-            if(consume>unit.btd.phy[0]){ // 破限，掉精
-                res = consume-unit.btd.phy[0];
-                unit.btd.changes.eng -= res;
-            }
-            // 把消耗转化为潜能
-            unit.btd.changes.ptc += common.calcPotencyByConsume({unit,consume,});
-            return res;
-        },
         checkEnd(){ // 检查胜负 0未结束 1我方获胜 2敌人获胜 3撤离成功
             let res = 0;
             let playerDefeat = 1, enemyDefeat = 1;
@@ -809,6 +830,59 @@ export default {
             }
             return res;
         },
+        checkMenuButtonBan({flag,checkCrumble=0,}){ // 检查菜单的基本操作按钮是否该禁用
+            let res = 0;
+            let consume = CONFIG.baseConsumeList[flag-1];
+            let curUnit = this.curUnitList[this.curUnitListIndex];
+            if(consume>(curUnit.btd.phy[0]+curUnit.btd.eng[0])){
+                res = 1;
+            }
+            if(checkCrumble){
+                if(common.isCrumble(curUnit)){
+                    res = 1;
+                }
+            }
+            return res;
+        },
+        checkSubMenuButtonBan({unit,data}){ // 检查菜单的攻击和技能按钮是否该禁用
+            return !common.canConsume({unit,consume:common.calcConsume({type:1,unit,data,})});
+        },
+
+        painAction({dmg,unit,}){ // 结算常规伤害
+            let penetrate = 0;
+            let { defPain, hpPain, } = common.calcPain({unit,dmg,}); // pain = { defPain, hpPain, }
+            unit.btd.changes.def -= defPain;
+            if(hpPain>0){ // 破防，掉血
+                unit.btd.changes.hp -= hpPain;
+                this.registerAniEffect(201,unit);
+                penetrate = 1;
+            }
+            return penetrate;
+        },
+        consumeAction({consume,unit,convert=1,}){ // 单位动作消耗体力并计算 changes
+            let res = 0;
+            // 执行结算
+            unit.btd.changes.phy -= consume;
+            if(consume>unit.btd.phy[0]){ // 破限，掉精
+                res = consume-unit.btd.phy[0];
+                unit.btd.changes.eng -= res;
+                this.registerAniEffect(201,unit);
+            }
+            // 把消耗转化为潜能
+            if(convert){
+                unit.btd.changes.ptc += common.calcPotencyByConsume({unit,consume,});
+            }
+            return res;
+        },
+        mentalAttackAction({dmg,unit,}){ // 结算单位受到的心理攻击
+            let buff;
+            // 专注bufff
+            if(buff=common.getBuff(unit,21)){
+                dmg = common.calcFocusBuff({dmg,buff,});
+            }
+            unit.btd.changes.mdef -= dmg;
+            this.registerAniEffect(201,unit);
+        },
         stealAction({caster,target,gold,}){ // 结算偷钱行为
             let gain = gold;
             gain = setInRange(gain,0,target.btd.money);
@@ -819,17 +893,7 @@ export default {
                 this.registerAniEffect(201,caster);
             }
         },
-        painAction({target, dmg,}){ // 结算常规伤害
-            let penetrate = 0;
-            let { defPain, hpPain, } = common.calcPain({unit:target,dmg,}); // pain = { defPain, hpPain, }
-            target.btd.changes.def -= defPain;
-            if(hpPain>0){ // 破防，掉血
-                target.btd.changes.hp -= hpPain;
-                this.registerAniEffect(201,target);
-                penetrate = 1;
-            }
-            return penetrate;
-        },
+
         attackOnTarget({caster,target,attack,hit=0,skill}){ // 单位受到攻击并计算 changes，hit是否确定命中
             let hitBuffActions = ({dmg,}) =>{ // 结算所有的 buff 效果
                 let buff;
@@ -839,7 +903,7 @@ export default {
                     this.stealAction({ caster, target, gold:goldDmg, });
                 }
 
-                if(buff=common.getBuff(caster,)){ // 架势bufff
+                if(buff=common.getBuff(caster,8)){ // 架势bufff
                     let defRecover = common.calcPoseBuff({target,buff,});
                     target.btd.changes.def += defRecover;
                 }
@@ -857,7 +921,7 @@ export default {
 
                 if(buff=common.getBuff(caster,11)){ // 反伤bufff
                     let rebounceDmg = common.calcRebounceBuff({buff,dmg,});
-                    this.painAction({target:caster,dmg:rebounceDmg,});
+                    this.painAction({unit:caster,dmg:rebounceDmg,});
                 }
 
                 if(buff=common.getBuff(caster,12)){ // 嗜血bufff
@@ -869,6 +933,55 @@ export default {
                 if(buff=common.getBuff(caster,16)){ // 亢奋bufff
                     let phyRecover = common.calcExcitedBuff({buff,dmg,});
                     caster.btd.changes.phy += phyRecover;
+                }
+
+                if(buff=common.getBuff(caster,18)){ // 战气bufff
+                    let phyDmg = common.calcMoraleBuff({buff,});
+                    this.consumeAction({unit:target,consume:phyDmg,convert:0,});
+                }
+
+                if(buff=common.getBuff(caster,19)){ // 霸气bufff
+                    let ptcDmg = common.calcAweBuff({buff,});
+                    target.btd.changes.ptc -= ptcDmg;
+                    this.registerAniEffect(103,target);
+                }
+
+                if(buff=common.getBuff(caster,20)){ // 威慑bufff
+                    let mentalDmg = common.calcMenaceBuff({caster,buff,});
+                    this.mentalAttackAction({unit:target,dmg:mentalDmg,});
+                }
+
+                if(buff=common.getBuff(caster,102)){ // 出血bufff
+                    let hpDmg = common.calcBleedBuff({caster,buff,});
+                    caster.btd.changes.hp -= hpDmg;
+                    this.registerAniEffect(51,caster);
+                }
+
+                if(buff=common.getBuff(target,108)){ // 悬赏bufff
+                    let goldPain = common.calcBountyBuff({dmg,buff,});
+                    this.stealAction({ caster, target, gold:goldPain, });
+                }
+
+                if(buff=common.getBuff(caster,114)){ // 破绽bufff
+                    let defLose = common.calcOpeningBuff({caster,buff,});
+                    caster.btd.changes.def -= defLose;
+                }
+
+                if(buff=common.getBuff(caster,115)){ // 破气bufff
+                    let ptcLose = common.calcKiBreakBuff({buff,});
+                    caster.btd.followChanges.ptc -= ptcLose;
+                    this.registerAniEffect(103,caster,1);
+                }
+
+                if(buff=common.getBuff(target,117)){ // 促息bufff
+                    let phyLose = common.calcHasteBuff({buff,});
+                    target.btd.changes.phy -= phyLose;
+                }
+
+                if(buff=common.getBuff(target,118)){ // 麻痹bufff
+                    let ptcLose = common.calcParalysisBuff({buff,});
+                    target.btd.followChanges.ptc -= ptcLose;
+                    this.registerAniEffect(103,target,1);
                 }
             }
 
@@ -897,7 +1010,7 @@ export default {
                 }
 
                 // 结算伤害
-                let hpDamaged = this.painAction({target,dmg,});
+                let hpDamaged = this.painAction({unit:target,dmg,});
                 if(!penetrate&&hpDamaged){
                     penetrate = 1;
                 }
@@ -928,8 +1041,7 @@ export default {
                     else if(attack.s==6){ // 攻心sppp，计算心灵伤害
                         let mentalDmg = common.calcMentalSpDmg({caster,target,attack,dmg});
                         if(mentalDmg>0){
-                            changes.mdef -= mentalDmg;
-                            this.registerAniEffect(201,target);
+                            this.mentalAttackAction({unit:target,dmg:mentalDmg});
                         }
                     }
                     else if(attack.s==7){ // 偷窃sppp，计算金币伤害
@@ -972,13 +1084,14 @@ export default {
                 vdom.trigAni(aniName);
             }
         },
-        playAni({caster,target,effectType,number}){ // 播放‘单动画’
+        playAni({caster,target,effectType,number,delay=0}){ // 播放‘单动画’
             /*
                 effectType: 5,// 1slash 2smash 3bullet 4range 5fire 6thunder 7cure 8power 9pure 10mental
                 // 11重slash 12重smash 13重bullet 14重range 15重fire 16重thunder 50shield
                 // 102行动力 103潜能 104存在感 105破盾 106miss
                 // 201浮动数字（血|精|心|钱）
                 number: 1||{}, // { hp:0, eng:0, mdef:0, money:0, }
+                delay: 0,
             */
             let casterPos = this.getUnitDomPos(caster.id);
             let targetPos = this.getUnitDomPos(target.id);
@@ -1040,6 +1153,9 @@ export default {
                 case 50:
                     aniName = `protect-shield`;
                 break;
+                case 51:
+                    aniName = `attack-blood`;
+                break;
 
                 case 201: // 通用浮动数字，涉及到数值
                     aniName = `number-common`;
@@ -1085,6 +1201,7 @@ export default {
                 toX: targetPos.x,
                 toY: targetPos.y,
                 response: this.onAnimationResponse,
+                delay,
             }
             if(textList.length>0){
                 params.textList = textList;
@@ -1092,31 +1209,40 @@ export default {
             // console.log(`播放‘单动画’参数，`,params);
             this.$refs.ani&&this.$refs.ani.trigger(params);
         },
-        pushAniByChanges({caster,target}){ // 根据 changes 生成并推送多个‘单动画数据’进入aniList用于稍后播放
+        pushAniByChanges({caster,target,}){ // 根据 changes 和 followChanges 生成并推送多个‘单动画数据’进入aniList用于稍后播放
             let changes = target.btd.changes;
+            let followChanges = target.btd.followChanges;
             let effectTypeList = changes.effectTypeList;
-            // console.log(`根据 changes 生成并推送多个‘单动画数据’进入aniList用于稍后播放`,caster.btd.name,effectTypeList);
-            for(let effectType of effectTypeList){
+            let followEffectTypeList = followChanges.effectTypeList;
+            // console.log(`根据 changes 和 followChanges 生成并推送多个‘单动画数据’进入aniList用于稍后播放`,caster.btd.name,effectTypeList,followEffectTypeList);
+            let pushEffect = (effectType,changes,delay=0) =>{
                 if((effectType>0&&effectType<99)||effectType==105||effectType==106){ // 动画效果+破盾+miss
-                    this.aniList.push({caster,target,effectType,});
+                    this.aniList.push({caster,target,effectType,delay,});
                 }
                 else if(effectType==201&&(changes.hp||changes.eng||changes.mdef||changes.money)){ // 通用数字（血精心钱）
-                    this.aniList.push({caster,target,effectType:201,number:changes});
+                    this.aniList.push({caster,target,effectType:201,number:changes,delay,});
                 }
                 else if(effectType==102&&changes.mov){ // 特殊数字·行动力
-                    this.aniList.push({caster,target,effectType:102,number:changes.mov,});
+                    this.aniList.push({caster,target,effectType:102,number:changes.mov,delay,});
                 }
                 else if(effectType==103&&changes.ptc){ // 特殊数字·潜能
-                    this.aniList.push({caster,target,effectType:103,number:changes.ptc,});
+                    this.aniList.push({caster,target,effectType:103,number:changes.ptc,delay,});
                 }
                 else if(effectType==104&&changes.dge){ // 特殊数字·存在感
-                    this.aniList.push({caster,target,effectType:104,number:changes.dge,});
+                    this.aniList.push({caster,target,effectType:104,number:changes.dge,delay,});
                 }
             }
+            for(let effectType of effectTypeList){
+                pushEffect(effectType,changes);
+            }
+            for(let effectType of followEffectTypeList){
+                pushEffect(effectType,followChanges,CONFIG.followChangesDelay);
+            }
         },
-        registerAniEffect(type,unit,){ // 为单位的 changes 添加 effectType，用于播放画布动画
-            if(arrContains(unit.btd.changes.effectTypeList,type)==-1){
-                unit.btd.changes.effectTypeList.push(type);
+        registerAniEffect(type,unit,follow=0,){ // 为单位的 changes（或followChanges） 添加 effectType，用于播放画布动画
+            let changesName = follow?'followChanges':'changes';
+            if(arrContains(unit.btd[changesName].effectTypeList,type)==-1){
+                unit.btd[[changesName]].effectTypeList.push(type);
                 // console.log(`!!!!!!!!!!!${unit.btd.name}`,unit.btd.changes.effectTypeList);
             }
         },
@@ -1138,8 +1264,9 @@ export default {
             // this.$nextTick(_=>{
             // });
             let allAliveUnits = this.getAllAliveUnits();
-            for(let unit of allAliveUnits){ // 保存 changes：根据所有单位的 changes 改变其数据
+            for(let unit of allAliveUnits){ // 保存 changes 和 followChanges：根据所有单位的 changes 和 followChanges 改变其数据
                 common.saveUnitChanges(unit);
+                common.saveUnitFollowChanges(unit);
                 this.jk(unit);
             }
         },
@@ -1316,17 +1443,16 @@ export default {
 
                         }
                         else if(t==7){ // 改变潜能
-                            let ptcDmg = common.calcPotencyDmg({target,data:d,});
-                            target.btd.changes.ptc += ptcDmg;
+                            let ptcAlt = common.calcPotencyAlteration({target,data:d,});
+                            target.btd.changes.ptc += ptcAlt;
                             this.registerAniEffect(103,target);
-                            this.registerAniEffect(ptcDmg>0?8:10,target);
+                            this.registerAniEffect(ptcAlt>0?8:10,target);
                             target.btd.changes.domAni = skill.t==3?'shake':'strand';
                         }
                         else if(t==8){ // 改变心理防御
-                            let mentalDmg = common.calcMentalDmg({caster,target,data:d,});
-                            target.btd.changes.mdef += mentalDmg;
-                            this.registerAniEffect(201,target);
-                            this.registerAniEffect(mentalDmg>0?8:10,target);
+                            let mentalAlt = common.calcMentalAlteration({caster,target,data:d,});
+                            this.mentalAttackAction({unit:target,dmg:-mentalAlt});
+                            this.registerAniEffect(mentalAlt>0?8:10,target);
                             target.btd.changes.domAni = skill.t==3?'shake':'strand';
                         }
                     }
@@ -1339,10 +1465,10 @@ export default {
                 for(let e of skill.el){
                     let { t, d, } = e;
                     if(t==9){
-                        let dodgeDmg = common.calcDodgeDmg({target,data:d,});
-                        target.btd.changes.dge += dodgeDmg;
+                        let dodgeAlt = common.calcDodgeAlteration({target,data:d,});
+                        target.btd.changes.dge += dodgeAlt;
                         this.registerAniEffect(104,target);
-                        this.registerAniEffect(dodgeDmg<0?8:10,target);
+                        this.registerAniEffect(dodgeAlt<0?8:10,target);
                         target.btd.changes.domAni = skill.t==3?'':'strand';
                     }
                 }
@@ -1353,7 +1479,9 @@ export default {
         },
         unitDefense(caster){ // 单位防御
             if(!common.isCrumble(caster)){
-                caster.btd.def[0] = caster.btd.def[1];
+                let defRecover = common.calcDef({caster,});
+                caster.btd.def[0] += defRecover;
+                caster.btd.def[0] = setInRange(caster.btd.def[0],0,caster.btd.def[1]);
                 caster.btd.changes.domAni = "strand";
             }
             else{
@@ -1396,7 +1524,9 @@ export default {
         },
         unitBreath(caster){ // 单位呼吸
             if(!common.isCrumble(caster)){
-                caster.btd.phy[0] = caster.btd.phy[1];
+                let phyRecover = common.calcBreathValue({caster,});
+                caster.btd.phy[0] += phyRecover;
+                caster.btd.phy[0] = setInRange(caster.btd.phy[0],0,caster.btd.phy[1]);
                 caster.btd.changes.domAni = "strand";
             }
             else{
@@ -1404,9 +1534,6 @@ export default {
                     caster.btd.phy[0] = 1;
                 }
                 this.boardTip(`${caster.btd.name} 心理防御奔溃，体力最多恢复到1点`);
-            }
-            if(this.consumeAction({consume:CONFIG.baseConsumeList[3],unit:caster,})){ // 结算消耗
-                this.registerAniEffect(201,caster);
             }
             this.unitRoundEpilog(caster);
         },
@@ -1452,8 +1579,7 @@ export default {
                     else{ // 话术命中
                         let psyValue = common.calcPersuade({caster,target,});
                         target.btd.changes.domAni = "shake";
-                        target.btd.changes.mdef -= psyValue;
-                        this.registerAniEffect(201,target);
+                        this.mentalAttackAction({unit:target,dmg:psyValue});
                         this.boardTip(`${caster.btd.name} 对 ${target.btd.name} 说：“${CONFIG.balderdashs[r(0,CONFIG.balderdashs.length-1)]}”`);
                     }
                 }

@@ -80,7 +80,7 @@ export default {
     mounted(){},
     beforeDestroy(){},
     methods:{
-        trigger({name,fromX,fromY,toX,toY,textList,response}){ // 触发组合动画 textList=[{val,colorType,fontSize}] response回调函数触发数据结算
+        trigger({name,fromX,fromY,toX,toY,textList,delay=0,response}){ // 触发组合动画 textList=[{val,colorType,fontSize}] response回调函数触发数据结算
             let toX2,toY2,fromX2,fromY2,angle1,text;
             this.response = response;
             switch(name){
@@ -89,7 +89,7 @@ export default {
                     for(let i=0;i<textList.length;i++){
                         let { val, colorType, fontSize, } = textList[i];
                         text = val;
-                        this.triggerElement({type:1, fromX:toX,fromY:toY, toX,toY, text,color:textColorMap[colorType-1], fontSize, delay: .2 +.3*i});
+                        this.triggerElement({type:1, fromX:toX,fromY:toY, toX,toY, text,color:textColorMap[colorType-1], fontSize, delay: .2+.3*i+delay});
                     }
                 break;
                 case 'number-common': // 通用显示数字
@@ -108,7 +108,7 @@ export default {
                         if(colorType==8){
                             text += ' $';
                         }
-                        this.triggerElement({type:1, fromX,fromY:fromY2, toX,toY:toY2, text,color:textColorMap[colorType-1], fontSize, delay: .5 +.3*i});
+                        this.triggerElement({type:1, fromX,fromY:fromY2, toX,toY:toY2, text,color:textColorMap[colorType-1], fontSize, delay: .5+.3*i+delay});
                     }
                 break;
                 case 'number-quell': // 行动力增减
@@ -125,7 +125,7 @@ export default {
                             toY2 = fromY2 + 2*sizeScale;
                         };
                         text = `${val>0?'+':''}${common.awaFormat(val)}%`;
-                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[4], fontSize:.22, delay: .5 +.3*i});
+                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[4], fontSize:.22, delay: .5+.3*i+delay});
                     }
                 break;
                 case 'number-potency-damage': // 潜能增减
@@ -142,72 +142,75 @@ export default {
                             toY2 = fromY2 + 2*sizeScale;
                         };
                         text = `${val>0?'+':''}${common.awaFormat(val)}%`;
-                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[5], fontSize:.22, delay: .5 +.3*i});
+                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[5], fontSize:.22, delay:.5+.3*i+delay});
                     }
                 break;
                 case 'number-lock-on': // 存在感增减
-                    fromX2 = toX + 45*sizeScale;
+                    fromX2 = toX + 38*sizeScale;
                     toX2 = fromX2;
                     for(let i=0;i<textList.length;i++){
                         let { val, } = textList[i];
-                        if(val>0){
-                            fromY2 = toY + 18*sizeScale;
-                            toY2 = fromY2 - 5*sizeScale;
+                        if(val>0){ // 存在感提升
+                            fromY2 = toY + 30*sizeScale;
+                            toY2 = fromY2 - 3*sizeScale;
                         }
-                        else{
-                            fromY2 = toY + 5*sizeScale;
-                            toY2 = fromY2 + 5*sizeScale;
+                        else{ // 存在感下降
+                            fromY2 = toY + 30*sizeScale;
+                            toY2 = fromY2 + 3*sizeScale;
                         };
                         text = `${val>0?'+':''}${common.awaFormat(val)}%`;
-                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[6], fontSize:.22, delay: .5 +.3*i});
+                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[6], fontSize:.22, delay:.5+.3*i+delay});
                     }
                 break;
 
                 case 'attack-slash': // 近战劈砍
                     angle1 = r(0,Math.PI*200);
-                    this.triggerElement({type:13, fromX,fromY, toX,toY, angle:angle1/100, delay: 0 });
-                    this.triggerElement({type:13, fromX,fromY, toX,toY, angle:(angle1+r(100,300))/100, delay: .15 });
-                    this.triggerElement({type:5, fromX,fromY, toX,toY, delay:.5});
+                    this.triggerElement({type:13, fromX,fromY, toX,toY, angle:angle1/100, delay: 0+delay, });
+                    this.triggerElement({type:13, fromX,fromY, toX,toY, angle:(angle1+r(100,300))/100, delay: .15+delay, });
+                    this.triggerElement({type:5, fromX,fromY, toX,toY, delay:.5+delay, });
                 break;
                 case 'attack-smash': // 近战钝击
                     fromY = toY+(toY<fromY?160*sizeScale:-160*sizeScale);
                     toY2 = toY+(toY<fromY?-260*sizeScale:260*sizeScale);
                     fromY2 = toY+(toY<fromY?30*sizeScale:-30*sizeScale);
                     toX2 = toX;
-                    this.triggerElement({type:11,fromX:toX2,fromY, toX:toX2,toY:toY2, period:.65, delay:.1,});
-                    this.triggerElement({type:11,fromX:toX2,fromY:fromY2, toX:toX2,toY, delay:.35,});
+                    this.triggerElement({type:11,fromX:toX2,fromY, toX:toX2,toY:toY2, period:.65, delay:.1+delay,});
+                    this.triggerElement({type:11,fromX:toX2,fromY:fromY2, toX:toX2,toY, delay:.35+delay,});
                 break;
                 case 'attack-range': // 飞刀攻击
                     toX2 = toX+r(-15,15);
-                    this.triggerElement({type:3,fromX,fromY, toX,toY, delay:.1,});
-                    this.triggerElement({type:5,fromX,fromY, toX,toY, delay:.1+.5});
+                    this.triggerElement({type:3,fromX,fromY, toX,toY, delay:.1+delay,});
+                    this.triggerElement({type:5,fromX,fromY, toX,toY, delay:.1+.5+delay,});
                 break;
                 case 'attack-fire': // 火枪攻击
                     fromY = toY<fromY?window.innerHeight:-100*sizeScale;
                     toY2 = toY<fromY?-50*sizeScale:window.innerHeight;
                     toX2 = toX+r(-15,15);
                     this.triggerElement({type:6,fromX:toX2,fromY, toX:toX2,toY:toY2,});
-                    this.triggerElement({type:7,fromX,fromY, toX,toY, delay:.3});
+                    this.triggerElement({type:7,fromX,fromY, toX,toY, delay:.3+delay,});
                 break;
                 case 'attack-bullet': // 子弹攻击
                     fromY = toY<fromY?window.innerHeight:-100*sizeScale;
                     toY2 = toY<fromY?-300*sizeScale:window.innerHeight;
                     toX2 = toX+r(-15,15);
-                    this.triggerElement({type:4,fromX:toX2,fromY, toX:toX2,toY:toY2,delay:.3});
+                    this.triggerElement({type:4,fromX:toX2,fromY, toX:toX2,toY:toY2,delay:.3+delay,});
                     fromY = toY+(toY<fromY?30*sizeScale:-30*sizeScale);
-                    this.triggerElement({type:11,fromX:toX2,fromY, toX,toY, delay:.45});
+                    this.triggerElement({type:11,fromX:toX2,fromY, toX,toY, delay:.45+delay,});
                 break;
                 case 'attack-thunder': // 雷电攻击
                     this.triggerElement({type:2,fromX,fromY, toX,toY,});
                 break;
                 case 'attack-mental': // 心理攻击
-                    this.triggerElement({type:14,toX,toY,delay:0});
+                    this.triggerElement({type:14,toX,toY,delay:0+delay,});
                 break;
                 case 'attack-lightning': // 雷霆
-                    this.triggerElement({type:15,toX,toY,delay:0});
+                    this.triggerElement({type:15,toX,toY,delay:0+delay,});
+                break;
+                case 'attack-blood': // 出血
+                    this.triggerElement({type:5, fromX,fromY, toX,toY, delay:.5+delay, });
                 break;
                 case 'protect-cure': // 治疗
-                    this.triggerElement({type:8,toX,toY,delay:0});
+                    this.triggerElement({type:8,toX,toY,delay:0+delay,});
                 break;
                 case 'protect-power': // 强化
                     toY2 = toY+15*sizeScale;
@@ -219,13 +222,13 @@ export default {
                     // this.triggerElement({type:10,toX,toY:toY2,});
                 break;
                 case 'protect-pure': // 净化
-                    this.triggerElement({type:12,toX,toY,delay:0});
+                    this.triggerElement({type:12,toX,toY,delay:0+delay,});
                 break;
                 case 'attack-slash-heavy': // 近战劈砍·重
                     angle1 = r(0,Math.PI*200);
                     for(let i=0;i<5;i++){
-                        this.triggerElement({type:13, fromX,fromY, toX,toY, angle:angle1+r(100,200*i)/100, delay: i*.15 });
-                        this.triggerElement({type:5,fromX,fromY, toX,toY, delay:.2+i*.1});
+                        this.triggerElement({type:13, fromX,fromY, toX,toY, angle:angle1+r(100,200*i)/100, delay: i*.15+delay, });
+                        this.triggerElement({type:5,fromX,fromY, toX,toY, delay:.2+i*.1+delay, });
                     }
                 break;
                 case 'attack-smash-heavy': // 近战钝击·重
@@ -234,16 +237,16 @@ export default {
                     fromY2 = toY+(toY<fromY?30*sizeScale:-30*sizeScale);
                     for(let i=0;i<3;i++){
                         toX2 = toX+r(-15*sizeScale,15*sizeScale);
-                        this.triggerElement({type:11,fromX:toX2,fromY, toX:toX2,toY:toY2, period:.65, delay:.1+.15*i,});
-                        this.triggerElement({type:11,fromX:toX2,fromY:fromY2, toX:toX2,toY, delay:.45+.15*i,});
+                        this.triggerElement({type:11,fromX:toX2,fromY, toX:toX2,toY:toY2, period:.65, delay:.1+.15*i+delay,});
+                        this.triggerElement({type:11,fromX:toX2,fromY:fromY2, toX:toX2,toY, delay:.45+.15*i+delay,});
                     }
                 break;
                 case 'attack-range-heavy': // 飞刀攻击·重
                     for(let i=0;i<6;i++){
                         fromX2 = fromX+r(-250,250);
                         fromY2 = fromY+r(-20,20);
-                        this.triggerElement({type:3,fromX:fromX2,fromY:fromY2, toX,toY, delay:.1*i,});
-                        this.triggerElement({type:5,fromX,fromY, toX,toY, delay:.1*i+.5});
+                        this.triggerElement({type:3,fromX:fromX2,fromY:fromY2, toX,toY, delay:.1*i+delay,});
+                        this.triggerElement({type:5,fromX,fromY, toX,toY, delay:.1*i+.5+delay,});
                     }
                 break;
                 case 'attack-fire-heavy': // 火枪攻击·重
@@ -251,9 +254,9 @@ export default {
                         fromY = toY<fromY?window.innerHeight:-100*sizeScale;
                         toY2 = toY<fromY?-50*sizeScale:window.innerHeight;
                         toX2 = toX+r(-15,15);
-                        this.triggerElement({type:6,fromX:toX2,fromY, toX:toX2,toY:toY2,delay:.1+i*.045});
+                        this.triggerElement({type:6,fromX:toX2,fromY, toX:toX2,toY:toY2,delay:.1+i*.045+delay,});
                     }
-                    this.triggerElement({type:7,fromX,fromY, toX,toY, delay:.44});
+                    this.triggerElement({type:7,fromX,fromY, toX,toY, delay:.44+delay,});
                 break;
                 case 'attack-bullet-heavy': // 子弹攻击·重
                     fromY = toY<fromY?window.innerHeight:-100*sizeScale;
@@ -261,16 +264,16 @@ export default {
                     fromY2 = toY+(toY<fromY?30*sizeScale:-30*sizeScale);
                     for(let i=0;i<6;i++){
                         toX2 = toX+r(-15,15);
-                        this.triggerElement({type:4,fromX:toX2,fromY, toX:toX2,toY:toY2,delay:.3+.1*i});
-                        this.triggerElement({type:11,fromX:toX2,fromY:fromY2, toX,toY, delay:.45+.1*i});
+                        this.triggerElement({type:4,fromX:toX2,fromY, toX:toX2,toY:toY2,delay:.3+.1*i+delay,});
+                        this.triggerElement({type:11,fromX:toX2,fromY:fromY2, toX,toY, delay:.45+.1*i+delay,});
                     }
                 break;
                 case 'attack-thunder-heavy': // 雷电攻击·重
                     for(let i=0;i<6;i++){
                         toX2 = toX+r(-15*sizeScale,15*sizeScale);
                         toY2 = toY+r(-35*sizeScale,35*sizeScale);
-                        this.triggerElement({type:2,fromX,fromY, toX:toX2,toY:toY2, delay:.1+i*.1});
-                        this.triggerElement({type:15,toX:toX2,toY,delay:0+i*.2});
+                        this.triggerElement({type:2,fromX,fromY, toX:toX2,toY:toY2, delay:.1+i*.1+delay,});
+                        this.triggerElement({type:15,toX:toX2,toY,delay:0+i*.2+delay,});
                     }
                 break;
             }
