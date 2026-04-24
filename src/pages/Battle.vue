@@ -48,7 +48,7 @@
 
                                 <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[2]} ${checkMenuButtonBan({flag:3,})?'btn-ban':''}`" @click="onTapMenu({flag:5,ban:checkMenuButtonBan({flag:3,}),})">追踪</a>
 
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[3]} ${checkMenuButtonBan({flag:4,})?'btn-ban':''}`" @click="onTapMenu({flag:6,ban:checkMenuButtonBan({flag:4,}),})">呼吸</a>
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[3]} ${checkMenuButtonBan({flag:4,})?'btn-ban':''}`" @click="onTapMenu({flag:6,ban:checkMenuButtonBan({flag:4,}),})">调息</a>
 
                                 <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[4]} ${checkMenuButtonBan({flag:5,})?'btn-ban':''}`" @click="onTapMenu({flag:7,ban:checkMenuButtonBan({flag:5,}),})">集气</a>
 
@@ -184,7 +184,7 @@ export default {
                 {name:'防御',desc:'恢复防御力到满值'},
                 {name:'躲避',desc:'降低自己的存在感（隐蔽）'},
                 {name:'追踪',desc:'提升敌方单位10%的存在感，该单位只能是存在感最高的敌人'},
-                {name:'呼吸',desc:'恢复体力到满值'},
+                {name:'调息',desc:'恢复体力到满值'},
                 {name:'集气',desc:'提升潜能（爆发）'},
                 {name:'爆气',desc:'消耗自己全部潜能，选择自己的某项属性按百分比提升'},
                 {name:'话术',desc:'降低敌人的心理防御（智力）'},
@@ -261,19 +261,31 @@ export default {
         window.GLOBAL.game.allUnits = _nus;
         window.GLOBAL.game.allEquips = [];
 
-        // _nus[3].as[6] = 800;
-        // _nus[3].as[1] = 1800;
-        // _nus[3].as[7] = 100;
-        // _nus[3].as[10] = 1000;
-        // _nus[3].as[9] = 250;
-        _nus[7].as[6] = 120;
-        _nus[7].as[2] = 100;
+        // _nus[1].as[6] = 800;
+        _nus[1].as[0] = 1800;
+        _nus[1].as[7] = 100;
+        _nus[1].as[10] = 1000;
+        _nus[3].as[9] = 250;
+        _nus[3].as[6] = 120;
+        _nus[3].as[2] = 100;
+        _nus[3].as[1] = 100;
+        _nus[3].as[3] = 100;
+        _nus[3].as[10] = 200;
+        _nus[3].as[7] = 500;
+        // _nus[7].as[1] = 1;
+        // _nus[7].as[1] = 1;
+        _nus[6].as[0] = 2350;
+        _nus[7].as[0] = 1350;
+        _nus[7].as[1] = 780;
+        _nus[7].as[2] = 112;
+        _nus[7].as[3] = 242;
+        _nus[7].as[6] = 444;
 
-        _nus[0].es[0] = 1;
+        _nus[1].es[0] = 1;
         _nus[1].es[0] = 2;
         _nus[1].es[5] = 6;
         _nus[1].es[3] = 7;
-        // _nus[2].es[0] = 3;
+        _nus[1].es[0] = 3;
         // _nus[2].es[5] = 6;
         // _nus[2].es[3] = 7;
 
@@ -282,28 +294,29 @@ export default {
         _nus[3].es[5] = 6;
         _nus[3].es[3] = 7;
         _nus[3].es[4] = 8;
-        _nus[3].g = 5000;
 
-        // _nus[7].as[6] = 16;
-        // _nus[6].as[6] = 15;
-        // _nus[5].as[6] = 14;
-        // _nus[4].as[6] = 13;
-        // _nus[4].es[0] = 9;
-        // _nus[4].es[5] = 10;
+        _nus[6].as[6] = 15;
+        _nus[5].as[6] = 14;
+        _nus[4].as[6] = 13;
+        _nus[4].es[0] = 9;
+        _nus[4].es[5] = 10;
         _nus[4].es[1] = 1;
         _nus[5].es[1] = 2;
         _nus[6].es[1] = 3;
         _nus[7].es[1] = 4;
         _nus[7].es[2] = 5;
-        // _nus[7].as[6] = 111;
 
-        _nus[4].ss[0] = 11;
-        _nus[5].ss[0] = 11;
-        _nus[6].ss[0] = 11;
-        _nus[7].ss[0] = 11;
-
-        _nus[4].g = 1000;
-        _nus[7].g = 10000;
+        // _nus[4].ss[0] = 11;
+        // _nus[5].ss[0] = 11;
+        // _nus[6].ss[0] = 11;
+        // _nus[7].ss[0] = 11;
+        // _nus[7].ss[1] = 12;
+        // _nus[7].ss[2] = 13;
+        // _nus[7].ss[3] = 14;
+        // _nus[7].ss[3] = 12;
+        // _nus[7].ss[2] = 11;
+        // _nus[7].ss[1] = 13;
+        _nus[7].ss[0] = 14;
 
         window.GLOBAL.game.allEquips.push(common.genEquip({id:1,game:{},level:r(5,5),type:r(1,1)}));
         window.GLOBAL.game.allEquips.push(common.genEquip({id:2,game:{},level:r(5,5),type:r(1,1)}));
@@ -321,19 +334,21 @@ export default {
             _nus[3].ss[i] = i+1;
             window.GLOBAL.game.allSkills.push(common.genSkill({id:i+1,game:{},level:r(1,9)}));
         }
+
+        // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
+       // 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
+       // 固疗和百分疗 { h:100, rx:35, }，心防固伤和智力补正 { d:100, rx1:0, rx2:44, }
+       // 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
         window.GLOBAL.game.allSkills.push({
             id: 11,
         	l: 1,
         	n: '治愈术',
         	t: 2, // 1自己 2我方单体 3敌方单体
         	el: [{ // 技能效果数组
-                t: 5, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
-        		// 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
-        		// 固疗和百分疗 { h:100, rx:35, }，心防固伤和智力补正 { d:100, rx1:0, rx2:44, }
-        		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
-        		d: {h:17,rx:10},
+                t: 5,
+        		d: {h:117,rx:10},
             },],
-        	c: 6, // 体力消耗
+        	c: 39, // 体力消耗
         	d: 1200, // 存在感
         	v: 133, // 价值
         });
@@ -343,15 +358,12 @@ export default {
         	n: '龙虾斩',
         	t: 3, // 1自己 2我方单体 3敌方单体
         	el: [{ // 技能效果数组
-                t: 1, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
-        		// 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
-        		// 固疗和百分疗 { h:100, rx:35, }，心防固伤和智力补正 { d:100, rx1:0, rx2:44, }
-        		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
+                t: 1,
         		d: {
                     n: '挥砍',
-        			d: 16, // 基础伤害
-        			r1: 13, // 力量补正
-        			r2: 15, // 精准补正
+        			d: 76, // 基础伤害
+        			r1: 53, // 力量补正
+        			r2: 85, // 精准补正
         			b: [], // buff制造表（buff id）
         			bl: [], // buff等级表（1-9）
         			s: 0, // SP效果 1压制 2破盾 3气溃 4精溃 5锁敌 6攻心 7摸金
@@ -359,7 +371,7 @@ export default {
         			et: 1, // 特效类型 1劈砍 2钝击 3子弹 4飞刀 5火炮 6雷击
                 },
             },],
-        	c: 10, // 体力消耗
+        	c: 400, // 体力消耗
         	d: 5200, // 存在感
         	v: 1533, // 价值
         });
@@ -367,26 +379,59 @@ export default {
             id: 13,
         	l: 1,
         	n: '蝴蝶阵法',
-        	t: 3, // 1自己 2我方单体 3敌方单体
+        	t: 1, // 1自己 2我方单体 3敌方单体
         	el: [{ // 技能效果数组
-                t: 9, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
-        		// 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
-        		// 固疗和百分疗 { h:100, rx:35, }，心防固伤和智力补正 { d:100, rx1:0, rx2:44, }
-        		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
-        		d: { d:5346, rx:115, },
-        		// d: 9,
+                t: 9,
+        		d: { d:-5346, rx:115, },
             },{ // 技能效果数组
-                t: 2, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
-        		// 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
-        		// 固疗和百分疗 { h:100, rx:35, }，心防固伤和智力补正 { d:100, rx1:0, rx2:44, }
-        		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
-        		d: { b:[105,109,], bl:[8,9,], },
-        		// d: 9,
+                t: 2,
+        		d: { b:[5,14,], bl:[4,3,], },
             },],
-        	c: 5, // 体力消耗
+        	c: 46, // 体力消耗
         	d: 5200, // 存在感
         	v: 1533, // 价值
         });
+        window.GLOBAL.game.allSkills.push({
+            id: 14,
+        	l: 1,
+        	n: '凝视',
+        	t: 2, // 1自己 2我方单体 3敌方单体
+        	el: [{
+                t: 9,
+        		// d: {d:100,rx1:35,rx2:40,},
+        		d: {d:-3100,rx:12,},
+            },],
+        	c: 23, // 体力消耗
+        	d: 4100, // 存在感
+        	v: 0, // 价值
+        });
+        window.GLOBAL.game.allSkills.push({
+            id: 15,
+        	l: 3,
+        	n: '大绝命',
+        	t: 3, // 1自己 2我方单体 3敌方单体
+        	el: [
+                {
+                    t: 8,
+            		d: { d:-146, rx1:115, rx2:12, },
+                },
+                {
+                    t: 9,
+            		d: { d:3400, rx:35, },
+                },
+                {
+                    t: 2,
+            		d: { b:[115,103,], bl:[1,5,], },
+                },
+            ],
+        	c: 144, // 体力消耗
+        	d: 700, // 存在感
+        	v: 0, // 价值
+        });
+        for(let i=0;i<4;i++){
+            let skill = window.GLOBAL.game.allSkills[i];
+            skill.v = common.calcSkillValue(skill);
+        }
 
         if(window.GLOBAL&&window.GLOBAL.game&&window.GLOBAL.game.battle){ // TODO
             this.game = window.GLOBAL.game;
@@ -585,7 +630,7 @@ export default {
                     this.menuData.extip = ``;
                 }
                 else{ // 人机
-                    let unitAction = ai.genAction({unit,meTeam:this.enemyTeam,youTeam:this.playerTeam});
+                    let unitAction = ai.genAction({unit,meTeam:this.enemyTeam,youTeam:this.playerTeam,isFleeing:this.isFleeing});
                     // console.log(unitAction);
                     setTimeout(_=>{
                         this.unitAction(unitAction);
@@ -1274,7 +1319,7 @@ export default {
         /* 单位动作 */
         unitAction({caster,type,targetUnitList,burstAttr,skill,attack}){ // 单位执行动作
             /*action = {
-                type: 1, // 动作类型 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9话术 10撤离
+                type: 1, // 动作类型 1攻击 2技能 3防御 4躲避 5追踪 6调息 7集气 8爆气 9话术 10撤离
                 burstAttr: 1, // 4力量 5精准 6速度 7智力 8定力 9隐蔽 10爆发
                 targetUnitList: [], // 目标单位数组
             }*/
@@ -1306,7 +1351,7 @@ export default {
                     this.boardTip(`${oCaster.btd.name} 进行追踪`);
                     this.unitTrace(oCaster);
                 break;
-                case 6: // 呼吸
+                case 6: // 调息
                     this.boardTip(`${oCaster.btd.name} 恢复了体力`);
                     this.unitBreath(oCaster);
                 break;
@@ -1424,7 +1469,7 @@ export default {
                                     this.editBuffList = editBuffList;
                                 }
                                 else{ // 施放者是AI
-                                    let weakenBuff = ai.getWeakenBuff({caster,target,buffList:editBuffList,});
+                                    let weakenBuff = ai.getWeakenBuff({caster,target,buffList:editBuffList,reduceLevel:d,});
                                     target.btd.changes.weakenBuff = { id:weakenBuff.id, level:d, };
                                 }
                             }
@@ -1522,7 +1567,7 @@ export default {
             }
             this.unitRoundEpilog(caster);
         },
-        unitBreath(caster){ // 单位呼吸
+        unitBreath(caster){ // 单位调息
             if(!common.isCrumble(caster)){
                 let phyRecover = common.calcBreathValue({caster,});
                 caster.btd.phy[0] += phyRecover;
@@ -1693,7 +1738,7 @@ export default {
             else if(flag==5){ // 追踪
                 this.unitAction({caster:curUnit,type:5});
             }
-            else if(flag==6){ // 呼吸
+            else if(flag==6){ // 调息
                 this.unitAction({caster:curUnit,type:6});
             }
             else if(flag==7){ // 集气

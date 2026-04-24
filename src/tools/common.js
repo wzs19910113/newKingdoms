@@ -315,7 +315,7 @@ export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge
         nm: name,
         nk: nickname,
         gd: gender,
-        g: 0,
+        g: 1000,
         age,
         tms,
         rel,
@@ -597,7 +597,7 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
             break;
             case 5: // 治疗
                 newEffect.d = { h:0, rx:0, };
-                newEffect.d.h = exptr(1,cl(CONFIG.hpRangeMap[level-1][1]/100+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
+                newEffect.d.h = 5+exptr(1,cl(CONFIG.hpRangeMap[level-1][1]/100+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
                 if(level>=r(4,5)){ // 施法者的智力补正
                     newEffect.d.rx = genRx(level);
                 }
@@ -607,7 +607,7 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
             break;
             case 7: // 改变潜能
                 newEffect.d = { d:0, rx:0, };
-                newEffect.d.d = (500+exptr(3,level*9,1)*25)*fact;
+                newEffect.d.d = (500+exptr(3,level*9,1)*(fact?25:50))*fact;
                 newEffect.d.d = setInRange(newEffect.d.d,-10000,10000);
                 if(beni&&level>=r(3,6)){ // 目标单位的爆发补正
                     newEffect.d.rx = genRx(level,5);
@@ -688,7 +688,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.oattrs = cloneObj(_unit.as); // 战斗初始的11维属性
     btd.name = _unit.nm;
 
-    btd.hp = [btd.attrs[0],btd.attrs[0],]; // 血
+    btd.hp = [td.attrs[0],btd.attrs[0],]; // 血
     btd.def = [btd.attrs[3],btd.attrs[3],], // 护甲
     btd.eng = [btd.attrs[1],btd.attrs[1],], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
@@ -763,11 +763,17 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     //
     // let buffId = 121;
     // let newBuff1 = cloneObj(CONFIG.badBuffs[buffId-101]);
-    // newBuff1.level = 9;
+    // newBuff1.level = 3;
     // btd.buffList.push(newBuff1);
-    // let newBuff2 = cloneObj(CONFIG.goodBuffs[5]);
-    // newBuff2.level = 9;
+    // let newBuff2 = cloneObj(CONFIG.badBuffs[14]);
+    // newBuff2.level = 7;
     // btd.buffList.push(newBuff2);
+    // let newBuff3 = cloneObj(CONFIG.goodBuffs[6]);
+    // newBuff3.level = 4;
+    // btd.buffList.push(newBuff3);
+    // let newBuff4 = cloneObj(CONFIG.goodBuffs[8]);
+    // newBuff4.level = 9;
+    // btd.buffList.push(newBuff4);
 
     return btd;
 }
@@ -973,7 +979,7 @@ export function calcSkillValue(skill){ // 计算技能价值
                     res += cl(pow(Math.abs(d.rx),1.28)*9); // 补正
                 }
                 else{ // 技能倾向为伤害
-                    res += 250 + cl(pow(Math.abs(d.d)/1000,1.91)*170); // 固定值
+                    res += 250+cl(pow(Math.abs(d.d)/1000,1.91)*87); // 固定值
                 }
             break;
         }
@@ -1034,7 +1040,7 @@ export function isCrumble(unit){ // 判断是否已心理崩溃
 }
 
 /* ---------------------------- 战斗相关 ---------------------------- */
-export function calcConsume({type,unit,data,}){ // 计算体力消耗 type 1攻击 2技能 3防御 4躲避 5追踪 6呼吸 7集气 8爆气 9话术 10撤离
+export function calcConsume({type,unit,data,}){ // 计算体力消耗 type 1攻击 2技能 3防御 4躲避 5追踪 6调息 7集气 8爆气 9话术 10撤离
     let res = 0;
     let buff,rateFactor = 1;
 
@@ -1215,7 +1221,7 @@ function calcIntDeno(unit){ // 计算智力补正系数
 }
 
 /* 基础操作 */
-export function calcBreathValue({caster,}){ // 计算呼吸恢复的体力
+export function calcBreathValue({caster,}){ // 计算调息恢复的体力
     let res = 0,buff;
     res = caster.btd.phy[1] - caster.btd.phy[0];
 
@@ -1229,6 +1235,8 @@ export function calcBreathValue({caster,}){ // 计算呼吸恢复的体力
 export function calcConcentrate({caster,}){ // 计算集气值
     let res = 0,buff;
     res += cl(caster.btd.attrs[10]/CONFIG.ptcDeno*1250);
+
+    res = cl(res*1000/(res+1000));
 
     // 涣散bufff
     if(buff=getBuff(caster,106)){
@@ -1253,7 +1261,7 @@ export function calcPersuade({caster,target,}){ // 计算话术值
 }
 export function calcDodge({caster,}){ // 计算躲避值
     let res = 0,buff;
-    res += cl(calcDodgeRate(caster.btd.attrs[9])*2.5*2000);
+    res += cl(1000+calcDodgeRate(caster.btd.attrs[9])*2.5*2000);
 
     // 暴露bufff
     if(buff=getBuff(caster,107)){
@@ -1276,8 +1284,6 @@ export function calcDef({caster,}){ // 计算防御力恢复值
 export function calcPotencyByConsume({unit,consume,}){ // 日常体力消耗带来的潜能增长
     let res = 0,buff;
     res = cl(consume*50*unit.btd.attrs[10]/CONFIG.ptcDeno);
-
-    res = cl(res*1000/(res+1000));
 
     // 涣散bufff
     if(buff=getBuff(unit,106)){
@@ -1314,7 +1320,7 @@ export function calcPotencySpDmg({target,attack,dmg,}){ // 计算气溃带来的
     let dmgRate = dmg/target.btd.hp[0];
     let hr = hurtRate(target);
     dmgRate = setInRange(dmgRate,0,1);
-    res = cl(dmgRate*CONFIG.spLevelMap[2][attack.sl-1]*hr+100);
+    res = cl(dmgRate*CONFIG.spLevelMap[2][attack.sl-1]*hr+300);
     return res;
 }
 export function calcEnergySpDmg({target,attack,}){ // 计算精溃带来的精力减值
@@ -1496,10 +1502,12 @@ export function calcAttackDodgeup({unit,}){ // 计算攻击时的存在感上升
         return res;
     }
 
+    let suffixReduction = (1000-unit.btd.attrs[9]);
+    suffixReduction = setInRange(suffixReduction,0,Infinity);
     for(let weapon of unit.btd.weaponList){
         res += weapon.d;
     }
-    res = cl(res*rate);
+    res = cl(res*rate+suffixReduction);
     return res;
 }
 export function calcSkillDodgeup({unit,skill,}){ // 计算发动技能时的存在感上升值
@@ -1511,7 +1519,9 @@ export function calcSkillDodgeup({unit,skill,}){ // 计算发动技能时的存�
         return res;
     }
 
-    res = cl(skill.d*rate);
+    let suffixReduction = (1000-unit.btd.attrs[9]);
+    suffixReduction = setInRange(suffixReduction,0,Infinity);
+    res = cl(skill.d*rate+suffixReduction);
     return res;
 }
 export function calcPersuadeDodgeup({unit,}){ // 计算攻心时的存在感上升值
