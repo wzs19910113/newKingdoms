@@ -688,7 +688,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.oattrs = cloneObj(_unit.as); // 战斗初始的11维属性
     btd.name = _unit.nm;
 
-    btd.hp = [td.attrs[0],btd.attrs[0],]; // 血
+    btd.hp = [btd.attrs[0],btd.attrs[0],]; // 血
     btd.def = [btd.attrs[3],btd.attrs[3],], // 护甲
     btd.eng = [btd.attrs[1],btd.attrs[1],], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
