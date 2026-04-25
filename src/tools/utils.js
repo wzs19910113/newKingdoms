@@ -346,6 +346,34 @@ export function exitFullScreen(callback){ // 退出全屏模式
     }
 }
 
+/**
+ * 最简单的图片加载器
+ * @param {string|string[]} urls - 图片地址或地址数组
+ * @returns {Promise<HTMLImageElement|HTMLImageElement[]>}
+ */
+export function loadImages(urls) {
+    // 统一转为数组
+    const isSingle = !Array.isArray(urls);
+    const urlList = isSingle ? [urls] : urls;
+
+    // 加载单张图片
+    const loadOne = (url) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error(`加载失败: ${url}`));
+            img.src = url;
+        });
+    };
+
+    // 返回结果
+    if (isSingle) {
+        return loadOne(urls);
+    } else {
+        return Promise.all(urlList.map(loadOne));
+    }
+}
+
 
 
 

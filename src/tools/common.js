@@ -25,15 +25,15 @@ const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添�
 ];
 const REJUST_LEVELS_MAP = [ // 补正等级描述表
     [``,0,],
-    [`F`,10,],
-    [`E`,28,],
-    [`D`,46,],
-    [`C`,64,],
-    [`B`,82,],
-    [`A`,100,],
-    [`S`,118,],
-    [`SS`,136,],
-    [`SSS`,150,],
+    [`F`,5,],
+    [`E`,10,],
+    [`D`,20,],
+    [`C`,40,],
+    [`B`,70,],
+    [`A`,110,],
+    [`S`,160,],
+    [`SS`,225,],
+    [`SSS`,300,],
 ];
 
 function pow(n,p=2){
@@ -126,10 +126,17 @@ export function genSkillName({level=1,beni=0}){ // 生成技能名
 export function genNickName(){ // 生成称谓
     return `高手`;
 }
+export function calcIconSrc(unit){ // 计算单位的icon地址
+    let res = `icon-`;
+    res += unit.gd==1?`male-`:`female-`;
+    res += unit.i;
+    res += '.png';
+    return res;
+}
 
-export function genRx(level,exponent=2){ // 随机生成补正数值
+export function genRx(level,exponent=1){ // 随机生成补正数值
     let minRx = CONFIG.rxRangeMap[level-1][0]||1, maxRx = CONFIG.rxRangeMap[level-1][1]||1;
-    let res = cl(exptr(minRx,maxRx*5,exponent));
+    let res = cl(exptr(minRx,maxRx*10,exponent));
     res = setInRange(res,1,Infinity);
     return res;
 }
@@ -257,17 +264,15 @@ export function genAttack({level=1,melee=1,names=[],skillId=0,equipId=0}){ // �
     };
 
     // 力量和精准补正
-    if(level>=4){
-        newAtk.r1 = cl(genRx(level,1)*r1Ratio*rAllRatio);
-        newAtk.r2 = cl(genRx(level,1)*r2Ratio*rAllRatio);
-    }
+    newAtk.r1 = cl(genRx(level,1)*r1Ratio*rAllRatio);
+    newAtk.r2 = cl(genRx(level,1)*r2Ratio*rAllRatio);
 
     if(equipId){ // 属于武器
         newAtk.eid = equipId;
         if(!atkAll){ // 如果不是全体攻击
             if(level>=3){
                 // 添加buff
-                let buffCount = exptr(0,2,3);
+                let buffCount = exptr(0,2,2);
                 let sfdBuffs = shuffle(CONFIG.badBuffs);
                 for(let i=0;i<buffCount;i++){
                     let buffId = sfdBuffs[i].id;
@@ -276,11 +281,8 @@ export function genAttack({level=1,melee=1,names=[],skillId=0,equipId=0}){ // �
                     newAtk.bl.push(buffLvl);
                 }
             }
-            // newAtk.b = [101,];
-            // newAtk.bl = [r(1,level),];
             // 添加特殊效果
             newAtk.s = randIn(spRange);
-            // newAtk.s = 2;
             newAtk.sl = r(1,level);
         }
     }
@@ -335,6 +337,8 @@ export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge
         ],
         ss: [],
         es: [0,0,0,0,0,0,0,],
+        b: [],
+        i: r(1,3),
     };
     // 设置定力最小值
     if(level>5){
@@ -696,7 +700,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.dge = cl(awa*(1-calcDodgeRate(btd.attrs[9]))); // 隐蔽
 
     btd.mov = 0; // 行动
-    btd.mdef = btd.attrs[8]*25; // 心理防御
+    btd.mdef = btd.attrs[8]*25+250; // 心理防御
     // btd.mdef = 0; // 心理防御
     btd.ptc = btd.attrs[10]*5; // 潜能
     btd.alive = 1; // 存活
@@ -715,11 +719,18 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
 
     // 添加默认攻击方式
     let strBase = btd.attrs[4]>=btd.attrs[5];
+    let defaultR1=0,defaultR2=0;
+    if(strBase){
+        defaultR1 = cl(btd.attrs[4]/30);
+    }
+    else{
+        defaultR2 = cl(btd.attrs[5]/30);
+    }
     btd.defaultAttack = {
 		n: strBase?'挥拳':'扔石',
 		d: 1, // 基础伤害
-		r1: cl(btd.attrs[4]/30), // 力量补正
-		r2: cl(btd.attrs[5]/30), // 精准补正
+		r1: defaultR1, // 力量补正
+		r2: defaultR2, // 精准补正
 		b: [], // buff制造表（buff id）
 		bl: [], // buff等级表（1-9）
 		s: strBase?1:5, // SP效果 1压制 2破盾 3气溃 4精溃 5锁敌 6攻心 7偷窃
@@ -844,7 +855,7 @@ export function genRXString(val){ // 生成补正等级描述文本
     if(val<=0){
         return `-`;
     }
-    if(val>150){
+    if(val>REJUST_LEVELS_MAP[9][1]){
         return `?`;
     }
     let name = ``, suffix = ``;
@@ -1230,6 +1241,11 @@ export function calcBreathValue({caster,}){ // 计算调息恢复的体力
         res = cl(res*buff.construction[buff.level-1]);
     }
 
+    // 如果心理崩溃，则最多恢复1点
+    if(isCrumble(caster)){
+        res = setInRange(res,0,1);
+    }
+
     return res;
 }
 export function calcConcentrate({caster,}){ // 计算集气值
@@ -1450,6 +1466,23 @@ export function calcPctPoisonBuff({caster,buff,}){ // 湿毒bufff
     return res;
 }
 
+export function calcEnviorDamage(roundCount){ // 计算战意流失 @返回 mentalDmg造成的心理伤害值，eDmgCount第几次战意流失，happen是否触发
+    let res = {
+        eDmgCount: 0,
+        mentalDmg: 0,
+        happen: false,
+    };
+    const itv = CONFIG.enviorDamageInterval;
+    const baseDmg = CONFIG.enviorDamageBase;
+
+    if(roundCount>0&&(roundCount%itv==0)){
+        res.eDmgCount = Math.floor(roundCount/itv);
+        res.mentalDmg = Math.pow(2,res.eDmgCount-1)*baseDmg;
+        res.happen = true;
+    }
+
+    return res;
+}
 
 export function getBuff(unit,id,){ // 根据 buffId 获取单位当前的 buff
     let res;

@@ -14,7 +14,7 @@
                 <div class="wrap-item atk">
                     <a class="atk-dmg">伤害 {{skill.el[atkEffectIndex].d.d}}</a>
                     <a class="atk-r1" v-if="skill.el[atkEffectIndex].d.r1" @click.stop="_onTapRx1">（ 力补：{{common.genRXString(skill.el[atkEffectIndex].d.r1)}} ）</a>
-                    <a class="atk-r2" v-if="skill.el[atkEffectIndex].d.r2" @click.stop="_onTapRx2">（ 精补：{{common.genRXString(skill.el[atkEffectIndex].d.r2)}} ）</a>
+                    <a class="atk-r2" v-if="skill.el[atkEffectIndex].d.r2" @click.stop="_onTapRx2">（ 准补：{{common.genRXString(skill.el[atkEffectIndex].d.r2)}} ）</a>
                 </div>
             </div>
             <div class="row buff-wrap" v-if="buffEffectIndex!=-1">

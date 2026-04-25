@@ -3,6 +3,18 @@ module.exports = {
 	CACHE: {
 		sto: '_DS_RWD_L',
 	},
+	ASSETS: {
+		image_urls:[
+		    require('../assets/bg-battle.png'),
+		    require('../assets/bg-menu.png'),
+		    require('../assets/icon-female-1.png'),
+		    require('../assets/icon-female-2.png'),
+		    require('../assets/icon-female-3.png'),
+		    require('../assets/icon-male-1.png'),
+		    require('../assets/icon-male-2.png'),
+		    require('../assets/icon-male-3.png'),
+		],
+	},
 	CONFIG:{
 		attrMap: [`生命`,`精力`,`体力`,`防御`,`力量`,`精准`,`速度`,`智力`,`定力`,`隐蔽`,`爆发`,],
 
@@ -57,15 +69,15 @@ module.exports = {
 			},{
 				id: 13,name: '猛攻',trend:2,good:1,
 				desc: '提升力量补正',
-				construction: [1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8,],
+				construction: [1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2,],
 			},{
 				id: 14,name: '鹰眼',trend:2,good:1,
 				desc: '提升精准补正',
-				construction: [1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8,],
+				construction: [1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2,],
 			},{
 				id: 15,name: '迅捷',trend:2,good:1,
 				desc: '提升行动力增速',
-				construction: [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9,],
+				construction: [1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1,],
 			},{
 				id: 16,name: '亢奋',trend:2,good:1,
 				desc: '造成伤害后恢复自己的体力',
@@ -138,11 +150,11 @@ module.exports = {
 			},{
 				id: 111,name: '乏力',trend:4,good:0,
 				desc: '力量补正减少',
-				construction: [.7, .62, .54, .46, .38, .3, .22, .14, .02,],
+				construction: [.8, .74, .68, .62, .56, .5, .44, .38, .32,],
 			},{
 				id: 112,name: '模糊',trend:4,good:0,
 				desc: '精准补正减少',
-				construction: [.7, .62, .54, .46, .38, .3, .22, .14, .02,],
+				construction: [.8, .74, .68, .62, .56, .5, .44, .38, .32,],
 			},{
 				id: 113,name: '迟钝',trend:4,good:0,
 				desc: '行动力增速下降',
@@ -293,6 +305,8 @@ module.exports = {
 		defAutoRecoverFactor: .5, // 防御值自动回升系数
 		baseConsumeList: [1,1,1,0,1,1,2,3,], // 基础操作的体力消耗 0防御 1躲避 2追踪 3调息 4集气 5爆气 6劝降 7撤离
 		spAttackRate: 25, // 武器的 SP 效果触发概率
+		enviorDamageInterval: 25, // 战意流失触发频率（回合数）
+		enviorDamageBase: 25, // 战意流失基础伤害
 
 		dodgeupByTrace: 1000, // 追踪带来的存在感提升值
 		fleeTotalMoveFactor: 50, // 撤离需要的总撤离值倍数
@@ -377,7 +391,7 @@ equip = {
 	v: 225, // 价值
 }
 
-role = {
+unit = {
 	id: 1, //
 
 	nm: '赵日天', // 名字
@@ -388,6 +402,7 @@ role = {
 	tms: 1, // 主角队伍中的顺位，由小到大【0：不在主角队伍中】
 	rel: 3700, // 好感度 0-10000
 	g: 18470,
+	i: '1', // 头像型号 1-3
 
 	as: [50,35,2,0, 20,14,16,17,14,25,], // 十维身体属性 [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
 
@@ -396,6 +411,8 @@ role = {
 	ss: [1,] // 技能ID数组
 
 	es: [22,0,0,0,11,0,33,], // 装备ID数组 [0手一，1手二，2配饰一，3配饰二，4身体，5头，6脚]
+
+	b: [], // 背包，存放装备ID
 
 	btd: { // 战斗中的状态
 		hp: [50,50,], // 生命力

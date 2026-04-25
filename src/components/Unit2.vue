@@ -2,10 +2,14 @@
     <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'} ${aniStyle}`" @click.stop="_onTap">
         <div class="avatar-wrap" :class="`${!unit.btd.alive?'dead':''}`">
 
-            <a class="avatar" v-if="!aniStyle" ref="unit-icon" :class="common.isCrumble(unit)?'avatar-crumble':''" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
-            <a class="avatar" v-else ref="unit-icon" :class="common.isCrumble(unit)?'avatar-crumble':''" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a>
+            <div class="cur" v-if="unit.btd.cur&&unit.btd.alive"></div>
 
-            <div class="cur" v-show="unit.btd.cur&&unit.btd.alive"></div>
+            <Avatar class="unit-avatar" v-if="!aniStyle" ref="unit-icon" :unit="unit" @onTap="_onTapAvatar" />
+            <Avatar class="unit-avatar" v-else ref="unit-icon" :unit="unit" @onTap="_onTapAvatar" />
+
+            <!-- <a class="avatar" v-if="!aniStyle" ref="unit-icon" :class="common.isCrumble(unit)?'avatar-crumble':''" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar"></a>
+
+            <a class="avatar" v-else ref="unit-icon" :class="common.isCrumble(unit)?'avatar-crumble':''" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a> -->
 
             <Bar2 class="cir1" :current="unit.btd.mov" :type="1" @onTap="_onTapFlag(103)" />
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" @onTap="_onTapFlag(104)" />
@@ -57,6 +61,7 @@ isPlayer: 1, // 玩家可操控
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
 import Bar3 from '../components/Bar3';
+import Avatar from '../components/Avatar';
 import Buff from '../components/Buff';
 import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
 import * as common from '../tools/common';
@@ -100,7 +105,7 @@ export default {
             return name;
         },
         getIconVDom(){ // 获取头像的VDOM
-            return this.$refs[`unit-icon`];
+            return this.$refs[`unit-icon`].$refs.avatar;
         },
         trigAni(name){ // 触发动画
             if(name=='cast'){
@@ -139,6 +144,7 @@ export default {
         Bar1,
         Bar2,
         Bar3,
+        Avatar,
         Buff,
     },
 };
@@ -164,25 +170,11 @@ export default {
         margin-bottom: .05rem;
         z-index: 100;
     }
-    .avatar{
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    .avatar-wrap .unit-avatar{
+        display: block;
         width: 1rem;
         height: 1rem;
-        line-height: .3rem;
-        font-weight: bold;
-        background-image: linear-gradient(to right bottom, #666 0%, #fff 40%, #888 100%);
-        /* background-image: radial-gradient(closest-corner, #fff 10%, #aaa 100%); */
-        color: #000;
-        border-radius: 50%;
-        border: .03rem double #131313;
-        z-index: 100;
-        box-shadow: 0 0 .06rem .02rem #aaa;
-    }
-    .avatar-crumble{
-        box-shadow: 0 0 .4rem #e81313 inset;
+        z-index: 99;
     }
     .cur{
         position: absolute;
@@ -199,7 +191,7 @@ export default {
     @keyframes cur{
         to{
             transform: scale(66%);
-            opacity: .5;
+            opacity: .33;
         }
     }
     .cir1{ /* 行动 */

@@ -4,7 +4,7 @@
             <span class="attack-item attack-name">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{common.calcConsume({type:1,data:attack,unit})}})</span></span>
             <span class="attack-item">伤害<br/>{{attack.d}}</span>
             <span class="attack-item"><span v-show="attack.r1">力补<br/>{{common.genRXString(attack.r1)}}</span></span>
-            <span class="attack-item"><span v-show="attack.r2">精补<br/>{{common.genRXString(attack.r2)}}</span></span>
+            <span class="attack-item"><span v-show="attack.r2">准补<br/>{{common.genRXString(attack.r2)}}</span></span>
             <div class="attack-item buff-wrap">
                 <span class="buff" v-for="(buffId,index) in attack.b" :key="buffId">
                     <Buff :buff="genBuff(buffId,attack.bl[index])" :mode="2" @onTap="_onTapBuff(buffId,attack.bl[index])" />

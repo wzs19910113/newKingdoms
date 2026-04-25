@@ -2,7 +2,8 @@
     <a class="unit">
         <div class="block block-stat">
             <div class="avatar-wrap">
-                <a class="avatar" :class="">{{unit.nk+`\r`+unit.btd.name}}</a>
+                <!-- <a class="avatar" :class="">{{unit.nk+`\r`+unit.btd.name}}</a> -->
+                <Avatar class="unit-avatar" :unit="unit" />
                 <div class="weapon" v-if="unit.btd.weaponName1">🗡️{{unit.btd.weaponName1}}</div>
                 <div class="weapon" v-if="unit.btd.weaponName2">🗡️{{unit.btd.weaponName2}}</div>
             </div>
@@ -53,6 +54,7 @@
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
 import Bar3 from '../components/Bar3';
+import Avatar from '../components/Avatar';
 import Buff from '../components/Buff';
 import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
 import * as common from '../tools/common';
@@ -98,6 +100,7 @@ export default {
         Bar1,
         Bar2,
         Bar3,
+        Avatar,
         Buff,
     },
 };
@@ -128,8 +131,9 @@ export default {
     /* 头像 */
     .avatar-wrap{
         position: relative;
-        width: 1.5rem;
-        height: 1.5rem;
+        margin-top: .2rem;
+        width: 1.6rem;
+        height: 1.6rem;
         white-space: normal;
         word-break: keep-all;
         margin-bottom: .05rem;
@@ -147,11 +151,10 @@ export default {
         margin: 0 auto;
         line-height: .3rem;
         font-weight: bold;
-        background-image: linear-gradient(to right bottom, #666 0%, #fff 40%, #888 100%);
         /* background-image: radial-gradient(closest-corner, #fff 10%, #aaa 100%); */
         color: #000;
         border-radius: 50%;
-        border: .03rem double #131313;
+        /* border: .03rem double #131313; */
         z-index: 100;
         white-space: normal;
         word-break: break-all;

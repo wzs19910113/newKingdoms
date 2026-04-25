@@ -214,6 +214,7 @@ export default {
             editLevel: 0, // 可以削减的 buff 层数
 
             timerList: [],
+            itv: null,
 
             common,
             CONFIG,
@@ -222,7 +223,6 @@ export default {
 
     },
     mounted(){
-        // TODO
         let _nus = [];
         _nus.push(common.genUnit({id:1,name:'赵日天',age:20,gender:1,level:5,tms:1,rel:100,game:this.game,}));
         _nus.push(common.genUnit({id:2,gender:2,level:1,tms:2,rel:100,game:this.game,}));
@@ -272,12 +272,13 @@ export default {
         _nus[3].as[3] = 100;
         _nus[3].as[10] = 200;
         _nus[3].as[7] = 500;
+        // _nus[3].as[8] = -500;
         // _nus[7].as[1] = 1;
         // _nus[7].as[1] = 1;
         _nus[6].as[0] = 2350;
         _nus[7].as[0] = 1350;
-        _nus[7].as[1] = 780;
-        _nus[7].as[2] = 112;
+        _nus[7].as[1] = 1;
+        _nus[7].as[2] = 1;
         _nus[7].as[3] = 242;
         _nus[7].as[6] = 444;
 
@@ -432,18 +433,18 @@ export default {
             let skill = window.GLOBAL.game.allSkills[i];
             skill.v = common.calcSkillValue(skill);
         }
-
-        if(window.GLOBAL&&window.GLOBAL.game&&window.GLOBAL.game.battle){ // TODO
+        if(window.GLOBAL&&window.GLOBAL.game&&window.GLOBAL.game.battle){
             this.game = window.GLOBAL.game;
             this.init();
-            console.log(this.game);
         }
         else{
             this.$router.push('/');
         }
+       //  console.log(window.GLOBAL);
     },
     beforeDestroy(){
         this.clearAllTimers();
+        clearInterval(this.itv);
     },
     methods: {
         /* 流程相关 */
@@ -469,6 +470,10 @@ export default {
             this.$nextTick(_=>{
                 this.goPageState(1);
             });
+
+            this.itv = setInterval(_=>{
+                this.forceUpdatePage();
+            },500);
         },
         goPageState(flag){ // 切换页面
             let allUnits;
@@ -607,36 +612,33 @@ export default {
                 _unit.btd.changes = cloneObj(INIT_CHANGES);
                 _unit.btd.followChanges = cloneObj(INIT_CHANGES);
             }
-            // 防页面停滞
-            this.jk(unit);
             // 撤离中的话玩家不能行动
             if(this.isFleeing&&unit.btd.isPlayer){
                 this.roundEnd();
                 return;
             }
-            this.$nextTick(_=>{
-                // 当前行动者标识
-                unit.btd.cur = 1;
-                this.jk(unit);
-                // 回合次数+1
-                this.roundCount++;
-                // 通用前置动作
-                this.unitRoundPrologue(unit);
-                // 判断玩家还是人机
-                if(unit.btd.isPlayer){ // 玩家
-                    this.goPageState(3);
-                    this.menuData.state = 1;
-                    this.menuData.tip = `${unit.btd.name}行动`; // 更新菜单提示文本
-                    this.menuData.extip = ``;
-                }
-                else{ // 人机
-                    let unitAction = ai.genAction({unit,meTeam:this.enemyTeam,youTeam:this.playerTeam,isFleeing:this.isFleeing});
-                    // console.log(unitAction);
-                    setTimeout(_=>{
-                        this.unitAction(unitAction);
-                    },CONFIG.aiExpireTime);
-                }
-            });
+            // 当前行动者标识
+            unit.btd.cur = 1;
+            // 回合次数+1
+            this.roundCount++;
+            // 通用前置动作
+            this.unitRoundPrologue(unit);
+            // 刷新页面
+            this.forceUpdatePage();
+            // 判断玩家还是人机
+            if(unit.btd.isPlayer){ // 玩家
+                this.goPageState(3);
+                this.menuData.state = 1;
+                this.menuData.tip = `${unit.btd.name}行动`; // 更新菜单提示文本
+                this.menuData.extip = ``;
+            }
+            else{ // 人机
+                let unitAction = ai.genAction({unit,meTeam:this.enemyTeam,youTeam:this.playerTeam,isFleeing:this.isFleeing});
+                // console.log(unitAction);
+                this.timerList.push(setTimeout(_=>{
+                    this.unitAction(unitAction);
+                },CONFIG.aiExpireTime));
+            }
         },
         unitRoundPrologue(unit){ // 单位回合的通用前置动作
             let btd = unit.btd;
@@ -694,6 +696,9 @@ export default {
                 curUnit.btd.followChanges.hp -= hpDmg;
                 this.registerAniEffect(201,curUnit,1);
             }
+
+            // 战意流失
+            this.enviorDamage();
 
             // 遍历每个存活单位，根据 changes 生成并推送画布动画
             for(let unit of allAliveUnits){
@@ -939,6 +944,17 @@ export default {
             }
         },
 
+        enviorDamage(){ // 战意流失：环境影响心理防御
+            let { mentalDmg, eDmgCount, happen, } = common.calcEnviorDamage(this.roundCount);
+            if(happen){
+                let allAliveUnits = this.getAllAliveUnits();
+                for(let unit of allAliveUnits){
+                    unit.btd.changes.mdef -= mentalDmg;
+                    this.registerAniEffect(201,unit);
+                }
+                this._alert(`触发第 ${eDmgCount} 次环境崩溃`,5);
+            }
+        },
         attackOnTarget({caster,target,attack,hit=0,skill}){ // 单位受到攻击并计算 changes，hit是否确定命中
             let hitBuffActions = ({dmg,}) =>{ // 结算所有的 buff 效果
                 let buff;
@@ -1306,14 +1322,12 @@ export default {
             }
         },
         onAnimationResponse(){ // 当动画中途回应
-            // this.$nextTick(_=>{
-            // });
             let allAliveUnits = this.getAllAliveUnits();
             for(let unit of allAliveUnits){ // 保存 changes 和 followChanges：根据所有单位的 changes 和 followChanges 改变其数据
                 common.saveUnitChanges(unit);
                 common.saveUnitFollowChanges(unit);
-                this.jk(unit);
             }
+            this.forceUpdatePage();
         },
 
         /* 单位动作 */
@@ -1568,16 +1582,10 @@ export default {
             this.unitRoundEpilog(caster);
         },
         unitBreath(caster){ // 单位调息
-            if(!common.isCrumble(caster)){
-                let phyRecover = common.calcBreathValue({caster,});
-                caster.btd.phy[0] += phyRecover;
-                caster.btd.phy[0] = setInRange(caster.btd.phy[0],0,caster.btd.phy[1]);
-                caster.btd.changes.domAni = "strand";
-            }
-            else{
-                if(caster.btd.phy[0]<1){
-                    caster.btd.phy[0] = 1;
-                }
+            let phyRecover = common.calcBreathValue({caster,});
+            caster.btd.changes.phy += phyRecover;
+            caster.btd.changes.domAni = "strand";
+            if(common.isCrumble(caster)){
                 this.boardTip(`${caster.btd.name} 心理防御奔溃，体力最多恢复到1点`);
             }
             this.unitRoundEpilog(caster);
@@ -1815,10 +1823,12 @@ export default {
         },
 
         /* 其他 */
-        jk(unit){ // 防止页面刷新停滞
-            let _n = unit.btd.name;
-            unit.btd.name = 'JK';
-            unit.btd.name = _n;
+        forceUpdatePage(){ // 防止页面刷新停滞
+            let oPlayerTeam = cloneObj(this.playerTeam), oEnemyTeam = cloneObj(this.enemyTeam);
+            this.playerTeam = [];
+            this.enemyTeam = [];
+            this.playerTeam = oPlayerTeam;
+            this.enemyTeam = oEnemyTeam;
         },
         onTapCheat(){ // 点击【作弊】按钮
             this.roundEnd();

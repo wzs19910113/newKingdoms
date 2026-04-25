@@ -5,7 +5,18 @@
             <a class="btn touch-dom" @click="onTapCheat">cheat</a>
         </nut-drag>
         <!-- 主体 -->
-        <div class="panel">
+        <div class="panel" v-if="state==0">
+            <div class="equip-wrap">加载中</div>
+        </div>
+        <div class="panel" v-if="state==1">
+            <!-- <img class="bg-src" :src="require(`../assets/bg-battle.png`)" />
+            <img class="bg-src" :src="require(`../assets/bg-menu.png`)" />
+            <img class="bg-src" :src="require(`../assets/icon-female-1.png`)" />
+            <img class="bg-src" :src="require(`../assets/icon-female-2.png`)" />
+            <img class="bg-src" :src="require(`../assets/icon-female-3.png`)" />
+            <img class="bg-src" :src="require(`../assets/icon-male-1.png`)" />
+            <img class="bg-src" :src="require(`../assets/icon-male-2.png`)" />
+            <img class="bg-src" :src="require(`../assets/icon-male-3.png`)" /> -->
             <div class="skill-wrap">
                 <Skill class="skill" v-for="skill of game.allSkills" :key="skill.id" :skill="skill" :mode="1" @onTap="onTapSkill" />
             </div>
@@ -25,8 +36,8 @@ import Equip from '../components/Equip';
 import Skill from '../components/Skill';
 import Toast from '../components/Toast';
 import Pop from '../components/Pop';
-import { query, r, exptr, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, removeFromList, } from '../tools/utils';
-import { DEBUG, CONFIG, CACHE, } from '../config/config';
+import { query, r, exptr, shuffle, loadImages, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, removeFromList, } from '../tools/utils';
+import { DEBUG, CONFIG, CACHE, ASSETS, } from '../config/config';
 
 const BUFF_LIST = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
 
@@ -35,10 +46,11 @@ export default {
     data(){
         return {
             loading: false,
-            state: 1,
+            state: 0,
 
             game: {},
 
+            ASSETS,
             CONFIG,
             DEBUG,
         };
@@ -47,6 +59,10 @@ export default {
     mounted(){
         if(window.GLOBAL&&window.GLOBAL.game){
             this.game = window.GLOBAL.game;
+            loadImages(ASSETS.image_urls).then(images=>{
+                this._alert(`成功加载 ${images.length} 张图片`,3);
+                this.init();
+            });
         }
         else{
             this.$router.push('/');
@@ -62,6 +78,10 @@ export default {
             catch(err){
                 this._alert(`存储失败（${err}）`);
             }
+        },
+
+        init(){ // 初始化
+            this.state = 1;
         },
 
         onTapSkill(data){ // 点击【技能】
@@ -90,7 +110,7 @@ export default {
         },
         onTapBuff(id,level){ // 点击【buff】
             let buff = getMatchList(BUFF_LIST,[['id',id]])[0]||{};
-            this._alert(`获得状态：${buff.name}（强度${level}），${buff.desc}`,5);
+            this._alert(`敌人获得：${buff.name}（强度${level}），${buff.desc}`,5);
         },
         onTapCheat(){ // 点击【作弊】按钮
 
@@ -153,5 +173,9 @@ export default {
         height: .76rem;
         line-height: .76rem;
         background-color: #2F4F4F;
+    }
+    .bg-src{
+        display: block;
+        width: 100%;
     }
 </style>

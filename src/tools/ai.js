@@ -27,7 +27,7 @@ export function getWeakenBuff({caster,target,buffList,reduceLevel=0}){ // 选择
     return res;
 }
 
-export function genAction({unit,meTeam,youTeam,isFleeing,}){ // 生成 AI 动作 TODO
+export function genAction({unit,meTeam,youTeam,isFleeing,}){ // 生成 AI 动作
     /*
         返回 { caster, type, targetUnitList, burstAttr, skill, attack, score, consume, }
         type: 1, // 动作类型 1攻击 2技能 3防御 4躲避 5追踪 6调息 7集气 8爆气 9话术
@@ -261,11 +261,14 @@ function calcActionScore({action,isFleeing,copyAliveYouTeam,}){ // 计算一个 
         }
     }
     else if(action.type==6){ // 调息
-        let phyDiff = btd.phy[1]-btd.phy[0];
+        let phyRecover = common.calcBreathValue({caster,});
         let phyRatio = btd.phy[0]/btd.phy[1];
         let engRatio = btd.eng[0]/btd.eng[1];
         if(phyRatio<.85){
-            score = phyDiff*(1-phyRatio)*(2-engRatio*engRatio)+phyDiff*1.5;
+            score = phyRecover*(1-phyRatio)*(2-engRatio*engRatio);
+        }
+        if(phyRecover==1){ // 心理奔溃
+            score = 1;
         }
     }
     else if(action.type==7&&!isFleeing){ // 集气
@@ -367,7 +370,7 @@ function calcAttackScore(action,isFleeing,){ // 计算攻击行动的分数
         let targetAttackScore = 0;
         let { defPain, hpPain,} = common.calcPain({unit:target,dmg:singleDmg,});
         if(attack.s==5){ // 锁敌SP
-            dodgeRatio += .15;
+            dodgeRatio += .01;
         }
         if(dodgeRatio>.3||attack.s==5){
             let buffFactor = 0;
@@ -398,20 +401,6 @@ function calcAttackScore(action,isFleeing,){ // 计算攻击行动的分数
     return res;
 }
 function calcSkillScore(action,isFleeing,){ // 计算技能行动的分数
-    /*
-    	t: 1, // 1自己 2我方单体 3敌方单体
-    	el: [{ // 技能效果数组
-            t: 3, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
-    		// 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
-    		// 固疗和百分疗 { h:100, rx:35, }，心防固定修改值和定力、智力补正 { d:100, rx1:0, rx2:44, }
-    		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
-    		// 减弱状态强度 7
-    		d: 7,
-        },],
-    	c: 6, // 体力消耗
-    	d: 1200, // 存在感
-    	v: 133, // 价值
-    */
     let score = 0;
     let { caster, targetUnitList, skill, consume, } = action;
     let target = targetUnitList[0];
@@ -520,7 +509,7 @@ function calcSkillScore(action,isFleeing,){ // 计算技能行动的分数
                 volumn += 150*(1-hr);
             }
             else{ // 减少存在感
-                volumn += 40*hr;
+                volumn += 4*hr;
                 dodgeAlt = -dodgeAlt;
             }
             score += volumn*(dodgeAlt*.0001)*factor*consumeFactor;
