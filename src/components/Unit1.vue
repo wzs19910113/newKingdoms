@@ -20,21 +20,18 @@
         </div>
         <div class="block block-data">
             <div class="stat-row">
-                    <span class="stat-team-info" v-if="unit.tms>0">在队</span>{{(unit.nk?`${unit.nk}·`:``)+unit.nm}}，{{['男','女'][unit.gd-1]}} ，{{unit.age}}，信任度 <b>{{Math.floor(unit.rel/10000*100)}}</b> %
+                    <span class="stat-team-info" v-if="unit.tms>0">在队</span>{{['男','女'][unit.gd-1]}} ，{{unit.age}}，信任度 <b>{{Math.floor(unit.rel/10000*100)}}</b> %
+                    <span class="stat-sty" v-for="sty in stys">，【{{sty}}】</span>
                 </div>
             <div class="stat-row stat-score" v-if="mode==2">
                 战斗价值：{{unit.btd.score}} （ {{unit.btd.attrScore}} + {{unit.btd.equipScore}} + {{unit.btd.skillScore}} ）
             </div>
             <div class="stat-row" v-if="mode==2">
-                心里防御：<span :class="unit.btd.mdef<=0?'red':''">{{unit.btd.mdef}}</span>
+                心里防御：<span :class="unit.btd.mdef<=0?'red':''">{{unit.btd.mdef}}{{unit.btd.mdef<=0?`（奔溃中）`:``}}</span>
             </div>
             <div class="stat-row" v-if="mode==2">
                 金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
             </div>
-            <div class="stat-row" v-if="stys.length>0">
-                <span class="stat-sty" v-for="sty in stys">【{{sty}}】</span>
-            </div>
-
         </div>
         <div class="block block-data">
             <div class="stat-attr" v-for="index in 7">

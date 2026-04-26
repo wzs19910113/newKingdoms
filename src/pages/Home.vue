@@ -1,9 +1,9 @@
 <template>
     <div class="main">
         <!--作弊-->
-        <nut-drag direction="y" :style="{right:'0px',top:'75px',zIndex:'200'}" v-if="DEBUG">
+        <!-- <nut-drag direction="y" :style="{right:'0px',top:'75px',zIndex:'200'}" v-if="DEBUG">
             <a class="btn touch-dom" @click="onTapCheat">cheat</a>
-        </nut-drag>
+        </nut-drag> -->
         <!-- 主体 -->
         <div class="panel" v-if="state==0">
             <div class="equip-wrap">加载中</div>
@@ -17,13 +17,26 @@
             <img class="bg-src" :src="require(`../assets/icon-male-1.png`)" />
             <img class="bg-src" :src="require(`../assets/icon-male-2.png`)" />
             <img class="bg-src" :src="require(`../assets/icon-male-3.png`)" /> -->
-            <div class="skill-wrap">
+            <!-- <div class="skill-wrap">
                 <Skill class="skill" v-for="skill of game.allSkills" :key="skill.id" :skill="skill" :mode="1" @onTap="onTapSkill" />
             </div>
             <div class="equip-wrap">
                 <Equip v-for="equip of game.allEquips" :key="equip.id" :equip="equip" @onTap="onTapEquip" />
+            </div> -->
+
+            <!-- 操作板块 -->
+            <div class="menu-wrap">
+                <draggable class="unit-list-group" handle=".mover" :disabled="false" v-model="team" @end="onUnitDragEnd" animation="100">
+                    <div class="unit-item" v-for="(unit,index) in team" :key="index">
+                        <div class="mover draggable">
+                            <Avatar class="unit-avatar" :unit="unit" />{{unit.tms}}
+                        </div>
+                    </div>
+                </draggable>
             </div>
         </div>
+        <!-- 背景 -->
+        <div class="bg"></div>
         <!-- alert -->
         <Toast ref="toast" />
     </div>
@@ -31,12 +44,17 @@
 
 <script>
 import List from '../components/List';
+import Unit1 from '../components/Unit1';
 import Bar1 from '../components/Bar1';
 import Equip from '../components/Equip';
 import Skill from '../components/Skill';
 import Toast from '../components/Toast';
 import Pop from '../components/Pop';
-import { query, r, exptr, shuffle, loadImages, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, removeFromList, } from '../tools/utils';
+import Avatar from '../components/Avatar';
+import draggable from 'vuedraggable';
+import { cl, query, r, exptr, setInRange, loadImages, shuffle, bulbsort, bulbsort2, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
+import * as common from '../tools/common';
+import * as ai from '../tools/ai';
 import { DEBUG, CONFIG, CACHE, ASSETS, } from '../config/config';
 
 const BUFF_LIST = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
@@ -50,6 +68,9 @@ export default {
 
             game: {},
 
+            team: [],
+
+            common,
             ASSETS,
             CONFIG,
             DEBUG,
@@ -81,7 +102,39 @@ export default {
         },
 
         init(){ // 初始化
+            this.asynTeam();
             this.state = 1;
+            console.log(this.game);
+        },
+        asynTeam(){ // 同步 team 数据到 home
+            let team = [];
+            for(let unit of this.game.allUnits){
+                if(unit.tms){
+                    let btd = common.getUnitBtd(unit,this.game);
+                    let cUnit = cloneObj(unit);
+                    cUnit.btd = btd;
+                    team.push(cUnit);
+                }
+            }
+            this.team = bulbsort(team,'tms',0);
+        },
+
+        onUnitDragEnd(e){ // 当单位拖拽结束
+            for(let i=0;i<this.team.length;i++){
+                let member = this.team[i];
+                let oUnit = getMatchList(this.game.allUnits,[['id',member.id]])[0];
+                if(oUnit){
+                    oUnit.tms = i+1;
+                }
+            }
+            this.asynTeam();
+
+            // for(let i=0;i<this.team.length;i++){
+            //     let member = this.team[i];
+            //     if(member.id==this.oldSelectedRole.id){
+            //         this.meIndex = i;
+            //     }
+            // }
         },
 
         onTapSkill(data){ // 点击【技能】
@@ -110,7 +163,7 @@ export default {
         },
         onTapBuff(id,level){ // 点击【buff】
             let buff = getMatchList(BUFF_LIST,[['id',id]])[0]||{};
-            this._alert(`敌人获得：${buff.name}（强度${level}），${buff.desc}`,5);
+            this._alert(`给予敌人：${buff.name}（强度${level}）- ${buff.desc}`,5);
         },
         onTapCheat(){ // 点击【作弊】按钮
 
@@ -126,6 +179,9 @@ export default {
         Equip,
         Skill,
         Toast,
+        Unit1,
+        Avatar,
+        draggable,
         Pop,
     },
 }
@@ -141,7 +197,7 @@ export default {
         color: #4a4a4a;
         font-size: .24rem;
         line-height: 0;
-        background-color: #140425;
+        background-color: #251404;
     }
     .btn{
         background-color: transparent;
@@ -158,6 +214,30 @@ export default {
         height: 100%;
         overflow-y: auto;
     }
+
+    .bg{
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('./../assets/bg-town-1.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 1;
+        z-index: 1;
+        box-shadow: 0 0 4rem 1rem #acd inset;
+        animation: bg_fadein .2s .3s ease-in forwards;
+    }
+    @keyframes bg_fadein {
+        to{
+            opacity: .8;
+        }
+    }
     .skill-wrap{
         width: 6rem;
         margin: 0 auto;
@@ -165,6 +245,51 @@ export default {
     .skill-wrap .skill{
         display: block;
         margin-bottom: .2rem;
+    }
+
+    /* 菜单 */
+    .menu-wrap{
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 2.5rem;
+        background-image: url('./../assets/bg-menu.png');
+        background-size: 103% 160%;
+        background-position: top;
+        background-repeat: no-repeat;
+        z-index: 2000;
+        transition: all .2s;
+    }
+    .menu-wrap-expand{
+        height: 100%;
+    }
+    .unit-list-group{
+        width: 100%;
+        height: 2.5rem;
+        /* border: 1px solid red; */
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .unit-list-group .unit-item{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 25%;
+        height: 100%;
+        position: relative;
+    }
+    .unit-list-group .unit-item .mover{
+        display: block;
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+    .unit-list-group .unit-item .unit-avatar{
+        display: block;
+        width: 100%;
+        height: 100%;
     }
 
     /* 侧边按钮 */

@@ -10,9 +10,17 @@ module.exports = {
 		    require('../assets/icon-female-1.png'),
 		    require('../assets/icon-female-2.png'),
 		    require('../assets/icon-female-3.png'),
+		    require('../assets/icon-female-4.png'),
+		    require('../assets/icon-female-5.png'),
+		    require('../assets/icon-female-6.png'),
+		    require('../assets/icon-female-7.png'),
 		    require('../assets/icon-male-1.png'),
 		    require('../assets/icon-male-2.png'),
 		    require('../assets/icon-male-3.png'),
+		    require('../assets/icon-male-4.png'),
+		    require('../assets/icon-male-5.png'),
+		    require('../assets/icon-male-6.png'),
+		    require('../assets/icon-male-7.png'),
 		],
 	},
 	CONFIG:{
@@ -31,13 +39,13 @@ module.exports = {
 				desc: '不会获得低于祝福强度的负面状态',
 				construction: [0, 0, 0, 0, 0, 0, 0, 0, 0,],
 			},{
-				id: 4,name: '屏息',trend:2,good:1,
+				id: 4,name: '节流',trend:2,good:1,
 				desc: '减少攻击和技能的体力消耗',
 				construction: [.84, .8, .76, .72, .68, .64, .6, .56, .52,],
 			},{
-				id: 5,name: '蓄能',trend:2,good:1,
-				desc: '回合结束时自动提升潜能',
-				construction: [100, 125, 150, 175, 200, 225, 250, 275, 300,],
+				id: 5,name: '养息',trend:2,good:1,
+				desc: '回合结束时自动恢复体力',
+				construction: [.1, .125, .15, .175, .2, .225, .25, .275, .3,],
 			},{
 				id: 6,name: '潜行',trend:1,good:1,
 				desc: '主动行动不增加存在感',
@@ -51,7 +59,7 @@ module.exports = {
 				desc: '受到伤害后立刻恢复防御力',
 				construction: [.1, .125, .15, .175, .2, .225, .25, .275, .3,],
 			},{
-				id: 9,name: '内息',trend:2,good:1,
+				id: 9,name: '通畅',trend:2,good:1,
 				desc: '受到伤害后立刻恢复体力',
 				construction: [.1, .125, .15, .175, .2, .225, .25, .275, .3,],
 			},{
@@ -160,7 +168,7 @@ module.exports = {
 				desc: '行动力增速下降',
 				construction: [.8, .76, .72, .68, .64, .6, .56, .52, .48,],
 			},{
-				id: 114,name: '破绽',trend:3,good:0,
+				id: 114,name: '鲁莽',trend:3,good:0,
 				desc: '进行攻击时会损失防御力',
 				construction: [.4, .44, .48, .52, .56, .6, .64, .68, .72,],
 			},{
@@ -182,7 +190,7 @@ module.exports = {
 			},{
 				id: 119,name: '干毒',trend:4,good:0,
 				desc: '回合结束损失生命值（固定值）',
-				construction: [5, 10, 15, 20, 30, 40, 75, 125, 200,],
+				construction: [5, 10, 20, 30, 50, 80, 120, 180, 300,],
 			},{
 				id: 120,name: '迷惑',trend:3,good:0,
 				desc: '受到话术和技能的心理伤害增加',
@@ -275,14 +283,14 @@ module.exports = {
 			[5,30], // 9
 		],
 
-		spAttackList: [`压制`,`破盾`,`气溃`,`精溃`,`锁敌`,`攻心`,`偷窃`,],
-		spAttackShrinkList: [`压`,`破`,`气`,`精`,`锁`,`心`,`偷`,],
+		spAttackList: [`压制`,`破盾`,`气溃`,`漩流`,`锁敌`,`攻心`,`偷窃`,],
+		spAttackShrinkList: [`压`,`破`,`气`,`漩`,`锁`,`心`,`偷`,],
 		spAttackDescList: [
 			`25%概率让敌人行动进度回退`,
 			`25%概率造成额外的穿甲伤害`,
 			`25%概率削减敌人潜能`,
-			`25%概率削减敌人精力`,
-			`即便未命中也有25%概率提升敌人存在感`,
+			`25%概率削减敌人体力`,
+			`25%概率提升敌人存在感，不论是否命中`,
 			`25%概率对敌人造成心理伤害`,
 			`25%概率掠夺金币`,
 		],
@@ -290,7 +298,7 @@ module.exports = {
 			[5000,5500,6000,6500,7000,7500,8000,8500,9000,], // 0压制
 			[.300,.350,.400,.450,.500,.550,.600,.650,.700,], // 1破盾
 			[1000,1250,1500,1750,2000,2250,2500,2750,3000,], // 2气溃
-			[  10,  15,  20,  25,  30,  35,  40,  45,  50,], // 3精溃
+			[  20,  30,  40,  50,  60,  70,  80,  90, 100,], // 3漩流
 			[1000,1500,2000,2500,3000,3500,4000,4500,5000,], // 4锁敌
 			[1000,1500,2000,2500,3000,3500,4000,4500,5000,], // 5攻心
 			[1000,2000,3000,4000,5000,6000,7000,8000,9000,], // 6摸金
@@ -302,14 +310,16 @@ module.exports = {
 
 		persuadeDodgeup: 2500, // 攻心提升自己存在感固定值
 
+		leakDmgRatio: 2, // 破绽状态增伤倍数
+
 		defAutoRecoverFactor: .5, // 防御值自动回升系数
 		baseConsumeList: [1,1,1,0,1,1,2,3,], // 基础操作的体力消耗 0防御 1躲避 2追踪 3调息 4集气 5爆气 6劝降 7撤离
 		spAttackRate: 25, // 武器的 SP 效果触发概率
-		enviorDamageInterval: 25, // 战意流失触发频率（回合数）
-		enviorDamageBase: 25, // 战意流失基础伤害
+		enviorDamageInterval: 30, // 战意流失触发频率（回合数）
+		enviorDamageBase: 100, // 战意流失基础伤害
 
 		dodgeupByTrace: 1000, // 追踪带来的存在感提升值
-		fleeTotalMoveFactor: 50, // 撤离需要的总撤离值倍数
+		fleeTotalMoveFactor: 20, // 撤离需要的总撤离值倍数
 
 		aiExpireTime: 1000, // ai思考时间
 
@@ -323,12 +333,11 @@ module.exports = {
 /*
 
 game = {
-	money: 1000,
 	day: 1,
 	hour: 0,
 	meTeamIDs: [1,2,4,9,], // 队伍角色ID
 	currentMapID: 101, // 当前所在地图ID
-	luck: 0, // 夺宝能力
+	luck: 0, // 夺宝能力 0-10000
 
 	allUnits: [], // 角色
 	unitIndex: 101, // 角色 ID 索引
@@ -363,6 +372,8 @@ skill = {
 	c: 6, // 体力消耗
 	d: 1200, // 存在感
 	v: 133, // 价值
+	o: 4, // 顺位
+	k: 1, // 未解锁
 }
 
 equip = {
@@ -379,7 +390,7 @@ equip = {
 			r2: 7, // 精准补正
 			b: [103,105,], // buff制造表（buff id）
 			bl: [4,3], // buff等级表（1-9）
-			s: 4, // SP效果 1压制 2破盾 3气溃 4精溃 5锁敌 6攻心 7摸金
+			s: 4, // SP效果 1压制 2破盾 3气溃 4漩流 5锁敌 6攻心 7摸金
 			sl: 2, // SP效果等级
 			a: 0, // 目标是否为全体
 			c: 4, // 体力消耗
@@ -440,7 +451,7 @@ unit = {
 			r2: 0, // 精准补正
 			b: [], // buff制造表（buff id）
 			bl: [], // buff等级表（1-9）
-			s: 1, // SP效果 1压制 2破盾 3气溃 4精溃 5锁敌 6攻心 7摸金
+			s: 1, // SP效果 1压制 2破盾 3气溃 4漩流 5锁敌 6攻心 7摸金
 			sl: 1, // SP效果等级
 			a: 0, // 目标是否为全体
 			c: 1, // 体力消耗
@@ -457,7 +468,7 @@ unit = {
 			good: 1,
 		},]
 
-		alive: 1, // 存活
+		out: 1, // 出局状态 0存活 1战退 2屈服
 		isPlayer: 1, // 玩家可操控
 		roundTotal: 1, // 每回合可以行动的次数
 		score: 19000, // 战斗分数
@@ -478,6 +489,7 @@ unit = {
 		money: 0, // 金币
 		buffList: [{ id:11, level:3, },], // 新增buff数组
 		removeBuff: { id: 1, level:3, }, // 要削减的buff
+		capitulate: 0, // 本回合是否有被劝降过
 
 		// 0无 1slash 2smash 3bullet 4range 5fire 6thunder 7cure 8power 9pure 10mental 11-16重攻击  50shield 51blood
 		// 201浮动数字（血|精力|心防|钱） 102行动力 103潜能 104存在感 105破盾 106miss
@@ -496,6 +508,7 @@ unit = {
 		money: 0, // 金币
 		buffList: [], // 新增buff数组
 		removeBuff: {}, // 要削减的buff
+		capitulate: 0, // 本回合是否有被劝降过
 
 		effectTypeList: [12,101,104],
 		domAni: '',

@@ -37,7 +37,7 @@ import Pop from '../components/Pop';
 
 import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
 import * as common from '../tools/common';
-import { DEBUG, CONFIG, CACHE, } from '../config/config';
+import { DEBUG, CONFIG, CACHE, ASSETS, } from '../config/config';
 
 export default {
     name: 'Start',
@@ -50,22 +50,27 @@ export default {
             age: 16,
 
             game: {
-                money: 0, // 资金
-                day: 0, // 日期-天
-                hour: 0, // 日期-小时
-                currentMapID: 101, // 当前所在地图ID
-                luck: 0, // 夺宝能力
+            	day: 1,
+            	hour: 0,
+            	meTeamIDs: [1,2,4,9,], // 队伍角色ID
+            	currentMapID: 101, // 当前所在地图ID
+            	luck: 0, // 夺宝能力 0-10000
 
-                allUnits: [], // 角色
-                unitIndex: 101, // 角色 ID 索引
-                allEquips: [], // 装备
-                equipIndex: 101, // 装备 ID 索引
-                allSkills: [], // 技能
-                skillIndex: 101, // 技能 ID 索引
-                allMaps: [], // 地图
+            	allUnits: [], // 角色
+            	unitIndex: 101, // 角色 ID 索引
+            	allEquips: [], // 装备
+            	equipIndex: 101, // 装备 ID 索引
+            	allSkills: [], // 技能
+            	skillIndex: 101, // 技能 ID 索引
+            	allMaps: [], // 地图
             },
 
             storage: null,
+
+            common,
+            ASSETS,
+            CONFIG,
+            DEBUG,
         };
     },
     mounted(){
@@ -131,14 +136,38 @@ export default {
 
         genGameData({}){ // 生成随机的游戏数据
             // 生成角色
-            // 生成装备
+            this.genMe();
+            for(let i=0;i<3;i++){
+                this.genUnit();
+            }
+            // 生成地图
             for(let i=0;i<9;i++){
-                this.genEquip(i+1,1);
+                this.genMap();
             }
-            for(let i=0;i<2;i++){
-                // this.genSkill(r(1,9),1);
-                this.genSkill(1,);
-            }
+        },
+        genMe(){ // 生成主角
+            let unit = common.genUnit({
+                id: this.game.equipIndex++,
+                game: this.game,
+                level: 1,
+                gender: this.gender,
+                name: this.name,
+                age: this.age,
+                tms: 1,
+                rel: 10000,
+            });
+            this.game.allUnits.push(unit);
+        },
+        genUnit(){ // 生成一个随机单位
+            let unit = common.genUnit({
+                id: this.game.equipIndex++,
+                game: this.game,
+                tms: this.game.equipIndex,
+            });
+            this.game.allUnits.push(unit);
+        },
+        genMap(){ // 生成一个地图
+
         },
         genEquip(level,type){ // 生成一个装备
             let equip = common.genEquip({

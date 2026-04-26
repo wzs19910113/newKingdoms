@@ -1,8 +1,8 @@
 <template>
-    <a class="btn-unit" :class="`${unit.alive?'':'unit-dim'} ${aniStyle}`" @click.stop="_onTap">
-        <div class="avatar-wrap" :class="`${!unit.btd.alive?'dead':''}`">
+    <a class="btn-unit" :class="`${!unit.out?'':'unit-dim'} ${aniStyle}`" @click.stop="_onTap">
+        <div class="avatar-wrap" :class="`${unit.btd.out?'out':''}`">
 
-            <div class="cur" v-if="unit.btd.cur&&unit.btd.alive"></div>
+            <div class="cur" v-if="unit.btd.cur&&!unit.btd.out"></div>
 
             <Avatar class="unit-avatar" v-if="!aniStyle" ref="unit-icon" :unit="unit" @onTap="_onTapAvatar" />
             <Avatar class="unit-avatar" v-else ref="unit-icon" :unit="unit" @onTap="_onTapAvatar" />
@@ -15,22 +15,23 @@
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" @onTap="_onTapFlag(104)" />
             <Bar2 class="cir3" :current="unit.btd.dge" :type="3" @onTap="_onTapFlag(105)" />
         </div>
-        <div class="weapon-row" :class="`${!unit.btd.alive?'dead':''}`">
+        <div class="weapon-row" :class="`${unit.btd.out?'out':''}`">
             <div class="weapon" v-if="unit.btd.weaponName1">{{unit.btd.weaponName1}}</div>
             <div class="weapon" v-if="unit.btd.weaponName2">{{unit.btd.weaponName2}}</div>
         </div>
-        <div class="stat-row" :class="`${!unit.btd.alive?'dead':''}`">
+        <div class="stat-row" :class="`${unit.btd.out?'out':''}`">
             <Bar1 class="bar" title="" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" @onTap="_onTapFlag(101)" />
-            <Bar3 class="bar" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
+            <Bar3 class="bar" v-if="unit.btd.def[1]" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
         </div>
-        <div class="stat-row" :class="`${!unit.btd.alive?'dead':''}`">
+        <div class="stat-row" :class="`${unit.btd.out?'out':''}`">
             <Bar1 class="bar" title="" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" @onTap="_onTapFlag(102)" />
-            <Bar3 class="bar" :type="2" :crt="unit.btd.phy[0]" :max="unit.btd.phy[1]" />
+            <Bar3 class="bar" v-if="unit.btd.phy[1]" :type="2" :crt="unit.btd.phy[0]" :max="unit.btd.phy[1]" />
         </div>
-        <div class="buff-wrap" :class="`${!unit.btd.alive?'dead':''}`">
+        <div class="buff-wrap" :class="`${unit.btd.out?'out':''}`">
             <Buff class="buff" v-for="buff in unit.btd.buffList" :key="buff.id" :buff="buff" @onTap="_onTapBuff(buff)" />
         </div>
-        <div class="death-cover" v-if="!unit.btd.alive">战<br/>退</div>
+        <div class="dead-cover" v-if="unit.btd.out==1">战<br/>退</div>
+        <div class="capitulate-cover" v-if="unit.btd.out==2">屈<br/>服</div>
     </a>
 </template>
 <script>
@@ -55,7 +56,7 @@ buffList: [{ // 状态栏
 },]
 mentalDef: 150, // 心理防御
 mov: 1, // 本回合行动者顺序，由小到大【0:非本回合行动者】
-alive: 1, // 存活
+out: 0, // 是否出局
 isPlayer: 1, // 玩家可操控
 */
 import Bar1 from '../components/Bar1';
@@ -156,9 +157,7 @@ export default {
         justify-content: flex-start;
         align-items: center;
         flex-direction: column;
-        width: 20%;
         height: 100%;
-        margin: 0 .05rem;
     }
     /* 头像 */
     .avatar-wrap{
@@ -288,11 +287,11 @@ export default {
         text-align: left;
     }
 
-    /* 战退 */
-    .dead{
+    /* 战退和屈服 */
+    .out{
         opacity: .2;
     }
-    .death-cover{
+    .dead-cover,.capitulate-cover{
         position: absolute;
         left: 0;
         right: 0;
@@ -306,12 +305,18 @@ export default {
         color: #fff;
         font-size: .6rem;
         font-weight: bold;
-        color: #f00;
-        box-shadow: 0 0 .5rem #f00 inset;
         line-height: 1.2rem;
         text-shadow: 0 0 .2rem #000;
         z-index: 1000;
         opacity: .5;
+    }
+    .dead-cover{
+        color: #f00;
+        box-shadow: 0 0 .5rem #f00 inset;
+    }
+    .capitulate-cover{
+        color: #caf;
+        box-shadow: 0 0 .5rem #caf inset;
     }
     /* 动画 */
     .unit-cast-top .avatar-wrap{

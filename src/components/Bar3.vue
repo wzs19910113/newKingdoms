@@ -64,8 +64,8 @@ export default {
         top: .26rem;
         right: -.05rem;
         font-size: .26rem;
-        background-color: #ccc;
-        border: .01rem solid #aaa;
+        background-image: radial-gradient(closest-corner, #AAA 50%, #CCC 100%);
+        border: .01rem solid #CCC;
         z-index: 5;
         overflow: hidden;
         white-space: nowrap;

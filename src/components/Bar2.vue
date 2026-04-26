@@ -7,7 +7,7 @@
             <circle class="progress-bar" cx="55" cy="55" r="45" fill="none" :stroke="pColor" :stroke-width="strokeWidth" :stroke-dasharray="circumference" :stroke-dashoffset="progressOffset" transform="rotate(-90 55 55)"/>
         </svg>
         <!-- 中心显示百分比 -->
-        <label class="progress-text">{{percentage}}</label>
+        <label class="progress-text" :class="checkLeak()?'progress-float':''">{{percentage}}</label>
     </a>
 </template>
 
@@ -71,6 +71,13 @@ export default{
         _onTap(){
             this.$emit('onTap');
         },
+        getPercentage(){ // 计算百分比（0-100）
+            const percent = common.awaFormat(this.current);
+            return Math.min(100, Math.max(0, Math.floor(percent)));
+        },
+        checkLeak(){ // 检查是否出现鲁莽
+            return this.type==1&&(this.getPercentage()>=90);
+        },
     },
 };
 </script>
@@ -98,12 +105,32 @@ export default{
 
 .progress-text{
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    margin: auto;
     color: #fff;
+    /* background-color: pink; */
     text-align: center;
     line-height: 1;
     font-size: .16rem;
 }
+.progress-float{
+    color: #df8510;
+    font-weight: bold;
+    /* transform-origin: 0 0; */
+    animation: float .3s ease-in-out alternate infinite;
+}
+@keyframes float {
+    to{
+        transform: scale(1.5);
+    }
+}
+
 </style>

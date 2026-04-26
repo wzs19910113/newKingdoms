@@ -281,10 +281,10 @@ export function genAttack({level=1,melee=1,names=[],skillId=0,equipId=0}){ // �
                     newAtk.bl.push(buffLvl);
                 }
             }
-            // 添加特殊效果
-            newAtk.s = randIn(spRange);
-            newAtk.sl = r(1,level);
         }
+        // 添加特殊效果
+        newAtk.s = randIn(spRange);
+        newAtk.sl = r(1,level);
     }
     else if(skillId){ // 属于技能
         newAtk.sid = skillId;
@@ -325,8 +325,8 @@ export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge
             exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],3), // 血量
             exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],3), // 精力
             exptr(level,level*2+1,1), // 体力
-            exptr(1,3,5), // 防御
-
+            // exptr(1,3,5), // 防御
+            0, // 防御
             genAtr(), // 力量
             genAtr(), // 精准
             genAtr(), // 速度
@@ -338,7 +338,7 @@ export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge
         ss: [],
         es: [0,0,0,0,0,0,0,],
         b: [],
-        i: r(1,3),
+        i: r(1,7),
     };
     // 设置定力最小值
     if(level>5){
@@ -411,27 +411,27 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
             aRange = [5,];
             rRange = [3,4,6,7,8,10,];
         }
-        dRange = [1,250];
+        dRange = [1,60];
     }
     else if(type==2){ // 头
         aRange = [0,3,8,];
         rRange = [1,2,4,5,6,7,9,10,];
-        dRange = [2,125];
+        dRange = [2,35];
     }
     else if(type==3){ // 身体
         aRange = [0,3,8,9,];
         rRange = [1,2,6,7,10,];
-        dRange = [20,450];
+        dRange = [5,100];
     }
     else if(type==4){ // 配饰
         aRange = [2,];
         rRange = [3,4,5,6,7,8,9,10,];
-        dRange = [1,40];
+        dRange = [1,12];
     }
     else if(type==5){ // 脚
         aRange = [0,3,8,];
         rRange = [1,2,4,5,6,7,9,10,];
-        dRange = [1,135];
+        dRange = [1,30];
     }
     name = genEquipName(type,melee);
     // 设置必有属性
@@ -509,6 +509,7 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
 	c: 6, // 体力消耗
 	d: 1200, // 存在感
 	v: 133, // 价值
+    k: 1, // 未解锁
     */
     let res = {
         id,
@@ -519,7 +520,8 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
         c: 1, // 体力消耗
         d: 25, // 固有存在感
         v: 0, // 价值
-        // td: [0,0,0,0,], // 倾向【保护，强化，伤害，弱化】
+        o: 1, // 顺位
+        k: 1, // 未解锁
     };
     let sfdBuffs; // 可能拥有的buff数组，洗乱
     // 参数倾向
@@ -697,13 +699,13 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.eng = [btd.attrs[1],btd.attrs[1],], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
 
-    btd.dge = cl(awa*(1-calcDodgeRate(btd.attrs[9]))); // 隐蔽
+    btd.dge = cl(awa+5000*(1-calcDodgeRate(btd.attrs[9]))); // 隐蔽
 
     btd.mov = 0; // 行动
     btd.mdef = btd.attrs[8]*25+250; // 心理防御
     // btd.mdef = 0; // 心理防御
     btd.ptc = btd.attrs[10]*5; // 潜能
-    btd.alive = 1; // 存活
+    btd.out = 0; // 出局状态
     btd.teamSeq = _unit.tms;
     btd.buffList = [];
     btd.weaponList = weaponList;
@@ -733,7 +735,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
 		r2: defaultR2, // 精准补正
 		b: [], // buff制造表（buff id）
 		bl: [], // buff等级表（1-9）
-		s: strBase?1:5, // SP效果 1压制 2破盾 3气溃 4精溃 5锁敌 6攻心 7偷窃
+		s: strBase?1:5, // SP效果 1压制 2破盾 3气溃 4漩流 5锁敌 6攻心 7偷窃
 		sl: 1, // SP效果等级
 		a: 0, // 目标是否为全体
 		c: 1, // 体力消耗
@@ -779,7 +781,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     // let newBuff2 = cloneObj(CONFIG.badBuffs[14]);
     // newBuff2.level = 7;
     // btd.buffList.push(newBuff2);
-    // let newBuff3 = cloneObj(CONFIG.goodBuffs[6]);
+    // let newBuff3 = cloneObj(CONFIG.goodBuffs[4]);
     // newBuff3.level = 4;
     // btd.buffList.push(newBuff3);
     // let newBuff4 = cloneObj(CONFIG.goodBuffs[8]);
@@ -895,16 +897,28 @@ export function getSpeed(unit){ // 获取真实速度
 
 export function calcAttackValue(atk){ // 计算攻击方式的价值
     let score = 100, res = 0;
-    score += cl(pow(atk.d,1.34)*33);
-    score += cl(pow(atk.r1,1.34)*65);
-    score += cl(pow(atk.r2,1.34)*65);
 
+    // 伤害和补正
+    score += pow(atk.d,1.34)*33;
+    score += pow(atk.r1,1.34)*65;
+    score += pow(atk.r2,1.34)*65;
+
+    // 附加buff等级
     for(let i=0;i<atk.bl.length;i++){
-        score += cl(pow(atk.bl[i],1.34)*1500);
+        score += pow(atk.bl[i],1.34)*1500;
     }
-    score += cl(pow(atk.sl,1.34)*2500);
+
+    // SP等级
+    score += pow(atk.sl,1.34)*2500;
+
+    // 全体攻击
+    if(atk.a){
+        score = score*1.5;
+    }
+
     res = cl(score/2);
     res = setInRange(res,1,Infinity);
+
     return res;
 }
 export function calcWeaponAtkConsume(atk){ // 计算武器攻击方式的体力消耗
@@ -968,11 +982,11 @@ export function calcSkillValue(skill){ // 计算技能价值
             break;
             case 7: // 改变潜能
                 if(beni){ // 技能倾向为利好
-                    res += cl(pow(Math.abs(d.d)/1000,1.33)*5000); // 固定值
-                    res += cl(pow(Math.abs(d.rx),1.44)*38); // 补正
+                    res += cl(pow(Math.abs(d.d)/1000,1.23)*5000); // 固定值
+                    res += cl(pow(Math.abs(d.rx),1.27)*38); // 补正
                 }
                 else{ // 技能倾向为伤害
-                    res += cl(pow(Math.abs(d.d)/1000,1.33)*4000); // 固定值
+                    res += cl(pow(Math.abs(d.d)/1000,1.23)*2500); // 固定值
                 }
             break;
             case 8: // 改变心防
@@ -1055,7 +1069,7 @@ export function calcConsume({type,unit,data,}){ // 计算体力消耗 type 1攻�
     let res = 0;
     let buff,rateFactor = 1;
 
-    // 屏息bufff
+    // 节流bufff
     if(unit&&(buff=getBuff(unit,4))){
         rateFactor -= buff.construction[buff.level-1];
     }
@@ -1094,7 +1108,7 @@ export function calcHit({caster,target,}){ // 计算是否命中
     else{ // 同阵营直接命中
         res = 1;
     }
-    // res = 1;
+    res = 1;
     return res;
 }
 export function calcAttackDmg({caster,attack,}){ // 计算攻击的伤害
@@ -1137,6 +1151,17 @@ export function calcPain({unit,dmg,}){ // 计算def和hp各自承受的伤害，
         dmg = cl(dmg*buff.construction[buff.level-1]);
     }
 
+    // 心理奔溃状态增伤
+    if(isCrumble(unit)){
+        let incRatio = -unit.btd.mdef/10000;
+        dmg += cl(dmg*incRatio);
+    }
+
+    // 破绽状态增伤
+    if(unit.btd.mov>=9000){
+        dmg += cl(dmg*CONFIG.leakDmgRatio);
+    }
+
     dmg = setInRange(dmg,1,Infinity);
 
     let diff = unit.btd.def[0] - dmg;
@@ -1177,7 +1202,7 @@ export function calcPotencyAlteration({target,data,}){ // 计算潜能增减值 
 
     // 如果是提高潜能的增益效果
     if(data.d>0){
-        res += cl(target.btd.attrs[10]/CONFIG.ptcDeno*data.rx/100*.075);
+        res += cl(target.btd.attrs[10]/CONFIG.ptcDeno*data.rx/100*750);
         // 涣散bufff
         if(buff=getBuff(target,106)){
             res = cl(res*buff.construction[buff.level-1]);
@@ -1243,7 +1268,12 @@ export function calcBreathValue({caster,}){ // 计算调息恢复的体力
 
     // 如果心理崩溃，则最多恢复1点
     if(isCrumble(caster)){
-        res = setInRange(res,0,1);
+        if(res>=caster.btd.phy[0]){
+            res = 0;
+        }
+        else{
+            res = 1;
+        }
     }
 
     return res;
@@ -1299,7 +1329,7 @@ export function calcDef({caster,}){ // 计算防御力恢复值
 }
 export function calcPotencyByConsume({unit,consume,}){ // 日常体力消耗带来的潜能增长
     let res = 0,buff;
-    res = cl(consume*50*unit.btd.attrs[10]/CONFIG.ptcDeno);
+    res = cl(Math.sqrt(consume*2500*unit.btd.attrs[10]/CONFIG.ptcDeno));
 
     // 涣散bufff
     if(buff=getBuff(unit,106)){
@@ -1339,7 +1369,7 @@ export function calcPotencySpDmg({target,attack,dmg,}){ // 计算气溃带来的
     res = cl(dmgRate*CONFIG.spLevelMap[2][attack.sl-1]*hr+300);
     return res;
 }
-export function calcEnergySpDmg({target,attack,}){ // 计算精溃带来的精力减值
+export function calcVortexSpDmg({target,attack,}){ // 计算漩流带来的精力减值
     let res = 0;
     let hr = hurtRate(target);
     res = cl(CONFIG.spLevelMap[3][attack.sl-1]*hr);
@@ -1370,9 +1400,9 @@ function calcCommonBuff({buff,}){ // 通用bufff计算方式
     res = buff.construction[buff.level-1];
     return res;
 }
-export function calcPotencyBuff({caster,buff,}){ // 蓄能bufff
-    let res = 0;
-    res = cl(caster.btd.attrs[10]/CONFIG.ptcDeno*5*buff.construction[buff.level-1]);
+export function calcAdjustBuff({caster,buff,}){ // 养息bufff
+    let res = 0, rate = buff.construction[buff.level-1];
+    res = cl(caster.btd.phy[1]*rate);
     return res;
 }
 export function calcStealBuff({buff,}){ // 财迷bufff
@@ -1383,7 +1413,7 @@ export function calcPoseBuff({target,buff,}){ // 架势bufff
     res = cl(target.btd.def[1]*rate);
     return res;
 }
-export function calcAuraBuff({target,buff,}){ // 内息bufff
+export function calcAuraBuff({target,buff,}){ // 通畅bufff
     let res = 0, rate = buff.construction[buff.level-1];
     res = cl(target.btd.phy[1]*rate);
     return res;
@@ -1440,7 +1470,7 @@ export function calcBountyBuff({dmg,buff,}){ // 悬赏bufff
     res = cl(dmg*buff.construction[buff.level-1]);
     return res;
 }
-export function calcOpeningBuff({caster,buff,}){ // 破绽bufff
+export function calcOpeningBuff({caster,buff,}){ // 鲁莽bufff
     let res = 0, rate = buff.construction[buff.level-1];
     res = cl(caster.btd.def[1]*rate);
     return res;
@@ -1577,7 +1607,6 @@ function saveChanges(unit,changesName){
     if(changes.hp!=0){ // 血
         val = changes.hp;
         btd.hp[0] += val;
-        btd.alive = btd.hp[0]>0;
     }
     if(changes.def!=0){ // 防御
         val = changes.def;
@@ -1622,7 +1651,7 @@ function saveChanges(unit,changesName){
     btd.mdef = setInRange(btd.mdef,-999999,999999);
     btd.money = setInRange(btd.money,0,999999);
 
-    if(btd.alive){
+    if(!btd.out){
         // 添加 buff
         if(changes.buffList&&changes.buffList.length>0){
             for(let buff of changes.buffList){
@@ -1634,13 +1663,22 @@ function saveChanges(unit,changesName){
             weakenBuffFrom({buffId:changes.weakenBuff.id,buffLevel:changes.weakenBuff.level,unit});
         }
     }
-    // console.log(btd.name, JSON.stringify(changes));
+    // if(unit.id==4) console.log(btd.name, JSON.stringify(changes));
 }
 export function saveUnitChanges(unit){ // 结算 changes，即根据 changes 获得改变后的 unit 数据
     saveChanges(unit,'changes');
 }
 export function saveUnitFollowChanges(unit){ // 结算 followChanges，即根据 followChanges 获得改变后的 unit 数据
     saveChanges(unit,'followChanges');
+}
+export function saveUnitOutState(unit){ // 结算 unit 的出局状态
+    let btd = unit.btd;
+    if(btd.changes.capitulate&&btd.mdef<0){ // 若本回合有被劝降过，且心理防御过低
+        btd.out = 2;
+    }
+    else if(btd.hp[0]<=0){ // 战退
+        btd.out = 1;
+    }
 }
 
 /* ---------------------------- 其他 ---------------------------- */

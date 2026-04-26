@@ -37,8 +37,8 @@ export function genAction({unit,meTeam,youTeam,isFleeing,}){ // 生成 AI 动作
     let res = {};
 
     let copyUnit = cloneObj(unit);
-    let copyAliveYouTeam = cloneObj(getSubMatchList(youTeam,[['alive',1]],'btd'));
-    let copyAliveMeTeam = cloneObj(getSubMatchList(meTeam,[['alive',1]],'btd'));
+    let copyAliveYouTeam = cloneObj(getSubMatchList(youTeam,[['out',0]],'btd'));
+    let copyAliveMeTeam = cloneObj(getSubMatchList(meTeam,[['out',0]],'btd'));
 
     let actionList = getActionList({copyUnit,copyAliveYouTeam,copyAliveMeTeam,});
 
