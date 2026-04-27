@@ -135,7 +135,7 @@ function getActionList({copyUnit,copyAliveMeTeam,copyAliveYouTeam,}){ // 获得�
 
     // 生成防御行动
     consume = common.calcConsume({type:3,unit:copyUnit,}); // 防御的消耗
-    if(!common.isCrumble(copyUnit)&&common.canConsume({unit:copyUnit,consume,})){ // 若单位未崩溃，同时体力足够
+    if(!common.isCrumble(copyUnit)&&copyUnit.btd.def[1]>0&&common.canConsume({unit:copyUnit,consume,})){ // 若单位未崩溃，同时体力足够
         defAction = { caster:copyUnit, type:3, score:0, consume, };
     }
 

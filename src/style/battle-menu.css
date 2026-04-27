@@ -12,7 +12,7 @@
     background-position: center;
     background-repeat: no-repeat;
     z-index: 2000;
-    box-shadow: 0 -.03rem .04rem #8ae4f1;
+    box-shadow: 0 -.03rem .04rem #6aa4a1;
     transition: all .2s;
 }
 .menu-wrap-expand{

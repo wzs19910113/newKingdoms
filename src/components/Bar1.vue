@@ -11,6 +11,7 @@
                     <span class="crt">{{Math.round(this.crt)}}</span>&nbsp;/&nbsp;<span class="max">{{Math.round(this.max)}}</span>
                 </span>
             </div>
+            <span class="suffix" v-if="suffix">{{suffix}}</span>
         </div>
     </a>
 </template>
@@ -22,6 +23,7 @@ export default {
     name: 'Bar1',
     props:{
         title: String,
+        suffix: String,
         type: Number, // [1：生命值|2：精力|3：逃跑]
         mode: { // 模式 1简约 2详细
             type: Number,
@@ -131,6 +133,24 @@ export default {
         display: inline-block;
         font-size: .25rem;
         margin-right: .15rem;
+    }
+    .bar .suffix{
+        position: absolute;
+        right: 0;
+        top: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: .22rem;
+        height: 100%;
+        padding: 0 .05rem;
+        border: .02rem solid #000;
+        border-top-left-radius: .08rem;
+        border-bottom-left-radius: .08rem;
+        background-color: rgba(255,255,255,.4);
+        z-index: 40;
+        color: #000;
+        /* font-weight: bold; */
     }
     .bar-label .num{
         display: inline-block;

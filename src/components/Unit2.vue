@@ -198,7 +198,7 @@ export default {
         z-index: 103;
         width: .4rem;
         height: .4rem;
-        top: -.12rem;
+        top: -.14rem;
         right: .16rem;
         background-color: #000;
         border-radius: .4rem;
@@ -208,8 +208,8 @@ export default {
         z-index: 103;
         width: .4rem;
         height: .4rem;
-        top: .26rem;
-        right: .08rem;
+        top: .27rem;
+        right: .03rem;
         background-color: #000;
         border-radius: .4rem;
     }
@@ -218,7 +218,7 @@ export default {
         z-index: 103;
         width: .4rem;
         height: .4rem;
-        top: .66rem;
+        top: .68rem;
         right: .16rem;
         background-color: #000;
         border-radius: .4rem;
@@ -247,7 +247,7 @@ export default {
         margin-bottom: .2rem;
         z-index: 120;
     }
-    .stat-row .sub-mark{
+    /* .stat-row .sub-mark{
         position: absolute;
         max-width: 90%;
         height: .25rem;
@@ -275,7 +275,7 @@ export default {
     }
     .stat-row .sub-mark .sub-red{
         color: #80A;
-    }
+    } */
 
     /* buff行 */
     .buff-wrap{

@@ -87,6 +87,7 @@ export default{
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 0 .04rem #fff;
 }
 
 .progress-svg{

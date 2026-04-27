@@ -1,0 +1,10 @@
+.btn{
+    background-color: transparent;
+    display: inline-block;
+    color: #fff;
+    text-align: center;
+    cursor: pointer;
+    border-radius: .01rem;
+    border: .02rem solid #2F4F4F;
+    box-shadow: 0 0 .34rem #2F4F4F inset;
+}

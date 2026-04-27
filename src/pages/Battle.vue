@@ -89,7 +89,7 @@
             </div>
         </div>
         <!-- 背景 -->
-        <div class="bg"></div>
+        <div class="bg" :style="`background-image:url(${require('../assets/bg-battle-'+field+'.png')})`"></div>
         <div class="purdah purdah-left" v-if="pageState==0"></div>
         <div class="purdah purdah-right" v-if="pageState==0"></div>
         <!-- 弹窗 -->
@@ -101,12 +101,12 @@
                 <Buff class="buff-edit-btn" v-for="(buff,index) in editBuffList" :key="index" :buff="buff" :mode="2" @onTap="onTapEditBuff(buff)" />
             </div>
         </Pop>
-        <Pop v-if="viewingUnit" title="角色面板" @onTap="onTapPop">
+        <Pop v-if="viewingUnit" title="角色面板" :showCloseButton="true" @onTapClose="onTapPop">
             <div class="unit-info-pop">
                 <Unit1 :unit="viewingUnit" :mode="2" />
             </div>
         </Pop>
-        <Pop v-if="showMenuGuide" title="战斗操作说明" @onTap="onTapPop">
+        <Pop v-if="showMenuGuide" title="战斗操作说明" :showCloseButton="true" @onTapClose="onTapPop">
             <div class="guide-menu">
                 <p class="guide-menu-row" v-for="(item,index) in menuGuids">
                     <label class="guide-name">{{item.name}}：</label><label class="guide-desc">{{item.desc}}。</label>
@@ -197,6 +197,8 @@ export default {
 
             game: null,
 
+            field: 0,
+
             roundCount: 0, // 经历的回合次数
 
             isFleeing: 0, // 当前正在撤离
@@ -256,6 +258,7 @@ export default {
                 mapId: 1,
                 floor: 2,
             },
+            field: 9, // 战场 1-9
             playerTeamIds: [1,2,3,4,],
             enemyTeamIds: [11,12,13,14,],
         }
@@ -457,7 +460,7 @@ export default {
     methods: {
         /* 流程相关 */
         init(){ // 初始化全部
-            let { playerTeamIds, enemyTeamIds, } = this.game.battle;
+            let { playerTeamIds, enemyTeamIds, field, } = this.game.battle;
             let playerTeam = [], enemyTeam = [];
             let unitAction = (ids,team) => {
                 for(let unitId of ids){
@@ -474,6 +477,8 @@ export default {
 
             this.playerTeam = unitAction(playerTeamIds,playerTeam);
             this.enemyTeam = unitAction(enemyTeamIds,enemyTeam);
+
+            this.field = field;
 
             this.timerList.push(setTimeout(_=>{
                 this.goPageState(1);
@@ -900,13 +905,19 @@ export default {
             let res = 0;
             let consume = CONFIG.baseConsumeList[flag-1];
             let curUnit = this.curUnitList[this.curUnitListIndex];
+            // 体力不够时禁止防御
             if(consume>(curUnit.btd.phy[0]+curUnit.btd.eng[0])){
                 res = 1;
             }
             if(checkCrumble){
+                // 心理奔溃时禁止防御
                 if(common.isCrumble(curUnit)){
                     res = 1;
                 }
+            }
+            // 没有防御力的情况下禁止防御
+            if(flag==1&&curUnit.btd.def[1]<=0){
+                res = 1;
             }
             return res;
         },
@@ -1902,6 +1913,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+    @import '../style/public.css';
     @import '../style/battle-menu.css';
     .main{
         position: relative;
@@ -1938,7 +1950,6 @@ export default {
         margin: 0;
         width: 100%;
         height: 100%;
-        background-image: url('./../assets/bg-battle-7.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -1949,7 +1960,7 @@ export default {
     }
     @keyframes bg_fadein {
         to{
-            opacity: .2;
+            opacity: .3;
         }
     }
     @keyframes fadeout {
@@ -1994,16 +2005,6 @@ export default {
         height: 100%;
         min-height: 13.75rem;
     }
-    .btn{
-        background-color: transparent;
-        display: inline-block;
-        color: #fff;
-        text-align: center;
-        cursor: pointer;
-        border-radius: .01rem;
-        border: .02rem solid #2F4F4F;
-        box-shadow: 0 0 .34rem #2F4F4F inset;
-    }
 
     .panel-shadow{
         position: absolute;
@@ -2026,7 +2027,7 @@ export default {
     .battle-field{
         width: 100%;
         height: 11.2rem;
-        padding-top: .13rem;
+        padding-top: .23rem;
         /* box-shadow: 0 0 .24rem #fff inset; */
     }
     .team-pan{
@@ -2036,7 +2037,7 @@ export default {
         flex-wrap: nowrap;
         height: 5rem;
         padding: 0 .1rem;
-        /* box-shadow: 0 0 .1rem #fff inset; */
+        /* box-shadow: 0 0 .1rem red inset; */
     }
     .team-pan-top{
 

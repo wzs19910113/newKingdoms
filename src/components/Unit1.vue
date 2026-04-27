@@ -10,7 +10,7 @@
             <div class="stat-block-bars">
                 <div class="stat-block-bars-row">
                     <Bar1 class="bar" title="生命：" :mode="2" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" />
-                    <Bar3 class="bar" title="防御：" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
+                    <Bar3 class="bar" v-if="unit.btd.def[1]" title="防御：" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
                 </div>
                 <div class="stat-block-bars-row">
                     <Bar1 class="bar" title="精力：" :mode="2" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" />
@@ -20,17 +20,18 @@
         </div>
         <div class="block block-data">
             <div class="stat-row">
-                    <span class="stat-team-info" v-if="unit.tms>0">在队</span>{{['男','女'][unit.gd-1]}} ，{{unit.age}}，信任度 <b>{{Math.floor(unit.rel/10000*100)}}</b> %
-                    <span class="stat-sty" v-for="sty in stys">，【{{sty}}】</span>
+                    <span class="rel" :class="`rel-${unit.rel}`">{{[`敌对`,`相识`,`同道`,`在队`,][unit.rel]}}</span>{{['女','男',][unit.gd]}} ，{{unit.age}}
+                    <span class="stat-sty" v-for="sty in stys">，{{sty}}</span>
                 </div>
-            <div class="stat-row stat-score" v-if="mode==2">
+            <div class="stat-row stat-score">
                 战斗价值：{{unit.btd.score}} （ {{unit.btd.attrScore}} + {{unit.btd.equipScore}} + {{unit.btd.skillScore}} ）
             </div>
-            <div class="stat-row" v-if="mode==2">
+            <div class="stat-row">
                 心里防御：<span :class="unit.btd.mdef<=0?'red':''">{{unit.btd.mdef}}{{unit.btd.mdef<=0?`（奔溃中）`:``}}</span>
             </div>
-            <div class="stat-row" v-if="mode==2">
+            <div class="stat-row">
                 金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
+                <a class="btn btn-transfer" v-if="mode==1" @click.stop="_onTapTransferMoney">转移</a>
             </div>
         </div>
         <div class="block block-data">
@@ -59,10 +60,14 @@ import { DEBUG, CONFIG } from '../config/config';
 export default {
     props:{
         unit: Object, // 角色数据
+        onTapTransferMoney: { // 转移金币函数
+            type: Function,
+            defalut: function(){},
+        },
         mode: { // 模式 1平时 2战斗
             type: Number,
             default: 1,
-        }
+        },
     },
     data() {
         return {
@@ -92,6 +97,9 @@ export default {
             res += 'rem';
             return res;
         },
+        _onTapTransferMoney(){
+            this.$emit('onTapTransferMoney');
+        },
     },
     components:{
         Bar1,
@@ -103,6 +111,7 @@ export default {
 };
 </script>
 <style scoped>
+    @import '../style/public.css';
     .unit{
         position: relative;
         display: flex;
@@ -129,8 +138,8 @@ export default {
     .avatar-wrap{
         position: relative;
         margin-top: .2rem;
-        width: 1.6rem;
-        height: 1.6rem;
+        width: 2rem;
+        height: 2rem;
         white-space: normal;
         word-break: keep-all;
         margin-bottom: .05rem;
@@ -143,8 +152,8 @@ export default {
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 1rem;
-        height: 1rem;
+        width: 1.6rem;
+        height: 1.6rem;
         margin: 0 auto;
         line-height: .3rem;
         font-weight: bold;
@@ -182,9 +191,10 @@ export default {
     }
     .stat-row{
         width: 100%;
-        min-height: .36rem;
-        line-height: .36rem;
+        min-height: .46rem;
+        line-height: .46rem;
         text-align: left;
+        font-size: .26rem;
     }
     .stat-attr{
         display: flex;
@@ -192,11 +202,31 @@ export default {
         align-items: center;
         height: .36rem;
     }
-    .stat-team-info{
+    .rel{
         display: inline-block;
         padding: 0 .06rem;
-        border: .01rem solid #fff;
+        height: .32rem;
+        vertical-align: baseline;
+        line-height: .32rem;
+        border-left: .06rem solid #fff;
+        /* border: .01rem solid #fff; */
         margin-right: .08rem;
+    }
+    .rel-0{
+        color: #f85353;
+        border-color: #f85353;
+    }
+    .rel-1{
+        color: #fff;
+        border-color: #fff;
+    }
+    .rel-2{
+        color: #e89613;
+        border-color: #e89613;
+    }
+    .rel-3{
+        color: #13a3e8;
+        border-color: #13a3e8;
     }
     .stat-attr-title{
         display: flex;
@@ -254,5 +284,8 @@ export default {
         font-weight: bold;
         color: #f84343;
         /* text-shadow: 0 0 .02rem #fff; */
+    }
+    .btn-transfer{
+        padding: 0 .06rem;
     }
 </style>

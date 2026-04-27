@@ -294,7 +294,7 @@ export function genAttack({level=1,melee=1,names=[],skillId=0,equipId=0}){ // �
     return newAtk;
 }
 
-export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge(),tms=0,level=1,rel=0,}){ // 生成一个角色
+export function genUnit({id,game,name,nickname='',gender=r(0,1),age=genRandomAge(),tms=0,level=1,rel=0,icon,}){ // 生成一个角色
     let genAtr = (flexible) =>{
         let res = 1;
         let min=CONFIG.attrRangeMap[level-1][0], max=CONFIG.attrRangeMap[level-1][1];
@@ -338,7 +338,7 @@ export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge
         ss: [],
         es: [0,0,0,0,0,0,0,],
         b: [],
-        i: r(1,7),
+        i: icon||r(1,7),
     };
     // 设置定力最小值
     if(level>5){
@@ -359,7 +359,7 @@ export function genUnit({id,game,name,nickname='',gender=r(1,2),age=genRandomAge
     }
     return res;
 }
-export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
+export function genEquip({id,game,level=1,type=1,melee,}){ // 生成一个装备
     let res = {
         id,
         n: '',
@@ -373,7 +373,9 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
     let rRange = []; // 可加成的属性范围
     let dRange = [0,0,]; // 存在感范围 0-500
     let name;
-    let melee = r(1,2); // 武器类型 1近战 2远程
+    if(melee){
+        melee = r(1,2); // 武器类型 1近战 2远程
+    }
     let genAttrVal = (attr) =>{ // 根据等级生成属性值
         let res = 0;
         switch(attr){
@@ -411,7 +413,7 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
             aRange = [5,];
             rRange = [3,4,6,7,8,10,];
         }
-        dRange = [1,60];
+        dRange = [10,150];
     }
     else if(type==2){ // 头
         aRange = [0,3,8,];
@@ -421,7 +423,7 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
     else if(type==3){ // 身体
         aRange = [0,3,8,9,];
         rRange = [1,2,6,7,10,];
-        dRange = [5,100];
+        dRange = [5,120];
     }
     else if(type==4){ // 配饰
         aRange = [2,];
@@ -497,7 +499,7 @@ export function genEquip({id,game,level=1,type=1}){ // 生成一个装备
 
     return res;
 }
-export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
+export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能 melee力准倾向（0|1）
 	/*id: 11,
 	l: 1,
 	n: '治愈术',
@@ -658,13 +660,109 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能
     return res;
 }
 
+export function registerUnit({game,level=1,}){ // 注册一个角色
+    let unit = genUnit({
+        id: game.unitIndex++,
+        game,
+        level,
+    });
+    // 配备装备·武器
+    let weaponCount = exptr(1,2,2);
+    for(let i=0;i<weaponCount;i++){
+        let newWeapon = registerEquip({game,level,unit,});
+        unit.es[i] = newWeapon.id;
+    }
+    // 配备装备·配饰
+    let accessoryCount = exptr(0,2,1);
+    for(let i=0;i<accessoryCount;i++){
+        let newAccessroy = registerEquip({game,level,unit,type:4,});
+        unit.es[i+2] = newAccessroy.id;
+    }
+    // 配备装备·衣服
+    let newArmor = registerEquip({game,level,unit,type:3,});
+    unit.es[4] = newArmor.id;
+    // 配备装备·头饰
+    let newHelmet;
+    if(r(1,100)<=70){
+        newHelmet = registerEquip({game,level,unit,type:2,});
+        unit.es[5] = newHelmet.id;
+    }
+    // 配备装备·鞋子
+    let newShoes;
+    if(r(1,100)<=95){
+        newShoes = registerEquip({game,level,unit,type:5,});
+        unit.es[6] = newShoes.id;
+    }
+    // 配备背包
+    let itemCount = r(0,6)+exptr(0,3,3);
+    for(let i=0;i<itemCount;i++){
+        let newEquip = registerEquip({game,level,type:r(1,5),});
+        unit.b.push(newEquip.id);
+    }
+    // 配备技能
+    let skillCount = 4+exptr(0,2,2);
+    for(let i=0;i<skillCount;i++){
+        let newSkill = registerSkill({game,level,unit,});
+        unit.ss.push(newSkill.id);
+    }
+    // 注册到 game 中
+    game.allUnits.push(unit);
+    return unit;
+}
+export function registerEquip({game,level=1,type=1,unit,}){ // 注册一个装备
+    let melee;
+    if(unit){
+        melee = unit.as[4]>unit.as[5];
+    }
+    else{
+        melee = r(0,1);
+    }
+    let equip = genEquip({
+        id: game.equipIndex++,
+        game,
+        type,
+        level,
+        melee,
+    });
+    game.allEquips.push(equip);
+    return equip;
+}
+export function registerSkill({game,level=1,unit,}){ // 注册一个技能
+    let melee;
+    if(unit){
+        melee = unit.as[4]>unit.as[5];
+    }
+    else{
+        melee = r(0,1);
+    }
+    let skill = genSkill({
+        id: game.skillIndex++,
+        game,
+        level,
+        melee,
+    });
+    game.allSkills.push(skill);
+    return skill;
+}
+export function registerMap({game,id,level=1,}){ // 注册一个地图
+    let map;
+    map = {
+        id,
+        l: level,
+        n: CONFIG.mapNames[level-1],
+        t: 2,
+        f: CONFIG.mapFloorNames[level-1],
+    }
+    return map;
+}
+
 
 /* ---------------------------- 计算 ---------------------------- */
 export function getUnitBtd(unit,game){ // 获取单位战斗数据
-    let equips = [], weaponList = [], skillList = [], btd = {}, _unit = cloneObj(unit);
+    let equips = [], weaponList = [], bagList = [], skillList = [], btd = {}, _unit = cloneObj(unit);
     let awa = 0;
     let score = 0, attrScore = 0, equipScore = 0, skillScore = 0; // 单位战斗分数
-    for(let i=0,j=0;i<unit.es.length&&j<6;i++,j++){
+    for(let i=0;i<unit.es.length;i++){
         let equipId = unit.es[i];
         let equip = getMatchList(game.allEquips,[['id',equipId]])[0];
         if(equip){
@@ -673,6 +771,16 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
                 weaponList.push(cloneObj(equip));
             }
             equipScore += equip.v*.12;
+        }
+        else{
+            equips.push(null);
+        }
+    }
+    for(let i=0;i<unit.b.length;i++){
+        let equipId = unit.b[i];
+        let equip = getMatchList(game.allEquips,[['id',equipId]])[0];
+        if(equip){
+            bagList.push(cloneObj(equip));
         }
     }
     for(let i=0,j=0;i<unit.ss.length&&j<6;i++,j++){
@@ -683,12 +791,15 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
             skillScore += skill.v*.17;
         }
     }
+    // 把身上的装备属性累加到角色属性上
     for(let equip of equips){
-        let eattrs = equip.a||[];
-        for(let attr of eattrs){
-            _unit.as[attr[0]] += attr[1];
+        if(equip){
+            let eattrs = equip.a||[];
+            for(let attr of eattrs){
+                _unit.as[attr[0]] += attr[1];
+            }
+            awa += equip.d||0;
         }
-        awa += equip.d||0;
     }
     btd.attrs = cloneObj(_unit.as); // 11维属性 [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,0隐蔽,10潜能]
     btd.oattrs = cloneObj(_unit.as); // 战斗初始的11维属性
@@ -709,6 +820,8 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.teamSeq = _unit.tms;
     btd.buffList = [];
     btd.weaponList = weaponList;
+    btd.equipList = equips;
+    btd.bagList = bagList;
     btd.skillList = skillList;
     btd.money = unit.g;
     btd.roundTotal = 1;

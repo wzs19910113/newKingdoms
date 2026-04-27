@@ -5,7 +5,7 @@
             <div class="row">
                 <span class="name">{{skill.n}}</span>
                 <a class="consume">（{{common.calcConsume({type:2,data:skill,unit})}}）</a>
-                <span class="awa" v-if="skill.t==3">存在感+{{common.awaFormat(skill.d)}}%</span>
+                <span class="awa" v-if="skill.t==3">存在感 {{common.awaFormat(skill.d)}}%</span>
             </div>
             <div class="row row-desc">
                 <span class="desc" v-html="getSkillTip()"></span>

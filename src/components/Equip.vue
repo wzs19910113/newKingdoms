@@ -1,18 +1,20 @@
 <template>
-    <a class="equip" :class="`equip-${equip.t}`" @click="_onTap">
-        <span class="value money" v-html="common.moneyFormat(equip.v,1)"></span>
+    <a class="equip" :class="`equip-${equip.t} equip-mode-${mode}`" @click="_onTap">
+        <span class="value money" v-if="mode==1" v-html="common.moneyFormat(equip.v,1)"></span>
         <div class="row">
             <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
             <span class="name">{{equip.n}}</span>
-            <span class="awa">（存在感：{{common.awaFormat(equip.d)}}%）</span>
+            <span class="awa" v-if="mode==1">存在感 {{common.awaFormat(equip.d)}}%</span>
         </div>
         <div class="row">
             <div class="attr" v-for="attr in equip.a">
-                <span class="attr-name">{{CONFIG.attrMap[attr[0]]}}</span><span class="attr-val">+{{attr[1]}}</span>
+                <span class="attr-name" v-if="mode==1">{{CONFIG.attrMap[attr[0]]}}</span>
+                <span class="attr-val" v-if="mode==1">+{{attr[1]}}</span>
+                <span class="attr-name" v-if="mode==2">{{CONFIG.attrMap[attr[0]]}}+{{attr[1]}}</span>
             </div>
         </div>
         <div class="row row-clm" v-if="equip.t==1">
-            <Attack class="atk" v-for="(attack,index) in equip.k" :key="index" :attack="attack" :mode="1" @onTap="_onTapAttack" />
+            <Attack class="atk" v-for="(attack,index) in equip.k" :key="index" :attack="attack" :mode="mode" @onTap="_onTapAttack" />
         </div>
     </a>
 </template>
@@ -27,6 +29,10 @@ export default {
     name: 'Equip',
     props:{
         equip: Object,
+        mode: { // 模式 1详细 2简约
+            type: Number,
+            default: 1,
+        },
         onTap: { // 点击事件
             type: Function,
             default: function(){},
@@ -77,7 +83,6 @@ export default {
         justify-content: flex-start;
         align-items: center;
         flex-direction: column;
-        width: 6rem;
         margin: 0 auto;
         min-height: 1.2rem;
         line-height: .32rem;
@@ -116,6 +121,7 @@ export default {
         line-height: .3rem;
         font-size: .3rem;
         font-weight: bold;
+        margin-right: .06rem;
         text-shadow: .02rem .02rem .12rem #000;
     }
     .row .awa{
@@ -151,8 +157,51 @@ export default {
     .attr-val{
 
     }
+    .row .awa{
+        display: inline-block;
+        background-color: #DAA520;
+        padding: 0 .06rem;
+        height: .3rem;
+        line-height: .3rem;
+        font-size: .24rem;
+        border-radius: .04rem;
+        margin-right: .08rem;
+        color: #131313;
+        text-shadow: none;
+        white-space: nowrap;
+        word-break: keep-all;
+    }
     /* 攻击方式 */
     .row-clm{
         flex-direction: column;
+    }
+    /* 简约模式 */
+    .equip-mode-2{
+        margin: 0;
+        padding: .06rem;
+        background-color: rgba(42,42,82,.9);
+        box-shadow: 0 0 .06rem .06rem rgba(42,42,82,1) inset;
+    }
+    .equip-mode-2 .attr{
+        border: none;
+        display: block;
+        margin-bottom: .04rem;
+        box-shadow: none;
+    }
+    .equip-mode-2 .row .type{
+        display: inline-block;
+        width: auto;
+        font-size: .24rem;
+    }
+    .equip-mode-2 .row .name{
+        font-size: .26rem;
+        text-decoration: underline;
+    }
+    .equip-mode-2 .row-clm{
+    }
+    .equip-mode-2 .row .atk{
+        width: 100%;
+        margin-bottom: .08rem;
+        background-color: #131313;
     }
 </style>

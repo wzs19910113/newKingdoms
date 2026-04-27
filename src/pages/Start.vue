@@ -136,56 +136,44 @@ export default {
 
         genGameData({}){ // 生成随机的游戏数据
             // 生成角色
-            this.genMe();
-            for(let i=0;i<3;i++){
-                this.genUnit();
+            let me = this.genMe();
+            for(let i=0;i<9;i++){ // @test
+                let unit = common.registerUnit({game:this.game,level:i+1,});
+                // if(i<3){
+                //     unit.tms = 1;
+                // }
             }
+            me.es = cloneObj(this.game.allUnits[9].es);
+            me.ss = cloneObj(this.game.allUnits[9].ss);
+            me.b = cloneObj(this.game.allUnits[9].b);
             // 生成地图
             for(let i=0;i<9;i++){
-                this.genMap();
+                this.genMap(i);
             }
         },
         genMe(){ // 生成主角
             let unit = common.genUnit({
-                id: this.game.equipIndex++,
+                id: this.game.unitIndex++,
                 game: this.game,
                 level: 1,
                 gender: this.gender,
                 name: this.name,
                 age: this.age,
                 tms: 1,
-                rel: 10000,
+                rel: 3,
+                icon: r(1,3),
             });
             this.game.allUnits.push(unit);
+            return unit;
         },
-        genUnit(){ // 生成一个随机单位
-            let unit = common.genUnit({
-                id: this.game.equipIndex++,
+        genMap(index){ // 生成一个地图
+            let map = common.registerMap({
+                id: index+101,
                 game: this.game,
-                tms: this.game.equipIndex,
+                level: index+1,
             });
-            this.game.allUnits.push(unit);
-        },
-        genMap(){ // 生成一个地图
-
-        },
-        genEquip(level,type){ // 生成一个装备
-            let equip = common.genEquip({
-                id: this.game.equipIndex++,
-                game: this.game,
-                level,
-                type,
-            });
-            this.game.allEquips.push(equip);
-        },
-        genSkill(level,beni){ // 生成一个技能
-            let skill = common.genSkill({
-                id: this.game.skillIndex++,
-                game: this.game,
-                level,
-                beni,
-            });
-            this.game.allSkills.push(skill);
+            this.game.allMaps.push(map);
+            return map;
         },
 
         _alert(text){ // 显示提示
