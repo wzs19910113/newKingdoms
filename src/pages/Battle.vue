@@ -228,14 +228,14 @@ export default {
     },
     mounted(){
         let _nus = [];
-        _nus.push(common.genUnit({id:1,name:'赵日天',age:20,gender:1,level:5,tms:1,rel:100,game:this.game,}));
-        _nus.push(common.genUnit({id:2,gender:2,level:1,tms:2,rel:100,game:this.game,}));
-        _nus.push(common.genUnit({id:3,tms:3,level:1,rel:80,game:this.game,}));
-        _nus.push(common.genUnit({id:4,tms:4,level:1,rel:50,game:this.game,}));
-        _nus.push(common.genUnit({id:11,gender:1,level:1,game:this.game,}));
-        _nus.push(common.genUnit({id:12,gender:1,level:2,game:this.game,}));
-        _nus.push(common.genUnit({id:13,gender:2,level:1,game:this.game,}));
-        _nus.push(common.genUnit({id:14,gender:2,level:1,game:this.game,}));
+        _nus.push(common.genUnitData({id:1,name:'赵日天',age:20,gender:1,level:1,tms:1,rel:3,game:this.game,}));
+        _nus.push(common.genUnitData({id:2,gender:2,tms:2,level:1,inten:1,rel:3,game:this.game,}));
+        _nus.push(common.genUnitData({id:3,tms:3,level:1,inten:2,rel:3,game:this.game,}));
+        _nus.push(common.genUnitData({id:4,tms:4,level:1,inten:3,rel:3,game:this.game,}));
+        _nus.push(common.genUnitData({id:11,gender:1,level:9,inten:0,game:this.game,}));
+        _nus.push(common.genUnitData({id:12,gender:1,level:9,inten:0,game:this.game,}));
+        _nus.push(common.genUnitData({id:13,gender:2,level:9,inten:0,game:this.game,}));
+        _nus.push(common.genUnitData({id:14,gender:2,level:9,inten:0,game:this.game,}));
         window.GLOBAL = {};
         window.GLOBAL.game = {
         	money: 1000,
@@ -271,45 +271,45 @@ export default {
         // _nus[2].as[6] = 50;
         // _nus[3].as[6] = 50;
 
-        _nus[1].as[6] = 800;
-        _nus[1].as[0] = 1800;
-        _nus[1].as[7] = 100;
-        _nus[1].as[10] = 1000;
-        _nus[3].as[9] = 250;
-        _nus[3].as[6] = 120;
-        _nus[3].as[0] = 2300;
-        _nus[3].as[2] = 100;
-        _nus[3].as[1] = 400;
-        _nus[3].as[3] = 100;
-        _nus[3].as[10] = 200;
-        _nus[3].as[7] = 500;
+        // _nus[1].as[6] = 800;
+        // _nus[1].as[0] = 1800;
+        // _nus[1].as[7] = 100;
+        // _nus[1].as[10] = 1000;
+        // _nus[3].as[9] = 250;
+        // _nus[3].as[6] = 120;
+        // _nus[3].as[0] = 2300;
+        // _nus[3].as[2] = 100;
+        // _nus[3].as[1] = 400;
+        // _nus[3].as[3] = 100;
+        // _nus[3].as[10] = 200;
+        // _nus[3].as[7] = 500;
         // _nus[3].as[8] = -500;
         // _nus[7].as[1] = 1;
         // _nus[7].as[1] = 1;
-        _nus[6].as[0] = 2350;
-        _nus[7].as[0] = 1350;
-        _nus[7].as[1] = 300;
-        _nus[7].as[2] = 100;
-        _nus[7].as[3] = 242;
-        // _nus[7].as[6] = 444;
-
-        _nus[1].es[0] = 1;
-        _nus[1].es[0] = 2;
-        _nus[1].es[5] = 6;
-        _nus[1].es[3] = 7;
-        _nus[1].es[0] = 3;
-        // _nus[2].es[5] = 6;
-        // _nus[2].es[3] = 7;
-
+        // _nus[6].as[0] = 2350;
+        // _nus[7].as[0] = 1350;
+        // _nus[7].as[1] = 300;
+        // _nus[7].as[2] = 100;
+        // _nus[7].as[3] = 242;
+        // _nus[7].as[6] = 944;
+        //
+        // _nus[1].es[0] = 1;
+        // _nus[1].es[0] = 2;
+        // _nus[1].es[5] = 6;
+        // _nus[1].es[3] = 7;
+        // _nus[1].es[0] = 3;
+        // // _nus[2].es[5] = 6;
+        // // _nus[2].es[3] = 7;
+        //
         _nus[3].es[0] = 4;
         _nus[3].es[1] = 5;
         _nus[3].es[5] = 6;
         _nus[3].es[3] = 7;
         _nus[3].es[4] = 8;
-
-        _nus[6].as[6] = 15;
-        _nus[5].as[6] = 14;
-        _nus[4].as[6] = 13;
+        //
+        // _nus[6].as[6] = 15;
+        // _nus[5].as[6] = 14;
+        // _nus[4].as[6] = 13;
         _nus[4].es[0] = 9;
         _nus[4].es[5] = 10;
         _nus[4].es[1] = 1;
@@ -317,34 +317,34 @@ export default {
         _nus[6].es[1] = 3;
         _nus[7].es[1] = 4;
         _nus[7].es[2] = 5;
+        //
+        // // _nus[4].ss[0] = 11;
+        // // _nus[5].ss[0] = 11;
+        // // _nus[6].ss[0] = 11;
+        // // _nus[7].ss[0] = 11;
+        // // _nus[7].ss[1] = 12;
+        // // _nus[7].ss[2] = 13;
+        // // _nus[7].ss[3] = 14;
+        // // _nus[7].ss[3] = 12;
+        // // _nus[7].ss[2] = 11;
+        // // _nus[7].ss[1] = 13;
+        // _nus[7].ss[0] = 14;
 
-        // _nus[4].ss[0] = 11;
-        // _nus[5].ss[0] = 11;
-        // _nus[6].ss[0] = 11;
-        // _nus[7].ss[0] = 11;
-        // _nus[7].ss[1] = 12;
-        // _nus[7].ss[2] = 13;
-        // _nus[7].ss[3] = 14;
-        // _nus[7].ss[3] = 12;
-        // _nus[7].ss[2] = 11;
-        // _nus[7].ss[1] = 13;
-        _nus[7].ss[0] = 14;
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:1,game:{},level:1,inten:0,type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:2,game:{},level:1,inten:0,type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:3,game:{},level:1,inten:1,inten:3,type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:4,game:{},level:1,inten:2,type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:5,game:{},level:1,inten:3,type:r(1,1)}));
 
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:1,game:{},level:r(5,5),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:2,game:{},level:r(5,5),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:3,game:{},level:r(5,5),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:4,game:{},level:r(5,5),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:5,game:{},level:r(5,5),type:r(1,1)}));
-
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:6,game:{},level:r(1,1),type:r(3,3)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:7,game:{},level:r(1,1),type:r(5,5)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:8,game:{},level:r(1,1),type:r(5,5)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:9,game:{},level:r(1,1),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquip({id:10,game:{},level:r(1,1),type:r(5,5)}));
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:6,game:{},level:r(1,1),type:r(3,3)}));
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:7,game:{},level:r(1,1),type:r(5,5)}));
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:8,game:{},level:r(1,1),type:r(5,5)}));
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:9,game:{},level:r(1,1),type:r(1,1)}));
+        window.GLOBAL.game.allEquips.push(common.genEquipData({id:10,game:{},level:r(1,1),type:r(5,5)}));
         // 预设技能
         for(let i=0;i<10;i++){
             _nus[0].ss[i] = i+1;
-            window.GLOBAL.game.allSkills.push(common.genSkill({id:i+1,game:{},level:r(1,9)}));
+            window.GLOBAL.game.allSkills.push(common.genSkillData({id:i+1,game:{},level:r(1,9)}));
         }
 
         // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
@@ -407,14 +407,14 @@ export default {
             id: 14,
         	l: 1,
         	n: '凝视',
-        	t: 2, // 1自己 2我方单体 3敌方单体
+        	t: 3, // 1自己 2我方单体 3敌方单体
         	el: [{
                 t: 9,
         		// d: {d:100,rx1:35,rx2:40,},
-        		d: {d:-3100,rx:12,},
+        		d: {d:3100,rx:0,},
             },],
         	c: 23, // 体力消耗
-        	d: 4100, // 存在感
+        	d: 1600, // 存在感
         	v: 0, // 价值
         });
         window.GLOBAL.game.allSkills.push({

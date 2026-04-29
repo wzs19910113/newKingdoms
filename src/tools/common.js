@@ -35,6 +35,24 @@ const REJUST_LEVELS_MAP = [ // 补正等级描述表
     [`SS`,225,],
     [`SSS`,300,],
 ];
+const INTEN_LEVEL_MAP = [ // 强度等级-等级映射表
+    0, // 0级
+    1, // 1级
+    2, // 2级
+    2, // 3级
+    3, // 4级
+    4, // 5级
+    4, // 6级
+    5, // 7级
+    5, // 8级
+    6, // 9级
+    6, // 10级
+    7, // 11级
+    7, // 12级
+    8, // 13级
+    8, // 14级
+    9, // 15级
+];
 
 function pow(n,p=2){
     return Math.pow(n,p);
@@ -79,7 +97,7 @@ export function genRoleName(gender=1){ // 生成角色名
     let givennames = gender==1?NAMES.MALE_NAME_LIST:NAMES.FEMALE_NAME_LIST;
     return `${randIn(SURNAMES)}${r(0,1)?randIn(givennames):''}${randIn(givennames)}`;
 };
-export function genSkillName({level=1,beni=0}){ // 生成技能名
+export function genSkillName({level=1,beni=0}){ // 生成技能名 level（1-15）
     let res = ``;
     let prefix1List, prefix2List, suffixList;
     if(beni){ // 保护和强化
@@ -134,9 +152,9 @@ export function calcIconSrc(unit){ // 计算单位的icon地址
     return res;
 }
 
-export function genRx(level,exponent=1){ // 随机生成补正数值
+export function genRx(level,exponent=1){ // 随机生成补正数值 level（1-15）
     let minRx = CONFIG.rxRangeMap[level-1][0]||1, maxRx = CONFIG.rxRangeMap[level-1][1]||1;
-    let res = cl(exptr(minRx,maxRx*10,exponent));
+    let res = cl(exptr(minRx,maxRx,exponent));
     res = setInRange(res,1,Infinity);
     return res;
 }
@@ -194,7 +212,7 @@ export function genRandomAge(){ // 随机生成年龄
     }
     return age;
 };
-export function genAttack({level=1,melee=1,names=[],skillId=0,equipId=0}){ // 生成一个攻击方式
+export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ // 生成一个攻击方式数据 level（1-15）
     let newAtk = {};
     let atkAll = 0; // 是否为全体攻击
     let r1Ratio = 0, r2Ratio = 0, rAllRatio = 0;
@@ -276,15 +294,15 @@ export function genAttack({level=1,melee=1,names=[],skillId=0,equipId=0}){ // �
                 let sfdBuffs = shuffle(CONFIG.badBuffs);
                 for(let i=0;i<buffCount;i++){
                     let buffId = sfdBuffs[i].id;
-                    let buffLvl = r(1,level);
+                    let buffLvl = r(1,INTEN_LEVEL_MAP[level]);
                     newAtk.b.push(buffId);
                     newAtk.bl.push(buffLvl);
                 }
             }
         }
-        // 添加特殊效果
+        // 添加SP攻击特效
         newAtk.s = randIn(spRange);
-        newAtk.sl = r(1,level);
+        newAtk.sl = r(1,INTEN_LEVEL_MAP[level]);
     }
     else if(skillId){ // 属于技能
         newAtk.sid = skillId;
@@ -294,46 +312,71 @@ export function genAttack({level=1,melee=1,names=[],skillId=0,equipId=0}){ // �
     return newAtk;
 }
 
-export function genUnit({id,game,name,nickname='',gender=r(0,1),age=genRandomAge(),tms=0,level=1,rel=0,icon,}){ // 生成一个角色
-    let genAtr = (flexible) =>{
+export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRandomAge(),tms=0,level=1,inten=0,rel=0,icon,}){ // 生成一个角色数据 level（1-15） inten强度（0-4）
+    let genAttr = (stable=0) =>{ // 生成一个内在属性
         let res = 1;
         let min=CONFIG.attrRangeMap[level-1][0], max=CONFIG.attrRangeMap[level-1][1];
-        if(flexible){
-            let mid=cl((min+max)/3), fact=[-1,1][r(0,1)], rag=cl((max-min)*flexible);
-            res = mid+r(0,rag)*fact;
+
+        if(stable){
+            let halfDiff = (max-min)/2*stable;
+            min += cl(halfDiff);
+            max -= cl(halfDiff);
         }
-        else{
-            res = exptr(min,max,3);
-        }
+
+        // 强化
+        // min = min+cl(min*pow(1.5,inten));
+        // max = max+cl(max*pow(1.5,inten));
+
+        res = cl(exptr(min,max,3));
         res = setInRange(res,1,Infinity);
         return res;
     }
     if(!name){
         name = genRoleName(gender);
     }
+    let hp = exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],3); // 血量
+    let eng = exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],2); // 精力
+    let phy = exptr(level,level*2+1,1); // 体力
+    let innerAttrList = [
+        genAttr(), // 力量
+        genAttr(), // 精准
+        genAttr(), // 速度
+        genAttr(), // 智力
+        genAttr(.75), // 定力
+        genAttr(), // 隐蔽
+        genAttr(), // 爆发
+    ];
+
+    // 外在属性强化
+    hp = hp+cl(hp*pow(3.5,inten));
+    eng = eng+cl(eng*pow(2,inten));
+    phy = phy+cl(phy*pow(2,inten));
+
+    // 内在属性强化
+    if(inten&&inten>0){
+        let intenVolumn = cl(genAttr(1)*pow(2.5,inten)*3);
+        let intenCount = 20;
+        let eachIntenVolumn = cl(intenVolumn/intenCount);
+        for(let i=0;i<intenCount;i++){
+            let inc = eachIntenVolumn*(r(85,115)/100);
+            innerAttrList[r(0,6)] += cl(inc);
+        }
+    }
+
     let res = {
         id,
         l: level,
+        it: inten,
         nm: name,
         nk: nickname,
         gd: gender,
-        g: 1000,
+        g: cl(((level*5+inten)*3+r(1,level*(level+inten))*4)*100),
         age,
         tms,
         rel,
         as: [
-            exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],3), // 血量
-            exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],3), // 精力
-            exptr(level,level*2+1,1), // 体力
-            // exptr(1,3,5), // 防御
-            0, // 防御
-            genAtr(), // 力量
-            genAtr(), // 精准
-            genAtr(), // 速度
-            genAtr(), // 智力
-            genAtr(), // 定力
-            genAtr(), // 隐蔽
-            genAtr(), // 爆发
+            hp,eng,phy,0,
+            ...innerAttrList,
         ],
         ss: [],
         es: [0,0,0,0,0,0,0,],
@@ -353,13 +396,13 @@ export function genUnit({id,game,name,nickname='',gender=r(0,1),age=genRandomAge
         res.as[i] = setInRange(res.as[i],1,9999);
     }
     // 检查是否能拥有称谓 @test
-    let score = 1;
-    if(!res.nk&&score>5000){
-        res.nk = genNickName();
-    }
+    // let score = 1;
+    // if(!res.nk&&score>5000){
+    //     res.nk = genNickName();
+    // }
     return res;
 }
-export function genEquip({id,game,level=1,type=1,melee,}){ // 生成一个装备
+export function genEquipData({id,game,level=1,inten=0,type=1,melee,}){ // 生成一个装备数据 level（1-15）
     let res = {
         id,
         n: '',
@@ -378,18 +421,23 @@ export function genEquip({id,game,level=1,type=1,melee,}){ // 生成一个装备
     }
     let genAttrVal = (attr) =>{ // 根据等级生成属性值
         let res = 0;
+        let intenRoot = 0;
         switch(attr){
             case 0: // 血量
                 res = cl(exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],4)/5)+3;
+                intenRoot = 3.5;
             break;
             case 1: // 精力
                 res = cl(exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],4)/5)+2;
+                intenRoot = 2;
             break;
             case 2: // 体力
                 res = cl(r(1,pow(level)+2));
+                intenRoot = 1.5;
             break;
             case 3: // 防御
                 res = cl(exptr(CONFIG.defRangeMap[level-1][0],CONFIG.defRangeMap[level-1][1],4))+1;
+                intenRoot = 2;
             break;
             case 4: // 属性
             case 5:
@@ -399,8 +447,15 @@ export function genEquip({id,game,level=1,type=1,melee,}){ // 生成一个装备
             case 9:
             case 10:
                 res = cl(exptr(CONFIG.attrRangeMap[level-1][0],CONFIG.attrRangeMap[level-1][1],3)/2)+r(2,level*3);
+                intenRoot = 1.5;
             break;
         }
+        // 强化
+        if(inten){
+            res = res+cl(res*pow(intenRoot,inten))+r(inten,inten*level*2);
+            console.log(res);
+        }
+        res = setInRange(res,0,Infinity);
         return res;
     }
 
@@ -472,7 +527,7 @@ export function genEquip({id,game,level=1,type=1,melee,}){ // 生成一个装备
         // let atkCount = 3; // 攻击方式的数量
         res.k = [];
         for(let i=0;i<atkCount;i++){ // 循环生成攻击方式
-            let newAtk = genAttack({level,melee,names,equipId:res.id});
+            let newAtk = genAttackData({level,melee,names,equipId:res.id,});
             res.k.push(newAtk);
             names.push(newAtk.n);
         }
@@ -499,7 +554,7 @@ export function genEquip({id,game,level=1,type=1,melee,}){ // 生成一个装备
 
     return res;
 }
-export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能 melee力准倾向（0|1）
+export function genSkillData({id,game,level=1,beni,melee}){ // 生成一个技能数据 level（1-15） melee力准倾向（0|1）
 	/*id: 11,
 	l: 1,
 	n: '治愈术',
@@ -587,7 +642,7 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能 me
         }
         switch(sfdSkillEffectList[i]){ // 1攻击 2添加状态 3减弱增益状态 4减弱减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感
             case 1: // 攻击
-                let newAttack = genAttack({level,melee,skillId:res.id});
+                let newAttack = genAttackData({level,melee,skillId:res.id});
                 newEffect.d = newAttack;
                 hasAttack = 1;
             break;
@@ -596,7 +651,7 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能 me
                 let buffCount = exptr(1,3,5); // buff数量
                 for(let j=0;j<buffCount;j++){
                     newEffect.d.b.push(sfdBuffs[j].id); // 随机buffId
-                    newEffect.d.bl.push(r(1,level)); // 随机buff等级
+                    newEffect.d.bl.push(r(1,INTEN_LEVEL_MAP[level])); // 随机buff等级
                 }
             break;
             case 3: // 减弱一个增益状态
@@ -644,6 +699,8 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能 me
         }
         res.el.push(newEffect);
     }
+    // 固定排序
+    res.el = bulbsort(res.el,'t',0,);
     // 固有存在感
     res.d = cl(r(1,200)*25);
     if(hasAttack){
@@ -660,100 +717,85 @@ export function genSkill({id,game,level=1,beni,melee}){ // 生成一个技能 me
     return res;
 }
 
-export function registerUnit({game,level=1,}){ // 注册一个角色
-    let unit = genUnit({
-        id: game.unitIndex++,
-        game,
-        level,
-    });
+export function genUnit({id,level=1,inten=0,game,equipList,skillList,}){ // 生成一个完整的单位数据（带装备、背包和技能）
+    let unit = genUnitData({ id, level, inten, game, });
+    let melee = unit.as[4]>unit.as[5];
     // 配备装备·武器
     let weaponCount = exptr(1,2,2);
     for(let i=0;i<weaponCount;i++){
-        let newWeapon = registerEquip({game,level,unit,});
+        let newWeapon = genEquipData({ id:id*10000+i, type:1, level, inten, melee, game, });
         unit.es[i] = newWeapon.id;
+        equipList.push(newWeapon);
     }
     // 配备装备·配饰
     let accessoryCount = exptr(0,2,1);
     for(let i=0;i<accessoryCount;i++){
-        let newAccessroy = registerEquip({game,level,unit,type:4,});
+        let newAccessroy = genEquipData({ id:id*10000+1000+i, type:4, level, inten, melee, game, });
         unit.es[i+2] = newAccessroy.id;
+        equipList.push(newAccessroy);
     }
     // 配备装备·衣服
-    let newArmor = registerEquip({game,level,unit,type:3,});
+    let newArmor = genEquipData({ id:id*10000+2000, type:3, level, melee, game, });
     unit.es[4] = newArmor.id;
+    equipList.push(newArmor);
     // 配备装备·头饰
     let newHelmet;
     if(r(1,100)<=70){
-        newHelmet = registerEquip({game,level,unit,type:2,});
+        newHelmet = genEquipData({ id:id*10000+3000, type:2, level, melee, game, });
         unit.es[5] = newHelmet.id;
+        equipList.push(newHelmet);
     }
     // 配备装备·鞋子
     let newShoes;
     if(r(1,100)<=95){
-        newShoes = registerEquip({game,level,unit,type:5,});
+        newShoes = genEquipData({ id:id*10000+4000, type:5, level, melee, game, });
         unit.es[6] = newShoes.id;
+        equipList.push(newShoes);
     }
     // 配备背包
     let itemCount = r(0,6)+exptr(0,3,3);
     for(let i=0;i<itemCount;i++){
-        let newEquip = registerEquip({game,level,type:r(1,5),});
+        let newEquip = genEquipData({ id:id*10000+5000+i, type:r(1,5), level, melee, game, });
         unit.b.push(newEquip.id);
+        equipList.push(newEquip);
     }
     // 配备技能
     let skillCount = 4+exptr(0,2,2);
     for(let i=0;i<skillCount;i++){
-        let newSkill = registerSkill({game,level,unit,});
+        let newSkill = genSkillData({ id:id*10000+i, level, melee, game, });
         unit.ss.push(newSkill.id);
+        skillList.push(newSkill);
     }
-    // 注册到 game 中
-    game.allUnits.push(unit);
     return unit;
 }
-export function registerEquip({game,level=1,type=1,unit,}){ // 注册一个装备
-    let melee;
-    if(unit){
-        melee = unit.as[4]>unit.as[5];
+export function registerUnit({unit,equipList,skillList,game,}){ // 注册一个单位
+    // 逐一注册身上的装备
+    for(let i=0;i<unit.es.length;i++){
+        let equip = getMatchList(equipList,[['id',unit.es[i]]])[0];
+        if(equip){
+            equip.id = game.equipIndex++;
+            unit.es[i] = equip.id;
+            game.allEquips.push(equip);
+        }
     }
-    else{
-        melee = r(0,1);
+    // 逐一注册背包里的装备
+    for(let i=0;i<unit.b.length;i++){
+        let equip = getMatchList(equipList,[['id',unit.b[i]]])[0];
+        equip.id = game.equipIndex++;
+        unit.b[i] = equip.id;
+        game.allEquips.push(equip);
     }
-    let equip = genEquip({
-        id: game.equipIndex++,
-        game,
-        type,
-        level,
-        melee,
-    });
-    game.allEquips.push(equip);
-    return equip;
-}
-export function registerSkill({game,level=1,unit,}){ // 注册一个技能
-    let melee;
-    if(unit){
-        melee = unit.as[4]>unit.as[5];
+    // 逐一注册技能
+    for(let i=0;i<unit.ss.length;i++){
+        let skill = getMatchList(skillList,[['id',unit.ss[i]]])[0];
+        skill.id = game.skillIndex++;
+        unit.ss[i] = skill.id;
+        game.allSkills.push(skill);
     }
-    else{
-        melee = r(0,1);
-    }
-    let skill = genSkill({
-        id: game.skillIndex++,
-        game,
-        level,
-        melee,
-    });
-    game.allSkills.push(skill);
-    return skill;
-}
-export function registerMap({game,id,level=1,}){ // 注册一个地图
-    let map;
-    map = {
-        id,
-        l: level,
-        n: CONFIG.mapNames[level-1],
-        t: 2,
-        f: CONFIG.mapFloorNames[level-1],
-    }
-    return map;
+    // 注册单位
+    unit.id = game.unitIndex++;
+    game.allUnits.push(unit);
+    return unit;
 }
 
 
@@ -810,7 +852,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.eng = [btd.attrs[1],btd.attrs[1],], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
 
-    btd.dge = cl(awa+5000*(1-calcDodgeRate(btd.attrs[9]))); // 隐蔽
+    btd.dge = cl(awa+7500*(1-calcDodgeRate(btd.attrs[9]))); // 隐蔽
 
     btd.mov = 0; // 行动
     btd.mdef = btd.attrs[8]*25+250; // 心理防御
@@ -1408,7 +1450,13 @@ export function calcPersuade({caster,target,}){ // 计算话术值
     let res = 0,buff;
     let mdmg = calcIntDeno(caster)*250;
     let mdef = target.btd.attrs[8]/CONFIG.intDeno;
+    let attrDiff = caster.btd.attrs[7]-target.btd.attrs[8];
     res += cl(mdmg*(1-mdef));
+
+    // 若 caster 的智力大于 target 的定力，则增加额外伤害
+    if(attrDiff>0){
+        res += attrDiff;
+    }
 
     // 迷惑bufff
     if(buff=getBuff(target,120)){

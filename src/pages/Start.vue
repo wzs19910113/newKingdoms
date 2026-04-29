@@ -51,10 +51,8 @@ export default {
 
             game: {
             	day: 1,
-            	hour: 0,
-            	meTeamIDs: [1,2,4,9,], // 队伍角色ID
             	currentMapID: 101, // 当前所在地图ID
-            	luck: 0, // 夺宝能力 0-10000
+            	guard: 0, // 警戒值 0-1000000
 
             	allUnits: [], // 角色
             	unitIndex: 101, // 角色 ID 索引
@@ -62,7 +60,7 @@ export default {
             	equipIndex: 101, // 装备 ID 索引
             	allSkills: [], // 技能
             	skillIndex: 101, // 技能 ID 索引
-            	allMaps: [], // 地图
+            	conqueredMapIDList: [], // 已经攻克的地牢ID数组
             },
 
             storage: null,
@@ -137,22 +135,34 @@ export default {
         genGameData({}){ // 生成随机的游戏数据
             // 生成角色
             let me = this.genMe();
-            for(let i=0;i<9;i++){ // @test
-                let unit = common.registerUnit({game:this.game,level:i+1,});
+            let tempUnitList = [],tempEquipList = [], tempSkillList = [];
+            for(let i=0;i<3;i++){ // @test
+                let unit = common.genUnit({
+                    id: i+1,
+                    game: this.game,
+                    level: i+1,
+                    equipList: tempEquipList,
+                    skillList: tempSkillList,
+                });
+                tempUnitList.push(unit);
                 // if(i<3){
                 //     unit.tms = 1;
                 // }
             }
-            me.es = cloneObj(this.game.allUnits[9].es);
-            me.ss = cloneObj(this.game.allUnits[9].ss);
-            me.b = cloneObj(this.game.allUnits[9].b);
-            // 生成地图
-            for(let i=0;i<9;i++){
-                this.genMap(i);
+            for(let unit of tempUnitList){
+                let newUnit = common.registerUnit({
+                    unit,
+                    game: this.game,
+                    equipList: tempEquipList,
+                    skillList: tempSkillList,
+                });
             }
+            me.es = cloneObj(this.game.allUnits[3].es);
+            me.ss = cloneObj(this.game.allUnits[3].ss);
+            me.b = cloneObj(this.game.allUnits[3].b);
         },
         genMe(){ // 生成主角
-            let unit = common.genUnit({
+            let unit = common.genUnitData({
                 id: this.game.unitIndex++,
                 game: this.game,
                 level: 1,
@@ -165,15 +175,6 @@ export default {
             });
             this.game.allUnits.push(unit);
             return unit;
-        },
-        genMap(index){ // 生成一个地图
-            let map = common.registerMap({
-                id: index+101,
-                game: this.game,
-                level: index+1,
-            });
-            this.game.allMaps.push(map);
-            return map;
         },
 
         _alert(text){ // 显示提示

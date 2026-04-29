@@ -26,7 +26,7 @@ export function exptr(min,max,bias=2) { // 偏向参数，>1 时偏向小数，=
         return false;
     }
     if(min>=max){
-        return false;
+        return min;
     }
     if(bias<=0){
         return false;
@@ -61,7 +61,7 @@ export function setInRange(val,min,max){ // 锁定数值的范围
     }];
     let newarr = bulbsort(oldarr,'vote');
  */
-export function bulbsort(arr,valname='val',type=1){
+export function bulbsort(arr,valname='val',type=1){ // type：1降序|0升序
     let res = [...arr];
     for(let i=0;i<res.length-1;i++){
         for(let j=0;j<res.length-1-i;j++){

@@ -445,6 +445,8 @@ export default {
         position: relative;
         width: 100%;
         padding: .14rem .22rem;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
     .unit-equip-board{
         padding: .04rem .06rem;
@@ -454,7 +456,8 @@ export default {
         position: relative;
         width: 100%;
         height: 8.4rem;
-        margin: 0 auto .1rem;
+        margin: .22rem auto .6rem;
+        box-shadow: 0 0 .14rem .02rem #acf;
     }
     .unit-body-bg{
         position: absolute;

@@ -46,6 +46,32 @@ export function genAction({unit,meTeam,youTeam,isFleeing,}){ // 生成 AI 动作
         action.score = calcActionScore({action,isFleeing,copyAliveYouTeam,copyAliveMeTeam,});
     }
 
+    // 把拥有追踪能力的技能替换“追踪”
+    let traceSkillActionList = [];
+    let traceAction;
+    for(let action of actionList){
+        if(action.type==5){
+            traceAction = action;
+        }
+        if(action.type==2){
+            let { t, el, c, } = action.skill;
+            let btd = action.caster.btd;
+            let effect = getMatchList(el,[['t',9]])[0];
+            let consumeRate = c/(btd.eng[0]+btd.phy[0]);
+            let dmgRate = effect.d.d/10000*.25;
+            if(t==3&&effect&&consumeRate<dmgRate){
+                traceSkillActionList.push(action);
+            }
+        }
+    }
+    let traceActionScore = traceAction.score;
+    if(traceSkillActionList.length>0){
+        traceAction.score = 0;
+    }
+    for(let action of traceSkillActionList){
+        action.score += traceActionScore;
+    }
+
     // 从所有可执行的行动中选择一个
     actionList = bulbsort(actionList,'score',);
 
@@ -53,7 +79,7 @@ export function genAction({unit,meTeam,youTeam,isFleeing,}){ // 生成 AI 动作
     let firstActionScore = actionList[0].score;
     for(let i=1;i<actionList.length;i++){
         let action = actionList[i];
-        if(action.score>=firstActionScore*.35){
+        if(action.score>=firstActionScore*.55){
             minRange += 1;
         }
         else{
@@ -65,12 +91,12 @@ export function genAction({unit,meTeam,youTeam,isFleeing,}){ // 生成 AI 动作
     // console.log(actionList);
     // console.log(res,attackActionList);
     // let actionDesc = getActionDesc(res);
-    // if(unit.id==14){
-    //     for(let action of actionList){
-    //         console.log(getActionDesc(action));
-    //     }
-    //     console.log(`============================================================================`);
-    // }
+    if(unit.id==14){
+        for(let action of actionList){
+            console.log(getActionDesc(action));
+        }
+        console.log(`============================================================================`);
+    }
 
     return res;
 }
@@ -272,7 +298,7 @@ function calcActionScore({action,isFleeing,copyAliveYouTeam,}){ // 计算一个 
         }
     }
     else if(action.type==7&&!isFleeing){ // 集气
-        score = btd.attrs[10]/10;
+        score = btd.attrs[10]/20;
     }
     else if(action.type==8&&!isFleeing){ // 爆气
         let ptcRatio = btd.ptc/10000;
@@ -283,7 +309,7 @@ function calcActionScore({action,isFleeing,copyAliveYouTeam,}){ // 计算一个 
                 otherAttrTotal += btd.attrs[i];
             }
         }
-        if(ptcRatio>.01&&burstAttr!=7&&burstAttr!=8&&attrVal<(otherAttrTotal*2)){
+        if(ptcRatio>.25&&burstAttr!=7&&burstAttr!=8&&attrVal<(otherAttrTotal*2)){
             score = ((ptcRatio+1)*ptcRatio)*scoreFactor(caster)*attrVal*.01;
         }
     }
@@ -293,7 +319,8 @@ function calcActionScore({action,isFleeing,copyAliveYouTeam,}){ // 计算一个 
         if(hr>.5){
             let mentalDmg = common.calcPersuade({caster,target,});
             let mentalDmgRatio = mentalDmg/target.btd.mdef;
-            let mentalScore = mentalDmg*mentalDmgRatio*10*hr;
+            let attrDiff = caster.btd.attrs[7]-target.btd.attrs[8];
+            let mentalScore = mentalDmg*mentalDmgRatio*10*hr+Math.sqrt(attrDiff)*20;
             if(mentalScore>0){
                 score = mentalScore;
             }

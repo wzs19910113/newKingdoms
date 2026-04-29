@@ -144,6 +144,7 @@ export default {
     .attr{
         min-width: .6rem;
         margin-right: .1rem;
+        margin-bottom: .1rem;
         box-shadow: 0 0 .01rem .01rem #fff inset;
     }
     .attr-name,.attr-val{
