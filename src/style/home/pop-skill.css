@@ -1,0 +1,36 @@
+.unit-skill-board{
+    background-image: linear-gradient(to right, rgba(58,58,58,.5) 0%,rgba(110,113,115,.1) 40%,rgba(110,113,115,.1) 60%,rgba(58,58,58,.5) 100%);
+}
+.skill-list-group{
+    padding-bottom: 4.2rem;
+}
+.unit-skill-board .skill-wrap{
+    position: relative;
+    padding-right: .5rem;
+    margin-bottom: .1rem;
+}
+.skill-wrap .anchor{
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    flex-wrap: wrap;
+    bottom: 0;
+    top: 0;
+    right: 0;
+    width: .5rem;
+    height: 100%;
+    line-height: 1.5;
+    overflow: hidden;
+    color: #fff;
+    z-index: 40;
+    font-size: .25rem;
+    background-image: linear-gradient(to right, rgba(140,140,140,.2) 0%, rgba(30,30,30,.5) 40%, rgba(30,30,30,.5) 60%, rgba(140,140,140,.2) 100%);
+    box-shadow: 0 0 .04rem #fff inset;
+    text-align: center;
+}
+.skill-wrap .skill{
+    width: 100%;
+    height: 100%;
+}

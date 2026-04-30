@@ -1,29 +1,29 @@
 <template>
     <div class="main">
         <!--作弊-->
-        <nut-drag direction="y" :style="{right:'0px',top:'75px',zIndex:'200'}" v-if="DEBUG">
+        <!-- <nut-drag direction="y" :style="{right:'0px',top:'75px',zIndex:'200'}" v-if="DEBUG">
             <a class="btn touch-dom" @click="onTapCheat">cheat</a>
-        </nut-drag>
+        </nut-drag> -->
         <!-- 主体 -->
         <div class="panel" v-if="state==0">
             <div class="equip-wrap">加载中</div>
         </div>
         <div class="panel" v-if="state==1">
-            <!-- <img class="bg-src" :src="require(`../assets/bg-battle.png`)" />
-            <img class="bg-src" :src="require(`../assets/bg-menu.png`)" />
-            <img class="bg-src" :src="require(`../assets/icon-female-1.png`)" />
-            <img class="bg-src" :src="require(`../assets/icon-female-2.png`)" />
-            <img class="bg-src" :src="require(`../assets/icon-female-3.png`)" />
-            <img class="bg-src" :src="require(`../assets/icon-male-1.png`)" />
-            <img class="bg-src" :src="require(`../assets/icon-male-2.png`)" />
-            <img class="bg-src" :src="require(`../assets/icon-male-3.png`)" /> -->
-            <!-- <div class="skill-wrap">
-                <Skill class="skill" v-for="skill of game.allSkills" :key="skill.id" :skill="skill" :mode="1" @onTap="onTapSkill" />
+            <!-- 顶部栏位 -->
+            <div class="banner-wrap">
+                <div class="day">
+                    <b>第 {{game.day}} 天</b>
+                </div>
+                <div class="money-wrap">
+                    <b class="money-preifx">金币</b>
+                    &nbsp;
+                    <b class="money" v-html="common.moneyFormat(calcTotalMoney())+' $'"></b>
+                </div>
+                <!-- 齿轮 -->
+                <a class="btn btn-gear" v-if="map.type==1" @click.stop="onTapGear">酒馆</a>
             </div>
-            <div class="equip-wrap">
-                <Equip v-for="equip of game.allEquips" :key="equip.id" :equip="equip" @onTap="onTapEquip" />
-            </div> -->
-
+            <!-- 吊牌 -->
+            <div class="brand">{{map.name}}</div>
             <!-- 操作板块 -->
             <div class="menu-wrap">
                 <draggable class="unit-list-group" handle=".mover" :disabled="false" v-model="team" @end="onUnitDragEnd" animation="100">
@@ -37,23 +37,15 @@
                         <div class="unit unit-empty" v-else></div>
                     </div>
                 </draggable>
-                <!-- <div class="unit-list-group">
-                    <div class="unit-item" v-for="index in [0,1,2,3]" :key="index">
-                        <a class="unit mover" v-if="team[index]">
-                            <Avatar class="unit-avatar" :unit="team[index]" @onTap="onTapUnit(team[index])" />
-                        </a>
-                        <div class="unit unit-empty" v-else></div>
-                    </div>
-                </div> -->
             </div>
         </div>
         <!-- 背景 -->
         <div class="bg" v-if="state==1"></div>
         <!-- 弹窗 -->
-        <Pop v-if="viewingUnitTab" :title="`${viewingUnit.btd.name}的${[`面板`,`装备`,`技能`,][viewingUnitTab-1]}`" :arrowTitle="`${[`装备`,`技能`,`面板`,][viewingUnitTab-1]}`" :showCloseButton="true" @onTapClose="onTapClosePop" @onTapArrow="onTapArrowPop">
+        <Pop v-if="viewingUnitTab" ref="pop-content" :title="`${viewingUnit.btd.name}的${[`面板`,`装备`,`技能`,][viewingUnitTab-1]}${viewingUnitTab==3?`（${viewingUnit.btd.skillList.length}）`:``}`" :arrowTitle="`${[`装备`,`技能`,`面板`,][viewingUnitTab-1]}`" :showCloseButton="true" @onTapClose="onTapClosePop" @onTapArrow="onTapArrowPop">
             <!-- 角色面板 -->
             <div class="unit-info-pop unit-board" v-if="viewingUnitTab==1">
-                <Unit1 :unit="viewingUnit" @onTapTransferMoney="onTapTransferMoney" :mode="1" />
+                <Unit1 :unit="viewingUnit" :showTransferButton="team.length>1" @onTapTransferMoney="onTapTransferMoney" :mode="1" />
             </div>
             <!-- 角色装备表 -->
             <div class="unit-info-pop unit-equip-board" v-if="viewingUnitTab==2">
@@ -62,6 +54,7 @@
                     <a class="unit-body-equip-wrap" :class="`${viewingUnitEquipIndex==(index-1)?'unit-body-equip-wrap-expand':''} unit-body-${[`weapon1`,`weapon2`,`accessory1`,`accessory2`,`armor`,`helmet`,`shoes`,][index-1]}`" v-for="index in 7" :key="index" @click.stop="onTapViewingUnitEquip(index-1)">
                         <Equip class="unit-body-equip" :class="" v-if="viewingUnit.btd.equipList[index-1]" :equip="viewingUnit.btd.equipList[index-1]" :mode="viewingUnitEquipIndex==(index-1)?1:2" />
                         <div class="unit-body-op" v-if="viewingUnitEquipIndex==(index-1)">
+                            <a class="btn" @click.stop="onTapAllEquipOff()">卸下全身</a>
                             <a class="btn" @click.stop="onTapSellEquip(viewingUnit.btd.equipList[index-1])">售卖</a>
                             <a class="btn" @click.stop="onTapEquipOff(viewingUnit.btd.equipList[index-1])">卸下</a>
                         </div>
@@ -69,22 +62,40 @@
                 </div>
                 <div class="unit-bag equip-wrap">
                     <div class="unit-bag-title">背包（{{viewingUnit.btd.bagList.length}}）：</div>
-                    <a class="unit-bag-equip-wrap" v-for="equip of viewingUnit.btd.bagList" :key="equip.id"  @click.stop="onTapViewingUnitBag(equip)">
+                    <a class="unit-bag-equip-wrap" :class="viewingUnitBagEquip.id==equip.id?'unit-bag-equip-wrap-sel':''" v-for="equip of viewingUnit.btd.bagList" :key="equip.id"  @click.stop="onTapViewingUnitBag(equip)">
                         <Equip class="unit-bag-equip" :equip="equip" />
-                        <div class="unit-bag-op" v-show="viewingUnitBagEquip.id==equip.id">
-                            <a class="btn" @click.stop="onTapSellEquip(equip)">售卖</a>
-                            <a class="btn" @click.stop="onTapEquipOn(equip)">装上</a>
+                        <div class="unit-bag-op-wrap" v-show="viewingUnitBagEquip.id==equip.id">
+                            <div class="unit-bag-op">
+                                <a class="btn" @click.stop="onTapSellEquip(equip)">售卖</a>
+                                <a class="btn" v-if="viewingUnitBagEquip.t!=1&&viewingUnitBagEquip.t!=4" @click.stop="onTapEquipOn(equip,0)">装上</a>
+                                <a class="btn" v-if="viewingUnitBagEquip.t==1||viewingUnitBagEquip.t==4" @click.stop="onTapEquipOn(equip,1)">装上1</a>
+                                <a class="btn" v-if="viewingUnitBagEquip.t==1||viewingUnitBagEquip.t==4" @click.stop="onTapEquipOn(equip,2)">装上2</a>
+                            </div>
+                            <div class="unit-bag-compare-wrap" v-if="viewingUnitBagEquip.id==equip.id">
+                                <div class="unit-bag-compare-title">{{viewingUnit.btd.name}}身上的装备：</div>
+                                <Equip :ref="`compareEquip1-${equip.id}`" class="unit-bag-equip unit-bag-compare" v-if="viewingUnitCompareEquip1.id" :equip="viewingUnitCompareEquip1" :compare="viewingUnitBagEquip" />
+                                <Equip :ref="`compareEquip2-${equip.id}`" class="unit-bag-equip unit-bag-compare" v-if="viewingUnitCompareEquip2.id" :equip="viewingUnitCompareEquip2" :compare="viewingUnitBagEquip" />
+                            </div>
                         </div>
                     </a>
                 </div>
             </div>
             <!-- 角色技能表 -->
             <div class="unit-info-pop unit-skill-board" v-if="viewingUnitTab==3">
-                <div class="skill-wrap">
-                    <Skill class="skill" v-for="skill of viewingUnit.btd.skillList" :key="skill.id" :skill="skill" :mode="1" @onTap="onTapSkill" />
-                </div>
+                <draggable v-if="viewingUnit.btd.skillList.length>0" class="skill-list-group" handle=".mover" :disabled="false" v-model="viewingUnit.btd.skillList" @end="onSkillDragEnd" animation="100">
+                    <div class="skill-wrap" v-for="skill of viewingUnit.btd.skillList" :key="skill.id">
+                        <Skill class="skill" :skill="skill" :mode="1" @onTap="onTapSkill" />
+                        <a class="anchor mover" v-if="viewingUnit.btd.skillList.length>1">拖<br/>移<br/>↕</a>
+                    </div>
+                </draggable>
+                <div class="skill-empty" v-else>没有技能</div>
             </div>
         </Pop>
+        <div class="pop-gear" v-if="showGearPop">
+            <div class="pop-gear-bg"></div>
+            <a class="btn btn-save" @click="onTapSave">存档</a>
+            <a class="btn btn-restart" @click="onTapRestart">退出</a>
+        </div>
         <!-- alert -->
         <Toast ref="toast" />
     </div>
@@ -120,10 +131,16 @@ export default {
 
             team: [],
 
+            map: {},
+
             viewingUnitTab: 0,
             viewingUnit: null,
             viewingUnitEquipIndex: -1, // 单位弹窗-放大的装备 index
             viewingUnitBagEquip: {id:0,}, // 单位弹窗-选中的背包装备
+            viewingUnitCompareEquip1: {}, // 对比装备1
+            viewingUnitCompareEquip2: {}, // 对比装备2
+
+            showGearPop: false, // 显示系统弹窗
 
             unitDraggable: false,
 
@@ -154,7 +171,8 @@ export default {
     methods: {
         init(){ // 初始化
             loadImages(ASSETS.image_urls).then(images=>{
-                this._alert(`成功加载 ${images.length} 张图片`,3);
+                // this._alert(`成功加载 ${images.length} 张图片`,3);
+                this.map = getMatchList(CONFIG.mapConfig,[['id',this.game.currentMapID]])[0];
                 this.asynTeam();
                 this.state = 1;
                 console.log(this.game);
@@ -190,6 +208,16 @@ export default {
             this.viewingUnit = null;
             this.viewingUnitEquipIndex = -1; // 单位弹窗-放大的装备 index
             this.viewingUnitBagEquip = {id:0,}; // 单位弹窗-选中的背包装备
+            this.viewingUnitCompareEquip1 = {};
+            this.viewingUnitCompareEquip2 = {};
+        },
+
+        calcTotalMoney(){ // 计算总金币数
+            let res = 0;
+            for(let unit of this.team){
+                res += unit.g;
+            }
+            return res;
         },
 
         onUnitDragEnd(e){ // 当单位拖拽结束
@@ -201,7 +229,16 @@ export default {
                 }
             }
             this.asynTeam();
-            this.save();
+        },
+        onSkillDragEnd(e){ // 当技能拖拽结束
+            let skillList = this.viewingUnit.btd.skillList;
+            for(let i=0;i<skillList.length;i++){
+                let skill = skillList[i];
+                let oSkill = getMatchList(this.game.allSkills,[['id',skill.id]])[0];
+                if(oSkill){
+                    oSkill.o = i+1;
+                }
+            }
         },
 
         onTapUnit(unit){ // 点击【单位】
@@ -234,7 +271,7 @@ export default {
         },
         onTapBuff(id,level){ // 点击【buff】
             let buff = getMatchList(BUFF_LIST,[['id',id]])[0]||{};
-            this._alert(`给予敌人：${buff.name}（强度${level}）- ${buff.desc}`,5);
+            this._alert(`给予目标：${buff.name}（强度${level}）- ${buff.desc}`,5);
         },
         onTapTransferMoney(){ // 点击【转移金币】
             console.log(`!`);
@@ -246,14 +283,41 @@ export default {
             let equip = this.viewingUnit.btd.equipList[equipIndex];
             if(equip&&equip.id){
                 this.viewingUnitEquipIndex = (this.viewingUnitEquipIndex!=-1)?-1:equipIndex;
+                let pcDom = this.$refs[`pop-content`].$refs[`pop`];
+                if(pcDom){
+                    pcDom.scroll({
+                        top: 0,
+                        behavior: 'smooth',
+                    });
+                }
             }
             else{
                 this.viewingUnitEquipIndex = -1;
             }
         },
         onTapViewingUnitBag(equip){ // 点击【弹窗-背包中的装备】
-            this.viewingUnitBagEquip = (this.viewingUnitBagEquip.id!=0)?{id:0,}:equip;
-            console.log(`点击【弹窗-背包中的装备】`,this.viewingUnitBagEquip);
+            if(equip.id==this.viewingUnitBagEquip.id){ // 点击同一个装备
+                this.viewingUnitBagEquip = { id:0, };
+                this.viewingUnitCompareEquip1 = {};
+                this.viewingUnitCompareEquip2 = {};
+            }
+            else{ // 选中装备
+                let equipList = this.viewingUnit.btd.equipList;
+                this.viewingUnitBagEquip = equip;
+                if(equip.t==1){ // 武器 [1手,2头,3身体,4配饰,5脚]
+                    this.viewingUnitCompareEquip1 = equipList[0]||{};
+                    this.viewingUnitCompareEquip2 = equipList[1]||{};
+                }
+                else if(equip.t==4){ // 首饰
+                    this.viewingUnitCompareEquip1 = equipList[2]||{};
+                    this.viewingUnitCompareEquip2 = equipList[3]||{};
+                }
+                else{
+                    this.viewingUnitCompareEquip1 = equipList[[0,0,5,4,0,6,][equip.t]]||{};
+                    this.viewingUnitCompareEquip2 = {};
+                }
+                console.log(`点击【弹窗-背包中的装备】`,this.viewingUnitBagEquip);
+            }
         },
         onTapEquipOn(equip){ // 点击【装上装备】
             console.log(`装上装备`,equip.n);
@@ -261,11 +325,25 @@ export default {
         onTapEquipOff(equip){ // 点击【卸下装备】
             console.log(`卸下装备`,equip.n);
         },
+        onTapAllEquipOff(){ // 点击【卸下全部装备】
+            console.log(`卸下全部装备`);
+        },
         onTapSellEquip(equip){ // 点击【售卖装备】
             console.log(`售卖装备`,equip.n);
         },
         onTapClosePop(){ // 点击【弹窗-关闭】
             this.resetViewingUnitPopData();
+            this.showGearPop = false;
+        },
+
+        onTapGear(){ // 点击【齿轮】
+            this.showGearPop = !this.showGearPop;
+        },
+        onTapSave(){ // 点击【齿轮-存档】
+            this.save(1);
+        },
+        onTapRestart(){ // 点击【齿轮-回到主界面】
+            this.$router.push('/');
         },
         onTapCheat(){ // 点击【作弊】按钮
 
@@ -293,318 +371,11 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-    .main{
-        position: relative;
-        text-align: center;
-        width: 100%;
-        height: 100%;
-        color: #4a4a4a;
-        font-size: .24rem;
-        line-height: 0;
-        background-color: #140425;
-    }
-    .btn{
-        background-color: transparent;
-        display: inline-block;
-        color: #fff;
-        text-align: center;
-        cursor: pointer;
-        border-radius: .01rem;
-        border: .02rem solid #2F4F4F;
-        box-shadow: 0 0 .14rem #2F4F4F inset;
-    }
-    .panel{
-        width: 100%;
-        height: 100%;
-        overflow-y: auto;
-    }
-
-    .bg{
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url('./../assets/bg-town-1.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        opacity: 1;
-        z-index: 1;
-        box-shadow: 0 0 4rem 1rem #acd inset;
-        animation: bg_fadein .2s .3s ease-in forwards;
-    }
-    @keyframes bg_fadein {
-        to{
-            opacity: .8;
-        }
-    }
-    .skill-wrap{
-        width: 6rem;
-        margin: 0 auto;
-    }
-    .skill-wrap .skill{
-        display: block;
-        margin-bottom: .2rem;
-    }
-
-    /* 菜单 */
-    .menu-wrap{
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        height: 3.2rem;
-        padding-top: .3rem;
-        background-image: url('./../assets/bg-menu.png');
-        background-size: 115% 160%;
-        background-position: top;
-        background-repeat: no-repeat;
-        z-index: 2000;
-        transition: all .2s;
-    }
-    .menu-wrap-expand{
-        height: 100%;
-    }
-
-    /* 单位 */
-    .unit-list-group{
-        width: 100%;
-        height: 100%;
-        /* border: 1px solid red; */
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-    }
-    .unit-list-group .unit-item{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 23%;
-        margin: 0 1%;
-        height: 90%;
-        position: relative;
-        background-image: linear-gradient(to top, rgba(0,0,0,.2) 0%, rgba(0,0,0,0) 100%);
-        border-bottom: .01rem solid #111;
-    }
-    .unit-list-group .unit-item .unit{
-        display: block;
-        width: 1.5rem;
-        padding-top: .2rem;
-        /* background-color: rgba(0,0,0,.2); */
-    }
-    .unit-list-group .unit-item .unit-avatar{
-        display: block;
-        width: 1.5rem;
-        height: 1.5rem;
-    }
-    .unit-bar{
-        position: relative;
-        display: block;
-        height: .3rem;
-        width: 100%;
-        margin: .04rem 0;
-    }
-    .unit-list-group .anchor{
-        position: absolute;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        left: 0;
-        top: 0;
-        width: .3rem;
-        height: .5rem;
-        line-height: .2rem;
-        color: #fff;
-        z-index: 40;
-        font-size: .2rem;
-        border: .01rem solid #fff;
-        text-align: center;
-    }
-
-    /* pop */
-    /*
-    <div class="unit-info-pop unit-equip-board">
-        <div class="unit-body">
-            <img class="unit-body-bg" />
-            <div class="unit-body-equip-wrap unit-body-weapon1">
-                <Equip class="unit-body-equip"/>
-            </div>
-        </div>
-        <br/>
-        <div class="unit-bag equip-wrap">
-            <Equip class="unit-bag-equip"/>
-        </div>
-    </div>
-    */
-    .unit-info-pop{
-        position: relative;
-        width: 100%;
-        padding: .14rem .22rem;
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-    .unit-equip-board{
-        padding: .04rem .06rem;
-        padding-bottom: 2.2rem;
-    }
-    .unit-equip-board .unit-body{
-        position: relative;
-        width: 100%;
-        height: 8.4rem;
-        margin: .22rem auto .6rem;
-        box-shadow: 0 0 .14rem .02rem #acf;
-    }
-    .unit-body-bg{
-        position: absolute;
-        width: 4.5rem;
-        display: block;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        margin: auto;
-        opacity: .9;
-    }
-
-    .unit-body-equip-wrap{
-        position: absolute;
-        background-color: rgba(108,108,108,.3);
-        width: 1rem;
-        height: 1rem;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        margin: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
-        transition: .13s all;
-    }
-    .unit-body-equip{
-        width: 100%;
-    }
-    .unit-body-weapon1{
-        width: 2rem;
-        height: 3.8rem;
-        top: 3rem;
-        left: 0;
-        right: auto;
-    }
-    .unit-body-weapon2{
-        width: 2rem;
-        height: 3.8rem;
-        top: 3rem;
-        right: 0;
-        left: auto;
-    }
-    .unit-body-accessory1{
-        top: 0;
-        left: 0;
-        width: 2rem;
-        height: 2.8rem;
-        right: auto;
-    }
-    .unit-body-accessory2{
-        top: 0;
-        right: 0;
-        width: 2rem;
-        height: 2.8rem;
-        left: auto;
-    }
-    .unit-body-helmet{
-        width: 2rem;
-        height: 1.8rem;
-        top: 0;
-        margin: 0 auto;
-    }
-    .unit-body-armor{
-        width: 2rem;
-        top: 2rem;
-        height: 4.8rem;
-        margin: 0 auto;
-    }
-    .unit-body-shoes{
-        width: 6.3rem;
-        height: 1.4rem;
-        top: auto;
-        bottom: 0;
-        margin: 0 auto;
-    }
-    .unit-body-equip-wrap-expand{
-        width: 90%;
-        height: auto;
-        top: auto;
-        bottom: auto;
-        right: 0;
-        left: 0;
-        margin: 0 auto;
-        padding: .16rem;
-        background-color: #131313;
-        border: .04rem solid #fc7;
-        /* border-radius: .12rem; */
-        z-index: 44;
-    }
-    .unit-body-equip-wrap-expand .unit-body-equip{
-
-    }
-    .unit-body-op{
-
-    }
-    .unit-body-op .btn{
-        padding: 0 .2rem;
-        height: .55rem;
-        line-height: .55rem;
-        font-size: .3rem;
-    }
-    /* 弹窗-单位-背包 */
-    .unit-bag-title{
-        height: .3rem;
-        line-height: .3rem;
-        margin: .2rem 0;
-        text-align: left;
-        font-size: .28rem;
-        padding-left: .1rem;
-        border-left: .06rem solid #fff;
-    }
-    .unit-bag{
-        padding-top: .02rem;
-        background-color: rgba(54,34,1,.5);
-    }
-    .unit-bag-equip-wrap{
-
-    }
-    .unit-bag-equip-wrap .unit-bag-equip{
-
-    }
-    .unit-bag-equip-wrap .unit-bag-op{
-        background-color: #131313;
-        height: .8rem;
-        line-height: .8rem;
-    }
-    .unit-bag-equip-wrap .unit-bag-op .btn{
-        padding: 0 .2rem;
-        height: .55rem;
-        line-height: .55rem;
-        font-size: .3rem;
-    }
-    /* 角色技能表 */
-    /* <div class="unit-info-pop unit-skill-board" v-if="viewingUnitTab==3">
-        <div class="skill-wrap">
-            <Skill class="skill" v-for="skill of viewingUnit.btd.skillList" :key="skill.id" :skill="skill" :mode="1" @onTap="onTapSkill" />
-        </div>
-    </div> */
-    .unit-skill-board{
-        background-image: linear-gradient(to right, rgba(58,58,58,.5) 0%,rgba(110,113,115,.1) 40%,rgba(110,113,115,.1) 60%,rgba(58,58,58,.5) 100%);
-    }
-    .unit-skill-board .skill-wrap{
-        padding-bottom: 2.2rem;
-    }
-    .unit-skill-board .skill-wrap .skill{
-
-    }
+    @import '../style/home/main.css';
+    @import '../style/home/banner.css';
+    @import '../style/home/team.css';
+    @import '../style/home/pop.css';
+    @import '../style/home/pop-board.css';
+    @import '../style/home/pop-equip.css';
+    @import '../style/home/pop-skill.css';
 </style>

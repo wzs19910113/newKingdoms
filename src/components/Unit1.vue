@@ -23,15 +23,15 @@
                     <span class="rel" :class="`rel-${unit.rel}`">{{[`敌对`,`相识`,`同道`,`在队`,][unit.rel]}}</span>{{['女','男',][unit.gd]}} ，{{unit.age}}
                     <span class="stat-sty" v-for="sty in stys">，{{sty}}</span>
                 </div>
-            <div class="stat-row stat-score">
+            <!-- <div class="stat-row stat-score">
                 战斗价值：{{unit.btd.score}} （ {{unit.btd.attrScore}} + {{unit.btd.equipScore}} + {{unit.btd.skillScore}} ）
-            </div>
+            </div> -->
             <div class="stat-row">
                 心里防御：<span :class="unit.btd.mdef<=0?'red':''">{{unit.btd.mdef}}{{unit.btd.mdef<=0?`（奔溃中）`:``}}</span>
             </div>
             <div class="stat-row">
                 金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
-                <a class="btn btn-transfer" v-if="mode==1" @click.stop="_onTapTransferMoney">转移</a>
+                <a class="btn btn-transfer" v-if="showTransferButton" @click.stop="_onTapTransferMoney">转移</a>
             </div>
         </div>
         <div class="block block-data">
@@ -60,6 +60,7 @@ import { DEBUG, CONFIG } from '../config/config';
 export default {
     props:{
         unit: Object, // 角色数据
+        showTransferButton: Boolean, // 是否显示转移金币按钮
         onTapTransferMoney: { // 转移金币函数
             type: Function,
             defalut: function(){},

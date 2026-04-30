@@ -271,7 +271,9 @@ export default {
         // _nus[2].as[6] = 50;
         // _nus[3].as[6] = 50;
 
-        // _nus[1].as[6] = 800;
+        _nus[0].as[6] = 800;
+        _nus[1].as[6] = 800;
+        _nus[2].as[6] = 800;
         // _nus[1].as[0] = 1800;
         // _nus[1].as[7] = 100;
         // _nus[1].as[10] = 1000;
@@ -976,7 +978,7 @@ export default {
             if(happen){
                 let allAliveUnits = this.getAllAliveUnits();
                 for(let unit of allAliveUnits){
-                    if(unit.isPlayer){
+                    if(unit.btd.isPlayer){
                         unit.btd.changes.mdef -= mentalDmg;
                         this.registerAniEffect(201,unit);
                     }

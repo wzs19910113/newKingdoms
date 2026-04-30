@@ -2,7 +2,8 @@
     <div class="toast-container">
         <TransitionGroup class="toast" name="toast" tag="div">
             <div v-for="toast in activeToasts" :key="toast.id" class="toast-message" @click.stop="manualClose(toast.id)" >
-                {{ toast.message }}
+                <div class="message">{{ toast.message }}</div>
+                <div class="message-bg"></div>
                 <!-- <span class="toast-progress" :style="{ animationDuration: '5s' }"></span> -->
             </div>
         </TransitionGroup>
@@ -134,16 +135,49 @@ export default {
     border-bottom-right-radius: .08rem;
     border: .01rem solid #8ae4f1;
     border-left: none;
-    box-shadow: 0 0 .05rem #2F4F4F;
-    background-image: linear-gradient(to right, rgba(47,79,79,.4) 0%, rgba(47,79,79,.8) 65%, rgba(47,79,79,.3) 100% );
+    box-shadow: 0 0 .25rem #2F4F4F;
+    background-image: linear-gradient(to right, rgba(0,0,0,.5) 0%, rgba(0,0,0,1) 35%, rgba(0,0,0,1) 100% );
     backdrop-filter: blur(.1rem);
+    margin-bottom: .08rem;
     color: #fff;
     font-size: .24rem;
-    text-align: right;
+    text-align: left;
     padding: .1rem .32rem;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all .8s ease;
+    overflow: hidden;
+}
+
+.message{
+    position: relative;
+    top:0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+.message-bg{
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    background-image: linear-gradient(to left, rgba(45,45,45,0) 0%, rgba(45,45,45,1) 100%);
+    background-repeat: no-repeat;
+    animation: floating 1s ease-out infinite;
+    transform: translateX(100%);
+}
+@keyframes floating {
+    to{
+        transform: translateX(-100%);
+    }
 }
 
 /* 进入/离开动画 */

@@ -1,7 +1,7 @@
 <template>
     <a class="skill" :class="`mode-${mode} ${isOption?'isoption':''} ${ban?'skill-ban':''}`" @click.stop="_onTap">
         <div class="skill-mode" :class="`${skill.t==3?'harm':'beni'}`" v-if="mode==1">
-            <span class="value money" v-if="!isOption" v-html="common.moneyFormat(skill.v,1)"></span>
+            <!-- <span class="value money" v-if="!isOption" v-html="common.moneyFormat(skill.v,1)"></span> -->
             <div class="row">
                 <span class="name">{{skill.n}}</span>
                 <a class="consume">（{{common.calcConsume({type:2,data:skill,unit})}}）</a>
@@ -180,7 +180,12 @@ export default {
 </script>
 <style scoped>
     .skill{
-
+        display: inline-block;
+        /* box-shadow: 0 0 .08rem #fff; */
+        border-top: .02rem solid #fff;
+        border-left: .02rem solid #fff;
+        border-bottom: .02rem solid #888;
+        border-right: .02rem solid #888;
     }
     .skill-mode{
         position: relative;

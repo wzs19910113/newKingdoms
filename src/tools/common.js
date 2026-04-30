@@ -578,7 +578,6 @@ export function genSkillData({id,game,level=1,beni,melee}){ // 生成一个技�
         d: 25, // 固有存在感
         v: 0, // 价值
         o: 1, // 顺位
-        k: 1, // 未解锁
     };
     let sfdBuffs; // 可能拥有的buff数组，洗乱
     // 参数倾向
@@ -804,6 +803,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     let equips = [], weaponList = [], bagList = [], skillList = [], btd = {}, _unit = cloneObj(unit);
     let awa = 0;
     let score = 0, attrScore = 0, equipScore = 0, skillScore = 0; // 单位战斗分数
+    // 把 es 中的每个装备ID转化为完整的装备对象，保存到 equips 里（如果是武器，则同时保存到 weaponList 里）
     for(let i=0;i<unit.es.length;i++){
         let equipId = unit.es[i];
         let equip = getMatchList(game.allEquips,[['id',equipId]])[0];
@@ -818,6 +818,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
             equips.push(null);
         }
     }
+    // 把 bag 中的每个装备ID转化为完整的装备对象，保存到 bagList 里
     for(let i=0;i<unit.b.length;i++){
         let equipId = unit.b[i];
         let equip = getMatchList(game.allEquips,[['id',equipId]])[0];
@@ -825,6 +826,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
             bagList.push(cloneObj(equip));
         }
     }
+    // 把 ss 中的每个技能ID转化为完整的技能对象，保存到 skillList 里并排序
     for(let i=0,j=0;i<unit.ss.length&&j<6;i++,j++){
         let skillId = unit.ss[i];
         let skill = getMatchList(game.allSkills,[['id',skillId]])[0];
@@ -833,6 +835,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
             skillScore += skill.v*.17;
         }
     }
+    skillList = bulbsort(skillList,'o',0);
     // 把身上的装备属性累加到角色属性上
     for(let equip of equips){
         if(equip){
@@ -856,7 +859,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
 
     btd.mov = 0; // 行动
     btd.mdef = btd.attrs[8]*25+250; // 心理防御
-    // btd.mdef = 0; // 心理防御
+    // btd.mdef = btd.attrs[8]-100; // 心理防御
     btd.ptc = btd.attrs[10]*5; // 潜能
     btd.out = 0; // 出局状态
     btd.teamSeq = _unit.tms;
@@ -911,7 +914,6 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     for(let i=4;i<=10;i++){
         attrScore += btd.attrs[i]*2;
     }
-
     btd.equipScore = cl(equipScore);
     btd.skillScore = cl(skillScore);
     btd.attrScore = cl(attrScore);
@@ -1423,7 +1425,7 @@ export function calcBreathValue({caster,}){ // 计算调息恢复的体力
 
     // 如果心理崩溃，则最多恢复1点
     if(isCrumble(caster)){
-        if(res>=caster.btd.phy[0]){
+        if(caster.btd.phy[0]>=1){
             res = 0;
         }
         else{

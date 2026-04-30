@@ -5,7 +5,7 @@
                 {{title}}
                 <a class="btn btn-arrow" v-if="arrowTitle" @click.stop="_onTapArrow">{{arrowTitle}}</a>
             </div>
-            <div class="pop-content">
+            <div class="pop-content" ref="pop">
                 <slot></slot>
             </div>
             <a class="btn btn-close" v-if="showCloseButton" @click.stop="_onTapClose">✖</a>

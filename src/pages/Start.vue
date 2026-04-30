@@ -51,7 +51,7 @@ export default {
 
             game: {
             	day: 1,
-            	currentMapID: 101, // 当前所在地图ID
+            	currentMapID: 1, // 当前所在地图ID
             	guard: 0, // 警戒值 0-1000000
 
             	allUnits: [], // 角色
@@ -145,9 +145,9 @@ export default {
                     skillList: tempSkillList,
                 });
                 tempUnitList.push(unit);
-                // if(i<3){
-                //     unit.tms = 1;
-                // }
+                if(i<3){
+                    unit.tms = 1;
+                }
             }
             for(let unit of tempUnitList){
                 let newUnit = common.registerUnit({
@@ -173,7 +173,31 @@ export default {
                 rel: 3,
                 icon: r(1,3),
             });
+            let firstSkillConsume = 5+r(0,3);
+            let skill = {
+                id: this.game.skillIndex++,
+            	l: 1, // 等级(1-9)
+            	n: '轻语',
+            	t: 1, // 1自己 2我方单体 3敌方单体
+            	el: [{ // 技能效果数组
+                    t: 3, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
+            		// 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
+            		// 固疗和百分疗 { h:100, rx:35, }，心防固定修改值和定力、智力补正 { d:100, rx1:0, rx2:44, }
+            		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
+            		// 减弱状态强度 7
+            		d: 1,
+                },{ t: 5, d: { h:firstSkillConsume+9, rx:0, },},],
+            	c: firstSkillConsume, // 体力消耗
+            	d: 1200, // 存在感
+            	o: 1, // 顺位
+            };
+            skill.v = common.calcSkillValue(skill);
+
+            unit.ss.push(skill.id);
+            unit.g = 0;
+
             this.game.allUnits.push(unit);
+            this.game.allSkills.push(skill);
             return unit;
         },
 
