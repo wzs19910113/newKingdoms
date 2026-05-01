@@ -11,9 +11,9 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "@nutui/nutui": "^2.3.16",
     "jquery": "^3.5.1",
     "layui-src": "^2.5.7",
+    "vant-green": "^1.0.44",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
     "vuedraggable": "^2.24.3"

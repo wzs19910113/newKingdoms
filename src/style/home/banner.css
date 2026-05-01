@@ -1,6 +1,6 @@
 .banner-wrap{
     position: relative;
-    z-index: 100;
+    z-index: 600;
     height: .88rem;
     width: 100%;
     background-image: url('./../../assets/bg-banner.png');
@@ -54,7 +54,7 @@
     display: flex;
     justify-content: space-around;
     padding-top: .32rem;
-    z-index: 5;
+    z-index: 500;
     top: -1.14rem;
     left: .4rem;
     margin: auto;

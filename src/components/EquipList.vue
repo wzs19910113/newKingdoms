@@ -49,7 +49,7 @@ export default {
             default: {},
             required: true,
         },
-        viewingUnit: { // 浏览背包的人
+        selectingUnit: { // 浏览背包的人
             type: Object,
             default: {},
             required: true,
@@ -90,7 +90,9 @@ export default {
     },
     methods: {
         init(){
-
+            this.selectingEquip = { id:0, };
+            this.compare1 = {};
+            this.compare2 = {};
         },
         onTapEquip(equip){ // 点击【背包中的装备】
             if(equip.id==this.selectingEquip.id){ // 点击同一个装备
@@ -101,7 +103,7 @@ export default {
             else{ // 选中装备
                 this.selectingEquip = equip;
                 // 设置2个“对比装备”
-                let equipList = this.viewingUnit.btd.equipList;
+                let equipList = this.selectingUnit.btd.equipList;
                 if(equip.t==1){ // 武器 [1手,2头,3身体,4配饰,5脚]
                     this.compare1 = equipList[0]||{};
                     this.compare2 = equipList[1]||{};

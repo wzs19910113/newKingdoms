@@ -31,7 +31,7 @@
             </div>
             <div class="stat-row">
                 金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
-                <a class="btn btn-transfer" v-if="showTransferButton" @click.stop="_onTapTransferMoney">转移</a>
+                <a class="btn btn-transfer" v-if="showTransferButton" @click.stop="_onTapTransferMoney">转</a>
             </div>
         </div>
         <div class="block block-data">
@@ -112,7 +112,6 @@ export default {
 };
 </script>
 <style scoped>
-    @import '../style/public.css';
     .unit{
         position: relative;
         display: flex;
@@ -287,6 +286,11 @@ export default {
         /* text-shadow: 0 0 .02rem #fff; */
     }
     .btn-transfer{
-        padding: 0 .06rem;
+        padding: .03rem .16rem;
+        background-image: linear-gradient(to right bottom, rgba(7,29,29,1)  0%, rgba(67,99,99,1) 100%);
+        border-left: .02rem solid #acd;
+        border-bottom: .02rem solid #134;
+        border-right: .02rem solid #134;
+        border-top: .02rem solid #acd;
     }
 </style>

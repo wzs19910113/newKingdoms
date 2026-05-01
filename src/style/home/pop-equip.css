@@ -5,6 +5,7 @@
 }
 .unit-equip-board .btn{
     box-shadow: 0 0 .14rem orangeRed inset;
+    background-image: none;
     border: .02rem solid orangeRed;
 }
 .unit-equip-board .unit-body{
