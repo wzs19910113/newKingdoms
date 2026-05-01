@@ -182,10 +182,10 @@ export default {
     .skill{
         display: inline-block;
         /* box-shadow: 0 0 .08rem #fff; */
-        border-top: .02rem solid #fff;
+        /* border-top: .02rem solid #fff;
         border-left: .02rem solid #fff;
         border-bottom: .02rem solid #888;
-        border-right: .02rem solid #888;
+        border-right: .02rem solid #888; */
     }
     .skill-mode{
         position: relative;

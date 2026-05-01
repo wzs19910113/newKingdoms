@@ -7,10 +7,6 @@
             <Avatar class="unit-avatar" v-if="!aniStyle" ref="unit-icon" :unit="unit" @onTap="_onTapAvatar" />
             <Avatar class="unit-avatar" v-else ref="unit-icon" :unit="unit" @onTap="_onTapAvatar" />
 
-            <!-- <a class="avatar" v-if="!aniStyle" ref="unit-icon" :class="common.isCrumble(unit)?'avatar-crumble':''" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar"></a>
-
-            <a class="avatar" v-else ref="unit-icon" :class="common.isCrumble(unit)?'avatar-crumble':''" :style="{'opacity':(calcOpacity()+'%')}" @click.stop="_onTapAvatar">{{unitNameFormat(unit.btd.name)}}</a> -->
-
             <Bar2 class="cir1" :current="unit.btd.mov" :type="1" @onTap="_onTapFlag(103)" />
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" @onTap="_onTapFlag(104)" />
             <Bar2 class="cir3" :current="unit.btd.dge" :type="3" @onTap="_onTapFlag(105)" />

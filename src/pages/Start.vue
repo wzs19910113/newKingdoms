@@ -133,10 +133,12 @@ export default {
         },
 
         genGameData({}){ // 生成随机的游戏数据
-            // 生成角色
+            // 生成我
             let me = this.genMe();
+
+            // 生成其他角色
             let tempUnitList = [],tempEquipList = [], tempSkillList = [];
-            for(let i=0;i<3;i++){ // @test
+            for(let i=0;i<4;i++){ // @test
                 let unit = common.genUnit({
                     id: i+1,
                     game: this.game,
@@ -147,6 +149,7 @@ export default {
                 tempUnitList.push(unit);
                 if(i<3){
                     unit.tms = 1;
+                    unit.rel = 3;
                 }
             }
             for(let unit of tempUnitList){
@@ -157,9 +160,9 @@ export default {
                     skillList: tempSkillList,
                 });
             }
-            me.es = cloneObj(this.game.allUnits[3].es);
-            me.ss = cloneObj(this.game.allUnits[3].ss);
-            me.b = cloneObj(this.game.allUnits[3].b);
+            // me.es = cloneObj(this.game.allUnits[4].es);
+            // me.ss = cloneObj(this.game.allUnits[4].ss);
+            // me.b = cloneObj(this.game.allUnits[4].b);
         },
         genMe(){ // 生成主角
             let unit = common.genUnitData({

@@ -453,7 +453,6 @@ export function genEquipData({id,game,level=1,inten=0,type=1,melee,}){ // 生成
         // 强化
         if(inten){
             res = res+cl(res*pow(intenRoot,inten))+r(inten,inten*level*2);
-            console.log(res);
         }
         res = setInRange(res,0,Infinity);
         return res;
@@ -850,9 +849,15 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.oattrs = cloneObj(_unit.as); // 战斗初始的11维属性
     btd.name = _unit.nm;
 
-    btd.hp = [btd.attrs[0],btd.attrs[0],]; // 血
+    // 获取当前血精状态
+    let curHp = unit.st[0];
+    let curEng = unit.st[1];
+    curHp = setInRange(curHp,1,btd.attrs[0]);
+    curEng = setInRange(curEng,1,btd.attrs[1]);
+
+    btd.hp = [curHp,btd.attrs[0],]; // 血
     btd.def = [btd.attrs[3],btd.attrs[3],], // 护甲
-    btd.eng = [btd.attrs[1],btd.attrs[1],], // 精力
+    btd.eng = [curEng,btd.attrs[1],], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
 
     btd.dge = cl(awa+7500*(1-calcDodgeRate(btd.attrs[9]))); // 隐蔽
@@ -1453,18 +1458,19 @@ export function calcPersuade({caster,target,}){ // 计算话术值
     let mdmg = calcIntDeno(caster)*250;
     let mdef = target.btd.attrs[8]/CONFIG.intDeno;
     let attrDiff = caster.btd.attrs[7]-target.btd.attrs[8];
-    res += cl(mdmg*(1-mdef));
+    res += mdmg*(1-mdef);
 
     // 若 caster 的智力大于 target 的定力，则增加额外伤害
     if(attrDiff>0){
-        res += attrDiff;
+        res += attrDiff/2;
     }
 
     // 迷惑bufff
     if(buff=getBuff(target,120)){
-        res = cl(res*buff.construction[buff.level-1]);
+        res = res*buff.construction[buff.level-1];
     }
 
+    res = cl(res);
     res = setInRange(res,1,Infinity);
     return res;
 }

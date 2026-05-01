@@ -6,6 +6,16 @@ module.exports = {
 	ASSETS: {
 		image_urls:[
 		    require('../assets/bg-battle.png'),
+		    require('../assets/bg-battle-1.png'),
+		    require('../assets/bg-battle-2.png'),
+		    require('../assets/bg-battle-3.png'),
+		    require('../assets/bg-battle-4.png'),
+		    require('../assets/bg-battle-5.png'),
+		    require('../assets/bg-battle-6.png'),
+		    require('../assets/bg-battle-7.png'),
+		    require('../assets/bg-battle-8.png'),
+		    require('../assets/bg-battle-9.png'),
+		    require('../assets/bg-town-1.png'),
 		    require('../assets/bg-menu.png'),
 		    require('../assets/icon-female-1.png'),
 		    require('../assets/icon-female-2.png'),
@@ -21,6 +31,11 @@ module.exports = {
 		    require('../assets/icon-male-5.png'),
 		    require('../assets/icon-male-6.png'),
 		    require('../assets/icon-male-7.png'),
+		    require('../assets/outline-male.png'),
+		    require('../assets/outline-female.png'),
+		    require('../assets/banner-chain.png'),
+		    require('../assets/bg-banner.png'),
+		    require('../assets/banner-brand.png'),
 		],
 	},
 	CONFIG:{
@@ -517,47 +532,49 @@ unit = {
 		isPlayer: 1, // 玩家可操控
 		roundTotal: 1, // 每回合可以行动的次数
 		score: 19000, // 战斗分数
+
+		penetrated: 0, // 本回合已被破防
+		changes:{
+			hp: 0, // 生命力
+			def: 0, // 防御力
+			eng: 0, // 精力
+			phy: 0, // 体力
+			dge: 0, // 存在感
+			mov: 0, // 行动值
+			ptc: 0, // 潜能
+			mdef: 0, // 心理防御
+			money: 0, // 金币
+			buffList: [{ id:11, level:3, },], // 新增buff数组
+			removeBuff: { id: 1, level:3, }, // 要削减的buff
+			capitulate: 0, // 本回合是否有被劝降过
+
+			// 0无 1slash 2smash 3bullet 4range 5fire 6thunder 7cure 8power 9pure 10mental 11-16重攻击  50shield 51blood
+			// 201浮动数字（血|精力|心防|钱） 102行动力 103潜能 104存在感 105破盾 106miss
+			effectTypeList: [12,101,104],
+			domAni: 'shake|cast',
+		}
+		followChanges:{ // 跟随changes,用于展示第二次动画
+			hp: 0, // 生命力
+			def: 0, // 防御力
+			eng: 0, // 精力
+			phy: 0, // 体力
+			dge: 0, // 存在感
+			mov: 0, // 行动值
+			ptc: 0, // 潜能
+			mdef: 0, // 心理防御
+			money: 0, // 金币
+			buffList: [], // 新增buff数组
+			removeBuff: {}, // 要削减的buff
+			capitulate: 0, // 本回合是否有被劝降过
+
+			effectTypeList: [12,101,104],
+			domAni: '',
+		}
 	},
 
 	// 冗余数据
 	tickCount: 11,
 	overflowMove: 22,
-	changes:{
-		hp: 0, // 生命力
-		def: 0, // 防御力
-		eng: 0, // 精力
-		phy: 0, // 体力
-		dge: 0, // 存在感
-		mov: 0, // 行动值
-		ptc: 0, // 潜能
-		mdef: 0, // 心理防御
-		money: 0, // 金币
-		buffList: [{ id:11, level:3, },], // 新增buff数组
-		removeBuff: { id: 1, level:3, }, // 要削减的buff
-		capitulate: 0, // 本回合是否有被劝降过
-
-		// 0无 1slash 2smash 3bullet 4range 5fire 6thunder 7cure 8power 9pure 10mental 11-16重攻击  50shield 51blood
-		// 201浮动数字（血|精力|心防|钱） 102行动力 103潜能 104存在感 105破盾 106miss
-		effectTypeList: [12,101,104],
-		domAni: 'shake|cast',
-	}
-	followChanges:{ // 跟随changes,用于展示第二次动画
-		hp: 0, // 生命力
-		def: 0, // 防御力
-		eng: 0, // 精力
-		phy: 0, // 体力
-		dge: 0, // 存在感
-		mov: 0, // 行动值
-		ptc: 0, // 潜能
-		mdef: 0, // 心理防御
-		money: 0, // 金币
-		buffList: [], // 新增buff数组
-		removeBuff: {}, // 要削减的buff
-		capitulate: 0, // 本回合是否有被劝降过
-
-		effectTypeList: [12,101,104],
-		domAni: '',
-	}
 
 }
 

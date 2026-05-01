@@ -1,13 +1,13 @@
 <template>
     <a class="equip" :class="`equip-${equip.t} equip-mode-${mode}`" @click="_onTap">
-        <span class="value money" v-if="mode==1" v-html="common.moneyFormat(equip.v,1)"></span>
+        <span class="value money" v-if="mode==1&&!compare" v-html="common.moneyFormat(equip.v,1)"></span>
         <div class="row">
             <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
             <span class="name">{{equip.n}}</span>
-            <span class="awa" v-if="mode==1">存在感 {{common.awaFormat(equip.d)}}%</span>
+            <span class="awa" v-if="mode==1&&!compare">存在感 {{common.awaFormat(equip.d)}}%</span>
+            <span class="awa" v-if="mode==1&&compare">存{{common.awaFormat(equip.d)}}%</span>
         </div>
         <div class="row" v-if="mode==1&&attrList.length>0&&compare">
-            <!-- :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?'attr-green':''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?'attr-red':''}`" -->
             <div class="attr attr-compare" v-for="attrIndex in 11">
                 <div class="attr-squre" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?'attr-green':''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?'attr-red':''}`" v-show="attrList[attrIndex-1][1]">
                     <span class="attr-name">{{CONFIG.attrMap[attrList[attrIndex-1][0]]}}</span>
@@ -15,7 +15,7 @@
                 </div>
                 <div class="attr-squre" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?'attr-green':''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?'attr-red':''}`" v-show="!attrList[attrIndex-1][1]&&compareAttrList[attrIndex-1][1]">
                     <span class="attr-name">{{CONFIG.attrMap[compareAttrList[attrIndex-1][0]]}}</span>
-                    <span class="attr-val">+{{compareAttrList[attrIndex-1][1]}}</span>
+                    <span class="attr-val">/</span>
                 </div>
             </div>
         </div>
@@ -190,7 +190,7 @@ export default {
     }
 
     .attr-compare .attr-squre{
-        min-width: .48rem;
+        min-width: .46rem;
         font-size: .2rem;
         margin-right: .07rem;
     }

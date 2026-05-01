@@ -121,72 +121,39 @@
 }
 
 /* 弹窗-单位-背包 */
+.unit-bag{
+    padding-top: .02rem;
+    background-color: #131313;
+}
 .unit-bag-title{
-    height: .3rem;
-    line-height: .3rem;
-    margin: .2rem 0;
+    position: relative;
+    height: .6rem;
+    line-height: .6rem;
+    margin: .02rem 0;
     text-align: left;
     font-size: .28rem;
     padding-left: .1rem;
     border-left: .06rem solid #fff;
 }
-.unit-bag{
-    padding-top: .02rem;
-    background-color: #131313;
-}
-.unit-bag-equip-wrap{
-    display: block;
-    margin-bottom: .32rem;
-    border-radius: .12rem;
-    border: .01rem solid #FEC;
-}
-.unit-bag-equip-wrap-sel{
-    /* background-color: rgba(144,114,51,.5); */
-    /* background-color: orangeRed; */
-    background-image: linear-gradient(to right, rgba(14,24,71,.5) 0%, rgba(13,13,13,.5) 40%, rgba(13,13,13,.5) 60%, rgba(14,24,71,.5) 100%);
-    box-shadow: 0 0 .54rem orangeRed;
-    border: .04rem solid orangeRed;
-    /* box-shadow: 0 0 .4rem #e81313 inset; */
-}
-/* 弹窗-单位-背包-操作栏 */
-.unit-bag-op-wrap{
-    animation: expendDown .1s ease-in-out forwards;
-    transform: scaleY(0);
-    transform-origin: 50% 0;
-}
-@keyframes expendDown {
-    to{
-        transform: scaleY(100%);
-    }
-}
-.unit-bag-equip-wrap .unit-bag-equip{
+.unit-bag-title .bag-title{
 
 }
-.unit-bag-equip-wrap .unit-bag-op{
-    text-align: right;
-    padding: 0 .1rem;
-    height: .8rem;
-    line-height: .8rem;
+.unit-bag-title .bag-op{
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    height: 100%;
 }
-.unit-bag-equip-wrap .unit-bag-op .btn{
-    padding: 0 .2rem;
+.unit-bag-title .btn{
     height: .55rem;
     line-height: .55rem;
-    font-size: .3rem;
+    padding: 0 .2rem;
 }
-.unit-bag-compare-wrap{
-    padding: 0 .6rem;
-    padding-bottom: .2rem;
-    border-radius: .1rem;
+.unit-bag-title .btn-bag-title-sellAll{
+
 }
-.unit-bag-compare-title{
-    text-align: left;
-    height: .36rem;
-    line-height: .36rem;
-    font-size: .24rem;
-    padding: 0 .1rem;
-}
-.unit-bag-compare{
-    border-radius: .2rem;
-    margin-bottom: .12rem;
+.unit-bag-title .btn-bag-title-moveAll{
+
 }

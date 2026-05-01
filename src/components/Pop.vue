@@ -67,7 +67,7 @@ export default {
         margin: 0 auto;
         width: 90%;
         min-height: 5%;
-        max-height: calc( 100% - 3.36rem );
+        max-height: calc( 100% - 2.96rem );
         box-shadow: 0 0 .04rem #8ae4f1;
         padding: .1rem .16rem;
         border-radius: .08rem;

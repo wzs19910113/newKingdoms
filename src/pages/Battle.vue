@@ -1,9 +1,9 @@
 <template>
     <div class="main" v-if="game">
         <!--作弊-->
-        <nut-drag direction="y" :style="{right:'0px',top:'75px',zIndex:'200'}" v-if="DEBUG">
+        <!-- <nut-drag direction="y" :style="{right:'0px',top:'75px',zIndex:'200'}" v-if="DEBUG">
             <a class="btn touch-dom" @click="onTapCheat">cheat</a>
-        </nut-drag>
+        </nut-drag> -->
         <!--页面内容-->
         <div class="panel">
             <div class="body" v-if="pageState!=0">
@@ -274,34 +274,35 @@ export default {
         _nus[0].as[6] = 800;
         _nus[1].as[6] = 800;
         _nus[2].as[6] = 800;
-        // _nus[1].as[0] = 1800;
-        // _nus[1].as[7] = 100;
-        // _nus[1].as[10] = 1000;
-        // _nus[3].as[9] = 250;
-        // _nus[3].as[6] = 120;
-        // _nus[3].as[0] = 2300;
-        // _nus[3].as[2] = 100;
-        // _nus[3].as[1] = 400;
-        // _nus[3].as[3] = 100;
-        // _nus[3].as[10] = 200;
-        // _nus[3].as[7] = 500;
+        _nus[3].as[6] = 800;
+        _nus[1].as[0] = 1800;
+        _nus[1].as[7] = 100;
+        _nus[1].as[10] = 1000;
+        _nus[3].as[9] = 250;
+        _nus[3].as[0] = 2300;
+        _nus[3].as[2] = 100;
+        _nus[3].as[1] = 400;
+        _nus[3].as[3] = 100;
+        _nus[3].as[10] = 200;
+        _nus[3].as[7] = 500;
+        _nus[3].ss[0] = 12;
         // _nus[3].as[8] = -500;
-        // _nus[7].as[1] = 1;
-        // _nus[7].as[1] = 1;
-        // _nus[6].as[0] = 2350;
-        // _nus[7].as[0] = 1350;
-        // _nus[7].as[1] = 300;
-        // _nus[7].as[2] = 100;
-        // _nus[7].as[3] = 242;
-        // _nus[7].as[6] = 944;
+        _nus[7].as[1] = 1;
+        _nus[7].as[1] = 1;
+        _nus[6].as[0] = 2350;
+        _nus[7].as[0] = 1350;
+        _nus[7].as[1] = 300;
+        _nus[7].as[2] = 100;
+        _nus[7].as[3] = 242;
+        _nus[7].as[6] = 944;
         //
-        // _nus[1].es[0] = 1;
-        // _nus[1].es[0] = 2;
-        // _nus[1].es[5] = 6;
-        // _nus[1].es[3] = 7;
-        // _nus[1].es[0] = 3;
-        // // _nus[2].es[5] = 6;
-        // // _nus[2].es[3] = 7;
+        _nus[1].es[0] = 1;
+        _nus[1].es[0] = 2;
+        _nus[1].es[5] = 6;
+        _nus[1].es[3] = 7;
+        _nus[1].es[0] = 3;
+        _nus[2].es[5] = 6;
+        _nus[2].es[3] = 7;
         //
         _nus[3].es[0] = 4;
         _nus[3].es[1] = 5;
@@ -375,17 +376,20 @@ export default {
                 t: 1,
         		d: {
                     n: '挥砍',
-        			d: 76, // 基础伤害
-        			r1: 53, // 力量补正
-        			r2: 85, // 精准补正
+        			d: 16, // 基础伤害
+        			r1: 13, // 力量补正
+        			r2: 15, // 精准补正
         			b: [], // buff制造表（buff id）
         			bl: [], // buff等级表（1-9）
         			s: 0, // SP效果 1压制 2破盾 3气溃 4漩流 5锁敌 6攻心 7摸金
         			sl: 9, // SP效果等级
         			et: 1, // 特效类型 1劈砍 2钝击 3子弹 4飞刀 5火炮 6雷击
                 },
-            },],
-        	c: 400, // 体力消耗
+            },{
+                t: 2,
+                d: { b:[114,115], bl:[2,4], },
+            }],
+        	c: 10, // 体力消耗
         	d: 5200, // 存在感
         	v: 1533, // 价值
         });
@@ -625,10 +629,11 @@ export default {
             // console.log(`单位回合开始`,unit.btd.name);
             let allUnits = [...this.playerTeam,...this.enemyTeam];
             this.clearAllTimers();
-            // 初始化所有单位的 changes
+            // 初始化所有单位的 changes 和破防标识
             for(let _unit of allUnits){
                 _unit.btd.changes = cloneObj(INIT_CHANGES);
                 _unit.btd.followChanges = cloneObj(INIT_CHANGES);
+                _unit.btd.penetrated = 0;
             }
             // 撤离中的话玩家不能行动
             if(this.isFleeing&&unit.btd.isPlayer){
@@ -799,9 +804,12 @@ export default {
             else{ // 战斗未结束
                 let curUnit = this.curUnitList[this.curUnitListIndex];
                 let oCurUnit = this.getUnit(curUnit.id);
-                // 当前行动者标识
-                oCurUnit.btd.cur = 0;
                 // console.log(`单位回合结束`,curUnit.btd.name);
+                // 清除当前行动者标识
+                oCurUnit.btd.cur = 0;
+                // 清除当前行动者冗余数据
+                oCurUnit.tickCount = 0;
+                oCurUnit.overflowMove = 0;
                 // 清除编辑buff弹窗数据
                 this.editBuffUnitList = [];
                 this.editBuffUnitIndex = -1;
@@ -1104,7 +1112,7 @@ export default {
                 // 结算伤害
                 let hpDamaged = this.painAction({unit:target,dmg,});
                 if(!penetrate&&hpDamaged){
-                    penetrate = 1;
+                    target.btd.penetrated = 1;
                 }
 
                 // 其他sppp
@@ -1147,7 +1155,7 @@ export default {
                 }
 
                 // 如果穿透防御，则添加buff
-                if(penetrate&&attack.b){
+                if((target.btd.penetrated||(target.btd.hp[0]<target.btd.hp[1]))&&attack.b){
                     for(let i=0;i<attack.b.length;i++){
                         let buffId = attack.b[i], buffLevel = attack.bl[i];
                         target.btd.changes.buffList.push({ id:buffId, level:buffLevel, });
@@ -1481,29 +1489,30 @@ export default {
                         }
                         else if(t==2){ // 添加状态
                             let { b, bl, } = d;
+                            if((target.btd.hp[0]<target.btd.hp[1])||target.btd.penetrated){ // 如果 target 已掉血或者已被破防
+                                // 祝福bufff
+                                let blessBuff = common.getBuff(target,3);
 
-                            // 祝福bufff
-                            let blessBuff = common.getBuff(target,3);
+                                // 诅咒bufff
+                                let curseBuff = common.getBuff(target,103);
 
-                            // 诅咒bufff
-                            let curseBuff = common.getBuff(target,103);
-
-                            for(let i=0;i<b.length;i++){
-                                let canBuff = 1; // target是否可以获得这个buff
-                                let buffId = b[i], buffLevel = bl[i];
-                                let oBuff = common.getConfigBuff(buffId);
-                                if(!oBuff.good&&blessBuff&&buffLevel<=blessBuff.level){ // 祝福bufff抵挡负面buff
-                                    canBuff = 0;
-                                    this._alert(`祝福免疫`);
-                                }
-                                if(oBuff.good&&curseBuff&&buffLevel<=curseBuff.level){ // 诅咒bufff抵挡正面buff
-                                    canBuff = 0;
-                                    this._alert(`诅咒侵蚀`);
-                                }
-                                if(canBuff){ // 可以获得buff
-                                    target.btd.changes.buffList.push({ id:buffId, level:buffLevel, });
-                                    this.registerAniEffect(oBuff.good?50:10,target);
-                                    target.btd.changes.domAni = oBuff.good?'strand':'shake';
+                                for(let i=0;i<b.length;i++){
+                                    let canBuff = 1; // target是否可以获得这个buff
+                                    let buffId = b[i], buffLevel = bl[i];
+                                    let oBuff = common.getConfigBuff(buffId);
+                                    if(!oBuff.good&&blessBuff&&buffLevel<=blessBuff.level){ // 祝福bufff抵挡负面buff
+                                        canBuff = 0;
+                                        this._alert(`祝福免疫`);
+                                    }
+                                    if(oBuff.good&&curseBuff&&buffLevel<=curseBuff.level){ // 诅咒bufff抵挡正面buff
+                                        canBuff = 0;
+                                        this._alert(`诅咒侵蚀`);
+                                    }
+                                    if(canBuff){ // 可以获得buff
+                                        target.btd.changes.buffList.push({ id:buffId, level:buffLevel, });
+                                        this.registerAniEffect(oBuff.good?50:10,target);
+                                        target.btd.changes.domAni = oBuff.good?'strand':'shake';
+                                    }
                                 }
                             }
                         }

@@ -320,7 +320,7 @@ function calcActionScore({action,isFleeing,copyAliveYouTeam,}){ // 计算一个 
             let mentalDmg = common.calcPersuade({caster,target,});
             let mentalDmgRatio = mentalDmg/target.btd.mdef;
             let attrDiff = caster.btd.attrs[7]-target.btd.attrs[8];
-            let mentalScore = mentalDmg*mentalDmgRatio*10*hr+Math.sqrt(attrDiff)*20;
+            let mentalScore = (mentalDmg*1.1*hr+Math.sqrt(attrDiff)*.16)*mentalDmgRatio;
             if(mentalScore>0){
                 score = mentalScore;
             }

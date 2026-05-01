@@ -5,13 +5,13 @@
     left: 0;
     right: 0;
     width: 100%;
-    height: 3.2rem;
-    padding-top: .3rem;
+    height: 2.8rem;
+    padding-top: .1rem;
     background-image: url('./../../assets/bg-menu.png');
     background-size: 115% 160%;
     background-position: top;
     background-repeat: no-repeat;
-    z-index: 2000;
+    z-index: 7000;
     transition: all .2s;
 }
 .menu-wrap-expand{
@@ -35,8 +35,11 @@
     margin: 0 1%;
     height: 90%;
     position: relative;
-    background-image: linear-gradient(to top, rgba(0,0,0,.2) 0%, rgba(0,0,0,0) 100%);
+    background-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
     border-bottom: .01rem solid #111;
+}
+.unit-list-group .unit-item-cur{
+    background-image: linear-gradient(to top, rgba(217,152,56,.99) 0%, rgba(147,122,56,0) 100%);
 }
 .unit-list-group .unit-item .unit{
     display: block;
