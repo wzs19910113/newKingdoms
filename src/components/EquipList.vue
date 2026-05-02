@@ -12,12 +12,16 @@
                     <a class="btn" v-if="selectingEquip.t==1||selectingEquip.t==4" @click.stop="onTapEquipOn(equip,unit,2)">装上2</a>
                 </div>
                 <!-- 相识单位 -->
-                <div class="unit-bag-op" v-if="unit.rel==1">
-                    <a class="btn" @click.stop="onTapBuyEquip(equip,unit)">购买</a>
+                <div class="unit-bag-op" v-if="showBuy">
+                    <a class="btn" :class="money<calcPrice(equip.v)?'btn-ban':''" @click.stop="onTapBuyEquip(equip,calcPrice(equip.v),unit,viewingUnit)">
+                        购买 <b class="money" v-html="` ${common.moneyFormat(calcPrice(equip.v))} $ `"></b>
+                    </a>
                 </div>
                 <!-- 对比装备 -->
                 <div class="unit-bag-compare-wrap" v-if="selectingEquip.id==equip.id">
-                    <div class="unit-bag-compare-title">{{unit.btd.name}}身上的装备：</div>
+                    <div class="unit-bag-compare-title">
+                        {{viewingUnit.btd.name}}身上的装备：<a class="btn btn-switch" v-if="onTapSwitchViewingUnit" @click.stop="onTapSwitchViewingUnit">切换</a>
+                    </div>
                     <Equip :ref="`compareEquip1-${equip.id}`" class="unit-bag-equip unit-bag-compare" v-if="compare1.id" :equip="compare1" :compare="selectingEquip" />
                     <Equip :ref="`compareEquip2-${equip.id}`" class="unit-bag-equip unit-bag-compare" v-if="compare2.id" :equip="compare2" :compare="selectingEquip" />
                 </div>
@@ -49,7 +53,7 @@ export default {
             default: {},
             required: true,
         },
-        selectingUnit: { // 浏览背包的人
+        viewingUnit: { // 浏览背包的人
             type: Object,
             default: {},
             required: true,
@@ -70,7 +74,17 @@ export default {
             type: Function,
             default: function(){},
         },
+        onTapSwitchViewingUnit: Function, // 点击【切换浏览者】
         showSell: Boolean, // 是否显示售卖按钮
+        showBuy: Boolean, // 是否显示购买按钮
+        money: {
+            type: Number,
+            default: 0,
+        },
+        discount: {
+            type: Number,
+            default: 10,
+        },
     },
     data() {
         return {
@@ -84,6 +98,11 @@ export default {
             DEBUG,
         };
     },
+    watch:{
+        selectingEquip(newVal){
+
+        },
+    },
     computed: {},
     mounted(){
         this.init();
@@ -94,6 +113,12 @@ export default {
             this.compare1 = {};
             this.compare2 = {};
         },
+        setSelectingEquip(equip){
+            this.onTapEquip(equip);
+        },
+        calcPrice(value){
+            return Math.ceil(value*this.discount/10);
+        },
         onTapEquip(equip){ // 点击【背包中的装备】
             if(equip.id==this.selectingEquip.id){ // 点击同一个装备
                 this.selectingEquip = { id:0, };
@@ -103,7 +128,7 @@ export default {
             else{ // 选中装备
                 this.selectingEquip = equip;
                 // 设置2个“对比装备”
-                let equipList = this.selectingUnit.btd.equipList;
+                let equipList = this.viewingUnit.btd.equipList;
                 if(equip.t==1){ // 武器 [1手,2头,3身体,4配饰,5脚]
                     this.compare1 = equipList[0]||{};
                     this.compare2 = equipList[1]||{};
@@ -116,7 +141,6 @@ export default {
                     this.compare1 = equipList[[0,0,5,4,0,6,][equip.t]]||{};
                     this.compare2 = {};
                 }
-                // console.log(`点击【弹窗-背包中的装备】`,this.selectingEquip);
             }
         },
     },
@@ -172,7 +196,7 @@ export default {
         height: .8rem;
         line-height: .8rem;
     }
-    .unit-bag-equip-wrap .unit-bag-op .btn{
+    .btn{
         display: inline-block;
         padding: 0 .2rem;
         height: .55rem;
@@ -188,13 +212,29 @@ export default {
     }
     .unit-bag-compare-title{
         text-align: left;
-        height: .36rem;
-        line-height: .36rem;
+        height: .46rem;
+        line-height: .46rem;
         font-size: .24rem;
         padding: 0 .1rem;
+    }
+    .btn-switch{
+        height: .4rem;
+        line-height: .4rem;
     }
     .unit-bag-compare{
         border-radius: .2rem;
         margin-bottom: .12rem;
+    }
+    .money{
+        color: gold;
+    }
+    .btn-ban{
+        color: #666;
+        text-decoration: line-through;
+        box-shadow: none !important;
+        border-color: #666 !important;
+    }
+    .btn-ban .money{
+        color: #666;
     }
 </style>

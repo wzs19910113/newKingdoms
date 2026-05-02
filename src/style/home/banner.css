@@ -100,7 +100,7 @@
     position: absolute;
     top: .02rem;
     right: .08rem;
-    z-index: 5;
+    z-index: 3;
 }
 .pop-gear{
     position: absolute;
@@ -108,7 +108,7 @@
     top: -100%;
     right: .08rem;
     display: block;
-    z-index: 5;
+    z-index: 450;
     padding-top: .5rem;
     /* background-image: linear-gradient(to right, rgba(67,99,99,0) 0%, rgba(7,7,7,1) 30%, rgba(7,7,7,1) 70%, rgba(67,99,99,0) 100%); */
     animation: .3s pulldown2 ease-in-out forwards;

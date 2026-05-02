@@ -28,6 +28,9 @@
         <div class="row row-clm" v-if="equip.t==1">
             <Attack class="atk" v-for="(attack,index) in equip.k" :key="index" :attack="attack" :mode="mode" @onTap="_onTapAttack" />
         </div>
+        <div class="row" v-if="mode==2">
+            <span class="brief money" v-html="common.moneyFormat(equip.v,1)"></span>
+        </div>
     </a>
 </template>
 <script>
@@ -144,6 +147,14 @@ export default {
     }
     .money{
         color: gold;
+    }
+    .brief{
+        width: 100%;
+        height: .4rem;
+        font-weight: bold;
+        line-height: .4rem;
+        text-align: left;
+        display: block;
     }
     /* 名字 */
     .row .type{

@@ -37,7 +37,7 @@ import Pop from '../components/Pop';
 
 import { query, r, exptr, setInRange, shuffle, bulbsort, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, arrContains, } from '../tools/utils';
 import * as common from '../tools/common';
-import { DEBUG, CONFIG, CACHE, ASSETS, } from '../config/config';
+import { DEBUG, CONFIG, CACHE, ASSETS, PRESETS, } from '../config/config';
 
 export default {
     name: 'Start',
@@ -49,32 +49,22 @@ export default {
             gender: 0,
             age: 16,
 
-            game: {
-            	day: 1,
-            	currentMapID: 1, // 当前所在地图ID
-            	guard: 0, // 警戒值 0-1000000
-
-            	allUnits: [], // 角色
-            	unitIndex: 101, // 角色 ID 索引
-            	allEquips: [], // 装备
-            	equipIndex: 101, // 装备 ID 索引
-            	allSkills: [], // 技能
-            	skillIndex: 101, // 技能 ID 索引
-            	conqueredMapIDList: [], // 已经攻克的地牢ID数组
-            },
+            game: {},
 
             storage: null,
 
             common,
             ASSETS,
             CONFIG,
+            PRESETS,
             DEBUG,
         };
     },
     mounted(){
         window.GLOBAL = {
-            game: null, // 游戏数据
+            game: cloneObj(CONFIG.initGameData), // 游戏数据
         }
+        this.game = window.GLOBAL.game;
 
         let _storage = localStorage.getItem(CACHE.sto);
         let storage = JSON.parse(_storage);
@@ -133,9 +123,10 @@ export default {
         },
 
         genGameData({}){ // 生成随机的游戏数据
+            // 载入预设数据
+            this.loadPresets();
             // 生成我
             let me = this.genMe();
-
             // 生成其他角色
             let tempUnitList = [],tempEquipList = [], tempSkillList = [];
             for(let i=0;i<4;i++){ // @test
@@ -163,6 +154,35 @@ export default {
             // me.es = cloneObj(this.game.allUnits[4].es);
             // me.ss = cloneObj(this.game.allUnits[4].ss);
             // me.b = cloneObj(this.game.allUnits[4].b);
+        },
+        loadPresets(){ // 载入预设数据
+            // 载入预设角色
+            for(let unit of PRESETS.unitList){
+                let cUnit = cloneObj(unit);
+                let newUnit = common.genUnitData({id:cUnit.id,level:cUnit.level,game:this.game,});
+                for(let key in cUnit){
+                    newUnit[key] = cUnit[key];
+                }
+                this.game.allUnits.push(newUnit);
+            }
+            // 载入预设技能
+            for(let unit of PRESETS.skillList){
+
+            }
+            // 载入预设装备
+            for(let unit of PRESETS.equipList){
+
+            }
+            // 生成初始随机装备
+            for(let i=1;i<=3;i++){
+                let type = 1;
+                if(i>1){
+                    type = r(2,5);
+                }
+                let newEquip = common.genEquipData({id:i,level:1,type,game:this.game,});
+                this.game.allUnits[0].b.push(newEquip.id); // 放入商人酒保的背包
+                this.game.allEquips.push(newEquip);
+            }
         },
         genMe(){ // 生成主角
             let unit = common.genUnitData({
