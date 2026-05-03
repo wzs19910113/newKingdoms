@@ -33,4 +33,65 @@
 .skill-wrap .skill{
     width: 100%;
     height: 100%;
+    border: .02rem solid #fff;
+}
+/* 复制技能进度条 */
+.skill-x-wrap{
+    position: relative;
+    height: .75rem;
+    padding-left: .5rem;
+    padding-top: .2rem;
+    margin-bottom: .2rem;
+}
+.skill-x-wrap .skill-x{
+    height: .4rem;
+    /* border-radius: .14rem;
+    overflow: hidden; */
+}
+.skill-x-wrap .btn-skill-x{
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    display: block;
+    width: .67rem;
+    height: .67rem;
+    line-height: .67rem;
+    border-radius: 50%;
+    background-image: radial-gradient(closest-corner, #816CBD 0%, #614C8D 100%);
+    border: .02rem solid #fff;
+    color: #fff;
+    font-weight: bold;
+    font-size: .4rem;
+    text-align: center;
+    z-index: 5;
+}
+.skill-x-wrap .btn-skill-x-active{
+    box-shadow: 0 0 .1rem #aaf;
+    animation: xActive .4s ease-in-out infinite alternate;
+}
+@keyframes xActive {
+    to{
+        box-shadow: 0 0 .5rem #aaf;
+    }
+}
+.skill-copy-wrap{
+    width: 100%;
+    padding: 0 .28rem;
+    margin-bottom: .4rem;
+    background-color: rgba(255,255,255,.7);
+}
+.skill-copy-wrap .title{
+    height: .6rem;
+    line-height: .6rem;
+    color: #000;
+    font-weight: bold;
+    font-size: .28rem;
+    text-align: left;
+}
+.skill-copy-wrap .skill{
+    width: 100%;
+    margin-bottom: .1rem;
+    background-color: rgba(0,0,0,.6);
 }

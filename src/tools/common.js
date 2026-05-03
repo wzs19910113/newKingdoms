@@ -383,6 +383,8 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
         b: [],
         rt: 999999,
         i: icon||r(1,7),
+        x: 0,
+        xp: 0,
     };
     // 设置定力最小值
     if(level>5){

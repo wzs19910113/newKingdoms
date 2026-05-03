@@ -95,6 +95,14 @@
             </div>
             <!-- 角色技能表 -->
             <div class="unit-info-pop unit-skill-board" v-if="popUnitTab==3">
+                <div class="skill-x-wrap" v-if="selectingUnit.id==me.id&&(me.x>0||me.xp>0)">
+                    <Bar1 class="skill-x" title="灵感指数" :mode="3" :type="4" :crt="me.x" :max="10000" @onTap="onTapXPointBar" />
+                    <a class="btn btn-skill-x" :class="`${me.xp>0?'btn-skill-x-active':''}`" @click="onTapXPoint">{{me.xp}}</a>
+                </div>
+                <div class="skill-copy-wrap" v-if="selectingUnit.id==me.id&&showSkillCopy">
+                    <div class="title">选择要复制的技能（{{skillCopyList.length}}）：</div>
+                    <Skill class="skill" v-for="skill of skillCopyList" :key="skill.id" :skill="skill" :isOption="true" :mode="1" @onTap="onTapCopySkill" />
+                </div>
                 <draggable v-if="selectingUnit.btd.skillList.length>0" class="skill-list-group" handle=".mover" :disabled="false" v-model="selectingUnit.btd.skillList" @end="onSkillDragEnd" animation="100">
                     <div class="skill-wrap" v-for="skill of selectingUnit.btd.skillList" :key="skill.id">
                         <Skill class="skill" :skill="skill" :mode="1" @onTap="onTapSkill" />
@@ -106,7 +114,6 @@
         </Pop>
         <!-- 酒馆 -->
         <div class="pop-tarven" :class="showTarven?'pop-tarven-expand':''" v-if="state==1">
-
             <SwipeTabs class="tarven-tabs-wrap" ref="tarven-wrap" :tabs="[{label:`商人酒保·${(bartender||{}).nm}`,},{label:`大厅（${inmateList.length}）`},{label:`悬赏榜`,}]">
                 <!-- 商人酒保 -->
                 <template #tab-0>
@@ -128,7 +135,6 @@
                     </div>
                 </template>
             </SwipeTabs>
-
             <div class="tarven-bg"></div>
         </div>
         <!-- 金币转移遮罩 -->
@@ -195,6 +201,7 @@ export default {
             game: {},
             team: [],
             map: {},
+            me: null,
 
             bartender: null, // 商人酒保单位
             inmateList: [], // 酒馆大厅单位数组
@@ -213,6 +220,8 @@ export default {
             showGearPop: false, // 显示系统弹窗
             showMoneyTrasferCover: false, // 显示金币转移遮罩
             showTarven: false, // 显示酒馆弹窗
+            showSkillCopy: false, // 显示技能复制弹窗
+            skillCopyList: [], // 可复制的技能数组
 
             coverTip: '', // 阴影遮罩文本
             confirmTip: '', // 确认弹窗的文本
@@ -254,7 +263,7 @@ export default {
                 this.asynTeam();
                 this.asynBartender();
                 this.asynInmates();
-                this.viewingUnit = this.team[0];
+                this.viewingUnit = this.me;
                 this.state = 1;
                 console.log(this.game);
             });
@@ -290,6 +299,9 @@ export default {
                 }
             }
             this.team = bulbsort(team,'tms',0);
+            // 设置我
+            this.me = getMatchList(this.game.allUnits,[['id',101]])[0];
+            this.me.btd = common.getUnitBtd(this.me,this.game);
             // 同步“单位浏览弹窗”中的单位数据
             if(viewingUnitId){
                 this.viewingUnit = getMatchList(this.team,[['id',viewingUnitId]])[0];
@@ -674,11 +686,67 @@ export default {
             oUnit.rel = 2;
             if(this.viewingUnit.id==unit.id){
                 this.showUnitPop = false;
-                this.viewingUnit = this.team[0];
+                this.viewingUnit = this.me;
             }
             this._alert(`${unit.nm} 已回到酒馆`,5);
             this.asynTeam();
             this.asynInmates();
+        },
+        onTapXPointBar(){ // 点击【灵感进度条】
+            if(this.me.xp<=0){
+                this._alert(`每次战斗后积累，槽满后可复制队友的一个技能`,5);
+            }
+            else{
+                this.onTapXPoint();
+            }
+        },
+        onTapXPoint(){ // 点击【灵感进度数字】
+            let skillCopyList = [];
+            if(this.me.xp>0){
+                for(let unit of this.team){
+                    if(unit.id!=this.me.id){
+                        // 从所有队友技能中筛选“我未拥有的技能”
+                        let skillList = unit.btd.skillList;
+                        let mySkillList = this.me.btd.skillList;
+                        for(let skill of skillList){
+                            let mySkill = getMatchList(mySkillList,[['id',skill.id]])[0];
+                            if(!mySkill){ // 若我已有的技能数组中没有这个技能，则放入 copylist
+                                skillCopyList.push(skill);
+                            }
+                        }
+                    }
+                }
+                this.skillCopyList = cloneObj(skillCopyList);
+                this.showSkillCopy = !this.showSkillCopy;
+            }
+        },
+        onTapCopySkill({flag,data,}){ // 点击【复制技能】
+            let skill = data;
+            if(flag!=1){
+                return;
+            }
+            this._confirm(`确定要复制技能 “${skill.n}” 吗？`,_=>{
+                let oMe = getMatchList(this.game.allUnits,[['id',101]])[0];
+                if(oMe.xp>0){
+                    oMe.ss.push(skill.id);
+                    oMe.xp -= 1;
+                    this.asynTeam();
+                    this.asynInmates();
+                    if(oMe.xp<=0){
+                        this.showSkillCopy = false;
+                    }
+                    else{
+                        this.onTapXPoint();
+                        this.$nextTick(_=>{
+                            this.onTapXPoint();
+                        })
+                    }
+                    this._alert(`成功学会技能 “${skill.n}”`);
+                }
+                else{
+                    this._alert(`灵感点数不够`);
+                }
+            });
         },
         onTapClosePop(){ // 点击【弹窗-关闭】
             this.resetViewingUnitPopData();
@@ -711,7 +779,14 @@ export default {
         },
 
         onTapCheat(){ // 点击【作弊】按钮
-            this.game.allUnits[1].g += 100000;
+            let me = this.game.allUnits[1];
+            me.g += 100000;
+            // me.x += r(10,100)*25;
+            me.x += r(300,300)*25;
+            if(me.x>=10000){
+                me.xp += Math.floor(me.x/10000);
+                me.x = me.x%10000;
+            }
             this.asynTeam();
         },
     },

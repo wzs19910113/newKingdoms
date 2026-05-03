@@ -1,7 +1,7 @@
 <template>
     <a class="bar-wrap" @click.stop="_onTap">
-        <div class="bar">
-            <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2,'bar-flee':type==3,}" :style="{width:`${calcBarLength()}%`}"></div>
+        <div class="bar" :class="{'bar-x-wrap':type==4,}">
+            <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2,'bar-flee':type==3,'bar-x':type==4,}" :style="{width:`${calcBarLength()}%`}"></div>
             <div class="bar-label">
                 <span class="txt" v-if="title">{{title}}</span>
                 <span class="num" v-if="mode==1">
@@ -24,8 +24,8 @@ export default {
     props:{
         title: String,
         suffix: String,
-        type: Number, // [1：生命值|2：精力|3：逃跑]
-        mode: { // 模式 1简约 2详细
+        type: Number, // [1：生命值|2：精力|3：逃跑|4：技能经验]
+        mode: { // 模式 1简约 2详细 3不显示数字
             type: Number,
             default: 1,
         },
@@ -83,27 +83,15 @@ export default {
         height: 100%;
         transition: all .2s;
         z-index: 2;
+        transform-origin: 0% 50%;
+        transform: scaleX(0);
+        animation: bargrow .33s ease-in forwards;
     }
-    /* .bar-full::after{
-        content: '';
-        display: block;
-        position: absolute;
-        right: -.03rem;
-        height: 50%;
-        width: .03rem;
-        background-color: #fff;
-        z-index: 1;
-        opacity: .6;
-        animation: lighting .5s ease-in-out alternate infinite;
-    }
-    @keyframes lighting{
-        from{
-            box-shadow: 0 0 .01rem .01rem #ccc;
-        }
+    @keyframes bargrow {
         to{
-            box-shadow: none;
+            transform: scaleX(100%);
         }
-    } */
+    }
     .bar-hp{
         background-image: radial-gradient(closest-corner, #CD5C5C 0%, #B22222 100%);
     }
@@ -112,6 +100,9 @@ export default {
     }
     .bar-flee{
         background-image: radial-gradient(closest-corner, #BD611C 0%, #A2A138 100%);
+    }
+    .bar-x{
+        background-image: radial-gradient(closest-corner, #816CBD 0%, #614C8D 100%);
     }
     .bar-label{
         position: absolute;
@@ -160,5 +151,14 @@ export default {
     }
     .bar-label .num .max{
         font-size: .24rem;
+    }
+    .bar-x-wrap .bar-label{
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        margin: auto;
+        justify-content: center;
+        align-items: center;
     }
 </style>
