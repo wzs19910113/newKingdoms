@@ -1,7 +1,26 @@
+.pop-unit{
+
+}
 .unit-info-pop{
     position: relative;
     width: 100%;
     padding: .14rem .22rem;
     overflow-x: hidden;
     overflow-y: auto;
+}
+.unit-board .option-wrap{
+    width: 100%;
+    height: .6rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+.unit-board .option-wrap .btn{
+    min-width: .8rem;
+    padding: 0 .2rem;
+    height: .6rem;
+    line-height: .6rem;
+}
+.unit-board .option-wrap .money{
+    color: gold;
 }

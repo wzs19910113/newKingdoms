@@ -38,6 +38,7 @@
                             <a class="anchor mover" v-if="team.length>1">拖移</a>
                             <Bar1 class="unit-bar" @onTap="onTapUnit(team[index])" :suffix="team[index].btd.def[1]?`${team[index].btd.def[1]}`:''" :type="1" :crt="team[index].btd.hp[0]" :max="team[index].btd.hp[1]" />
                             <Bar1 class="unit-bar" @onTap="onTapUnit(team[index])" :suffix="team[index].btd.phy[1]?`${team[index].btd.phy[1]}`:''" :type="2" :crt="team[index].btd.eng[0]" :max="team[index].btd.eng[1]" />
+                            <div class="icon-arrow-down" v-if="viewingUnit&&team[index]&&(team[index].id==viewingUnit.id)"></div>
                         </a>
                         <div class="unit unit-empty" v-else></div>
                     </div>
@@ -47,34 +48,46 @@
         <!-- 背景 -->
         <div class="bg" v-if="state==1"></div>
         <!-- 单位浏览弹窗 -->
-        <Pop v-if="showUnitPop&&selectingUnit" ref="pop-content" :title="`${viewingUnit.btd.name}的${[`面板`,`装备`,`技能`,][popUnitTab-1]}${popUnitTab==3?`（${viewingUnit.btd.skillList.length}）`:``}`" :arrowTitle="`${[`装备`,`技能`,`面板`,][popUnitTab-1]}`" :showCloseButton="true" @onTapClose="onTapClosePop" @onTapArrow="onTapArrowPop">
+        <Pop class="pop-unit" v-if="showUnitPop&&selectingUnit" ref="pop-content" :title="`${selectingUnit.btd.name}的${[`面板`,`装备`,`技能`,][popUnitTab-1]}${popUnitTab==3?`（${selectingUnit.btd.skillList.length}）`:``}`" :arrowTitle="`${[`装备`,`技能`,`面板`,][popUnitTab-1]}`" :showCloseButton="true" @onTapClose="onTapClosePop" @onTapArrow="onTapArrowPop">
             <!-- 角色面板 -->
             <div class="unit-info-pop unit-board" v-if="popUnitTab==1">
-                <Unit1 :unit="viewingUnit" :showTransferButton="team.length>1" @onTapTransferMoney="onTapTransferMoney" :mode="1" />
+                <Unit1 :unit="selectingUnit" :showTransferButton="team.length>1&&selectingUnit.rel==3" @onTapTransferMoney="onTapTransferMoney" :mode="1" />
+                <!-- 角色隶属操作栏 -->
+                <div class="unit-board option-wrap">
+                    <a class="btn" v-if="selectingUnit.rel<2&&selectingUnit.id!=1" @click="onTapHire(selectingUnit)">
+                        雇佣&nbsp;&nbsp;<b class="money" v-html="`${common.moneyFormat(selectingUnit.btd.price)} $`"></b>
+                    </a>
+                    <a class="btn" v-if="selectingUnit.rel==2" @click="onTapJoinTeam(selectingUnit)">入队</a>
+                    <a class="btn" v-if="selectingUnit.rel==3&&selectingUnit.id!=101" @click="onTapLeavTeam(selectingUnit)">离队</a>
+                </div>
             </div>
             <!-- 角色装备表 -->
             <div class="unit-info-pop unit-equip-board" v-if="popUnitTab==2">
                 <!-- 已着装备 -->
                 <div class="unit-body">
-                    <img class="unit-body-bg" :src="require(`../assets/outline-${viewingUnit.gd==1?'male':'female'}.png`)" />
-                    <a class="unit-body-equip-wrap" :class="`${viewingUnitBodyEquipIndex==(index-1)?'unit-body-equip-wrap-expand':''} unit-body-${[`weapon1`,`weapon2`,`accessory1`,`accessory2`,`armor`,`helmet`,`shoes`,][index-1]}`" v-for="index in 7" :key="index" @click.stop="onTapViewingBodyEquip(index-1)">
-                        <Equip class="unit-body-equip" :class="" v-if="viewingUnit.btd.equipList[index-1]" :equip="viewingUnit.btd.equipList[index-1]" :mode="viewingUnitBodyEquipIndex==(index-1)?1:2" />
+                    <img class="unit-body-bg" :src="require(`../assets/outline-${selectingUnit.gd==1?'male':'female'}.png`)" />
+                    <a class="unit-body-equip-wrap" :class="`${selectingUnitBodyEquipIndex==(index-1)?'unit-body-equip-wrap-expand':''} unit-body-${[`weapon1`,`weapon2`,`accessory1`,`accessory2`,`armor`,`helmet`,`shoes`,][index-1]}`" v-for="index in 7" :key="index" @click.stop="onTapViewingBodyEquip(index-1)">
+                        <Equip class="unit-body-equip" :class="" v-if="selectingUnit.btd.equipList[index-1]" :equip="selectingUnit.btd.equipList[index-1]" :mode="selectingUnitBodyEquipIndex==(index-1)?1:2" />
                         <!-- 选中的已着装备操作栏，只有在队或同道才能显示 -->
-                        <div class="unit-body-op" v-if="viewingUnitBodyEquipIndex==(index-1)&&viewingUnit.rel>=2">
-                            <a class="btn" @click.stop="onTapAllEquipOff(viewingUnit)">全卸下</a>
-                            <a class="btn" v-if="selling" @click.stop="onTapSellEquip(viewingUnit.btd.equipList[index-1])">售卖</a>
-                            <a class="btn" @click.stop="onTapEquipOff(viewingUnit.btd.equipList[index-1],viewingUnit)">卸下</a>
+                        <div class="unit-body-op" v-if="selectingUnitBodyEquipIndex==(index-1)&&selectingUnit.rel==3">
+                            <a class="btn" @click.stop="onTapAllEquipOff(selectingUnit)">全卸下</a>
+                            <!-- <a class="btn" v-if="selling" @click.stop="onTapSellEquip(selectingUnit.btd.equipList[index-1])">
+                                售卖
+                            </a> -->
+                            <a class="btn" @click.stop="onTapEquipOff(selectingUnit.btd.equipList[index-1],selectingUnit)">卸下</a>
                         </div>
                     </a>
                 </div>
                 <!-- 背包 -->
                 <div class="unit-bag equip-wrap">
                     <div class="unit-bag-title">
-                        <div class="bag-title">背包（{{viewingUnit.btd.bagList.length}}）：</div>
+                        <div class="bag-title">背包（{{selectingUnit.btd.bagList.length}}）：</div>
                         <!-- 背包顶部操作栏，只有在队或同道才能显示 -->
-                        <div class="bag-op" v-if="viewingUnit.rel>=2">
-                            <a class="btn btn-bag-title-sellAll" v-if="selling" @click="onTapSellBag(viewingUnit.btd.bagList)">全售卖</a>
-                            <a class="btn btn-bag-title-moveAll" v-if="viewingUnit.btd.bagList.length>1" @click="onTapMoveBag(viewingUnit.btd.bagList)">全转移</a>
+                        <div class="bag-op" v-if="selectingUnit.rel==3">
+                            <a class="btn btn-bag-title-sellAll" v-if="selling&&selectingUnit.btd.bagList.length>0" @click="onTapSellBag(selectingUnit.btd.bagList,selectingUnit)">
+                                全售卖 <b class="money" v-html="`${common.moneyFormat(common.getSellAllPrice(selectingUnit))} $`"></b>
+                            </a>
+                            <a class="btn btn-bag-title-moveAll" v-if="selectingUnit.btd.bagList.length>1" @click="onTapMoveBag(selectingUnit.btd.bagList)">全转移</a>
                         </div>
                     </div>
                     <EquipList ref="bag" :unit="selectingUnit" :viewingUnit="viewingUnit" :showSell="selling" :onTapSellEquip="onTapSellEquip" :onTapEquipOn="onTapEquipOn" :onTapMoveEquip="onTapMoveEquip" />
@@ -82,10 +95,10 @@
             </div>
             <!-- 角色技能表 -->
             <div class="unit-info-pop unit-skill-board" v-if="popUnitTab==3">
-                <draggable v-if="viewingUnit.btd.skillList.length>0" class="skill-list-group" handle=".mover" :disabled="false" v-model="viewingUnit.btd.skillList" @end="onSkillDragEnd" animation="100">
-                    <div class="skill-wrap" v-for="skill of viewingUnit.btd.skillList" :key="skill.id">
+                <draggable v-if="selectingUnit.btd.skillList.length>0" class="skill-list-group" handle=".mover" :disabled="false" v-model="selectingUnit.btd.skillList" @end="onSkillDragEnd" animation="100">
+                    <div class="skill-wrap" v-for="skill of selectingUnit.btd.skillList" :key="skill.id">
                         <Skill class="skill" :skill="skill" :mode="1" @onTap="onTapSkill" />
-                        <a class="anchor mover" v-if="viewingUnit.rel>=2&&viewingUnit.btd.skillList.length>1">拖<br/>移<br/>↕</a>
+                        <a class="anchor mover" v-if="selectingUnit.rel==3&&selectingUnit.btd.skillList.length>1">拖<br/>移<br/>↕</a>
                     </div>
                 </draggable>
                 <div class="skill-empty" v-else>没有技能</div>
@@ -94,16 +107,25 @@
         <!-- 酒馆 -->
         <div class="pop-tarven" :class="showTarven?'pop-tarven-expand':''" v-if="state==1">
 
-            <SwipeTabs class="tarven-tabs-wrap" :tabs="[{label:'商人酒保',},{label:'大厅',}]">
-                <!-- 使用具名插槽填充每个页面的内容 -->
+            <SwipeTabs class="tarven-tabs-wrap" ref="tarven-wrap" :tabs="[{label:`商人酒保·${(bartender||{}).nm}`,},{label:`大厅（${inmateList.length}）`},{label:`悬赏榜`,}]">
+                <!-- 商人酒保 -->
                 <template #tab-0>
                     <div class="tarven-cot tarven-shop" v-if="viewingUnit&&bartender&&bartender.btd.bagList">
-                        <EquipList v-show="bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :viewingUnit="viewingUnit" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="5" :money="calcTotalMoney()" />
+                        <EquipList v-show="bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :viewingUnit="viewingUnit" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="5" />
                         <div class="tarven-shop-empty" v-if="bartender.btd.bagList.length<=0">暂无商品</div>
                     </div>
                 </template>
+                <!-- 大厅 -->
                 <template #tab-1>
-                    <div class="tarven-cot tarven-inmate">客人列表</div>
+                    <div class="tarven-cot tarven-inmate" v-if="inmateList&&inmateList.length>0">
+                        <UnitList :unitList="inmateList" :onTapUnit="onTapInmate" />
+                    </div>
+                </template>
+                <!-- 悬赏榜 -->
+                <template #tab-2>
+                    <div class="wanted-list-wrap" v-if="game.wantedList&&game.wantedList.length>0">
+                        {{game.wantedList}}
+                    </div>
                 </template>
             </SwipeTabs>
 
@@ -112,7 +134,7 @@
         <!-- 金币转移遮罩 -->
         <Cover v-if="showMoneyTrasferCover" @onTap="onTapCover" tip="选取并转移金币给目标：">
             <div class="pop-money-transfer-wrap">
-                <van-slider class="pop-money-transfer-slider" active-color="gold" v-model="transferringMoney" :step="100" :min="1" :max="viewingUnit.g" />
+                <van-slider class="pop-money-transfer-slider" active-color="gold" v-model="transferringMoney" :step="100" :min="1" :max="selectingUnit.g" />
                 <div class="pop-money-transfer-indicator" v-html="common.moneyFormat(transferringMoney)+' $'"></div>
                 <a class="btn btn-money-transfer-all" @click.stop="onTapAllMoneyTransfer">满</a>
             </div>
@@ -125,6 +147,9 @@
             <a class="btn btn-save" @click="onTapSave">存档</a>
             <a class="btn btn-guide" @click="onTapGuide">指引</a>
             <a class="btn btn-restart" @click="onTapRestart">退出</a>
+            <a class="btn btn-cheat" v-if="DEBUG" @click="onTapCheat">作弊</a>
+            <!-- <a class="btn" v-if="DEBUG">{{selectingUnit?'---S':'----'}}</a>
+            <a class="btn" v-if="DEBUG">{{showUnitPop?'---P':'----'}}</a> -->
         </div>
         <!-- alert -->
         <Toast ref="toast-alert" />
@@ -145,6 +170,7 @@ import Pop from '../components/Pop';
 import SwipeTabs from '../components/SwipeTabs';
 import Cover from '../components/Cover';
 import EquipList from '../components/EquipList';
+import UnitList from '../components/UnitList';
 import Avatar from '../components/Avatar';
 import draggable from 'vuedraggable';
 import { cl, query, r, exptr, setInRange, loadImages, shuffle, bulbsort, bulbsort2, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, removeFromNumberList, arrContains, } from '../tools/utils';
@@ -171,11 +197,12 @@ export default {
             map: {},
 
             bartender: null, // 商人酒保单位
+            inmateList: [], // 酒馆大厅单位数组
 
             popUnitTab: 1,
             viewingUnit: null, // 浏览者，只能是团队中的人
             selectingUnit: null, // 被浏览者，可以是团队中的人，也可以是NPC
-            viewingUnitBodyEquipIndex: -1, // 单位弹窗-已着放大的装备 index
+            selectingUnitBodyEquipIndex: -1, // 单位弹窗-已着放大的装备 index
 
             /* 状态标识 */
             selling: false, // 售卖状态标识
@@ -225,10 +252,9 @@ export default {
             this.$nextTick(_=>{
                 this.map = getMatchList(CONFIG.mapConfig,[['id',this.game.currentMapID]])[0];
                 this.asynTeam();
+                this.asynBartender();
+                this.asynInmates();
                 this.viewingUnit = this.team[0];
-                // 商人酒保
-                this.bartender = getMatchList(this.game.allUnits,[['id',1]])[0];
-                this.bartender.btd = common.getUnitBtd(this.bartender,this.game);
                 this.state = 1;
                 console.log(this.game);
             });
@@ -256,7 +282,7 @@ export default {
                 selectingUnitId = this.selectingUnit.id;
             }
             for(let unit of this.game.allUnits){
-                if(unit.tms){
+                if(unit.rel==3){
                     let btd = common.getUnitBtd(unit,this.game);
                     let cUnit = cloneObj(unit);
                     cUnit.btd = btd;
@@ -269,7 +295,8 @@ export default {
                 this.viewingUnit = getMatchList(this.team,[['id',viewingUnitId]])[0];
             }
             if(selectingUnitId){
-                this.selectingUnit = getMatchList(this.team,[['id',selectingUnitId]])[0];
+                this.selectingUnit = getMatchList(this.game.allUnits,[['id',selectingUnitId]])[0];
+                this.selectingUnit.btd = common.getUnitBtd(this.selectingUnit,this.game);
             }
             // 重置 EquipList 数据
             let bagDom = this.$refs[`bag`];
@@ -284,9 +311,24 @@ export default {
                 this.bartender.btd = common.getUnitBtd(this.bartender,this.game);
             });
         },
+        asynInmates(){ // 同步酒馆客人数据
+            this.inmateList = [];
+            this.$nextTick(_=>{
+                let inmateList = [];
+                for(let unit of this.game.allUnits){
+                    if(unit.rel<3){
+                        let newInmate = cloneObj(unit);
+                        newInmate.btd = common.getUnitBtd(newInmate,this.game);
+                        inmateList.push(newInmate);
+                    }
+                }
+                this.inmateList = inmateList;
+            });
+        },
         resetViewingUnitPopData(){ // 重置单位预览弹窗数据
             this.showUnitPop = false;
-            this.viewingUnitBodyEquipIndex = -1; // 单位弹窗-放大的装备 index
+            this.selectingUnit = null;
+            this.selectingUnitBodyEquipIndex = -1; // 单位弹窗-放大的装备 index
         },
         setViewingUnit(unit,showUnitPop){ // 切换浏览者
             // 记录shop中原有的“选择中的装备”
@@ -295,10 +337,16 @@ export default {
             if(shopDom&&this.showTarven){
                 oldSelectingEquip = shopDom.selectingEquip;
             }
+            // 记录 tab-content 原有的滚动条位置
+            let domList = this.$refs[`tarven-wrap`].$refs[`contentRef`];
+            let targetY = 0;
+            if(domList){
+                targetY = domList.scrollTop;
+            }
 
             this.viewingUnit = null;
             this.selectingUnit = null;
-            this.viewingUnitBodyEquipIndex = -1;
+            this.selectingUnitBodyEquipIndex = -1;
             this.onTapCover();
 
             this.$nextTick(_=>{
@@ -313,6 +361,13 @@ export default {
                         if(shopDom){
                             shopDom.setSelectingEquip(oldSelectingEquip);
                         }
+                        // 设置 tab-content 的滚动条到原有位置
+                        this.$nextTick(_=>{
+                            domList = this.$refs[`tarven-wrap`].$refs[`contentRef`];
+                            if(domList){
+                                domList.scrollTop = targetY;
+                            }
+                        });
                     });
                 }
             });
@@ -337,6 +392,7 @@ export default {
             oUnit.es[slotIndex] = equip.id;
             oUnit.b = removeFromNumberList(equip.id,oUnit.b);
             this.asynTeam();
+            this.asynInmates();
         },
         equipOff(equip,unit){ // 卸下装备
             let oUnit = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
@@ -349,7 +405,8 @@ export default {
             }
             oUnit.es[oldSlot] = 0;
             oUnit.b.push(equip.id);
-            this.asynTeam(unit);
+            this.asynTeam();
+            this.asynInmates();
         },
         moveEquipList(toUnit,fromUnit,equipList){ // 转移装备数组
             let oTo = getMatchList(this.game.allUnits,[['id',toUnit.id]])[0];
@@ -379,7 +436,7 @@ export default {
             this.asynTeam();
         },
         onSkillDragEnd(e){ // 当技能拖拽结束
-            let skillList = this.viewingUnit.btd.skillList;
+            let skillList = this.selectingUnit.btd.skillList;
             for(let i=0;i<skillList.length;i++){
                 let skill = skillList[i];
                 let oSkill = getMatchList(this.game.allSkills,[['id',skill.id]])[0];
@@ -390,34 +447,42 @@ export default {
         },
 
         onTapUnit(unit){ // 点击【单位】
-            if(this.viewingUnit&&this.movingEquipList.length>0){ // 如果正在转移装备
-                if(unit.id!=this.viewingUnit.id){ // 点击的不是本人
-                    this.moveEquipList(unit,this.viewingUnit,this.movingEquipList);
+            if(this.selectingUnit&&this.movingEquipList.length>0){ // 如果正在转移装备
+                if(unit.id!=this.selectingUnit.id){ // 点击的不是本人
+                    this.moveEquipList(unit,this.selectingUnit,this.movingEquipList);
                     this.movingEquipList = [];
                     this.coverTip = ``;
                     this.asynTeam();
+                    this.asynInmates();
                 }
             }
             else if(this.showMoneyTrasferCover){ // 如果正在转移金币
                 if(this.transferringMoney==0){
                     this._alert(`请先选择金币数量`);
                 }
-                else if(this.viewingUnit.id==unit.id){
+                else if(this.selectingUnit.id==unit.id){
 
                 }
                 else{
-                    let oFrom = getMatchList(this.game.allUnits,[['id',this.viewingUnit.id]])[0];
+                    let oFrom = getMatchList(this.game.allUnits,[['id',this.selectingUnit.id]])[0];
                     let oTo = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
                     oTo.g += this.transferringMoney;
                     oFrom.g -= this.transferringMoney;
                     this.showMoneyTrasferCover = false;
                     this.transferringMoney = 0;
                     this.asynTeam();
+                    this.asynInmates();
                 }
             }
             else{ // 普通点击
                 this.setViewingUnit(unit,1);
             }
+        },
+        onTapInmate(unit){ // 点击【酒馆客人】
+            let btd = common.getUnitBtd(unit,this.game);
+            this.selectingUnit = unit;
+            this.selectingUnit.btd = btd;
+            this.showUnitPop = true;
         },
         onTapSkill(data){ // 点击【技能】
             let { flag, skill, buffId, buffLevel, text, } = data;
@@ -452,9 +517,10 @@ export default {
         },
         onTapBeer(){ // 点击【啤酒】
             this.showTarven = !this.showTarven;
+            this.selling = this.showTarven;
             this.showUnitPop = false;
         },
-        onTapSwitchMember(){ // 点击【切换队员】
+        onTapSwitchMember(equip){ // 点击【切换队员】
             let index;
             if(this.viewingUnit&&this.viewingUnit.id){
                 for(let i=0;i<this.team.length;i++){
@@ -467,11 +533,12 @@ export default {
             if(index>this.team.length-1){
                 index = 0;
             }
+
             this.setViewingUnit(this.team[index]);
         },
 
         onTapTransferMoney(){ // 点击【转移金币】
-            if(this.viewingUnit.g<1||this.team.length<2){
+            if(this.selectingUnit.g<1||this.team.length<2){
                 this._alert(`无法转移`);
             }
             else{
@@ -483,9 +550,9 @@ export default {
             this.popUnitTab = [2,3,1,][this.popUnitTab-1];
         },
         onTapViewingBodyEquip(equipIndex){ // 点击【弹窗-单位-已着装备】
-            let equip = this.viewingUnit.btd.equipList[equipIndex];
+            let equip = this.selectingUnit.btd.equipList[equipIndex];
             if(equip&&equip.id){
-                this.viewingUnitBodyEquipIndex = (this.viewingUnitBodyEquipIndex!=-1)?-1:equipIndex;
+                this.selectingUnitBodyEquipIndex = (this.selectingUnitBodyEquipIndex!=-1)?-1:equipIndex;
                 // 滚动条置顶
                 let pcDom = this.$refs[`pop-content`].$refs[`pop`];
                 if(pcDom){
@@ -496,23 +563,23 @@ export default {
                 }
             }
             else{
-                this.viewingUnitBodyEquipIndex = -1;
+                this.selectingUnitBodyEquipIndex = -1;
             }
         },
         onTapAllMoneyTransfer(){ // 点击【弹窗-金币转移-全部】
-            this.transferringMoney = this.viewingUnit.g;
+            this.transferringMoney = this.selectingUnit.g;
         },
 
         onTapEquipOff(equip,unit){ // 点击【卸下装备】
-            if(this.viewingUnitBodyEquipIndex>=0){
-                this.viewingUnitBodyEquipIndex = -1;
+            if(this.selectingUnitBodyEquipIndex>=0){
+                this.selectingUnitBodyEquipIndex = -1;
             }
             this.equipOff(equip,unit);
         },
         onTapAllEquipOff(unit){ // 点击【全卸下】
             let equipList = unit.es;
-            if(this.viewingUnitBodyEquipIndex>=0){
-                this.viewingUnitBodyEquipIndex = -1;
+            if(this.selectingUnitBodyEquipIndex>=0){
+                this.selectingUnitBodyEquipIndex = -1;
             }
             for(let equipId of equipList){
                 let equip = getMatchList(this.game.allEquips,[['id',equipId]])[0];
@@ -532,11 +599,29 @@ export default {
             this.movingEquipList = equipList;
             this.coverTip = `共 ${equipList.length} 件装备，请选择转移目标：`;
         },
-        onTapSellEquip(equip){ // 点击【售卖装备】
-            console.log(`售卖装备`,equip.n);
+        onTapSellEquip(equip,seller){ // 点击【售卖装备】
+            let oSeller = getMatchList(this.game.allUnits,[['id',seller.id]])[0];
+            let buyer = this.bartender;
+            let price = common.getSellPrice(equip);
+            this.moveEquipList(buyer,seller,[equip]);
+            oSeller.g += price;
+            this.asynTeam();
+            this.asynBartender();
+            this.asynInmates();
+            this._alert(`已售卖 ${equip.n}`);
         },
-        onTapSellBag(equipList){ // 点击【全售卖】
-
+        onTapSellBag(equipList,seller){ // 点击【全售卖】
+            this._confirm(`确定要售卖全部（共 ${equipList.length} 个）装备吗？`,_=>{
+                let oSeller = getMatchList(this.game.allUnits,[['id',seller.id]])[0];
+                let buyer = this.bartender;
+                let price = common.getSellAllPrice(seller);
+                this.moveEquipList(buyer,seller,equipList);
+                oSeller.g += price;
+                this.asynTeam();
+                this.asynBartender();
+                this.asynInmates();
+                this._alert(`已售卖 ${equipList.length} 个装备`);
+            });
         },
         onTapBuyEquip(equip,price,seller,buyer){ // 点击【购买装备】
             let money = buyer.g;
@@ -555,6 +640,45 @@ export default {
                 this._alert(`${buyer.nm} 的金币不足`);
             }
             // console.log(`点击【购买装备】`,equip,price,seller,buyer);
+        },
+        onTapHire(unit){ // 点击【雇佣】
+            let employer = getMatchList(this.game.allUnits,[['id',this.viewingUnit.id]])[0];
+            let oUnit = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
+            let price = unit.btd.price;
+            if(employer.g>=price){
+                oUnit.rel = 2;
+                employer.g -= price;
+                this.asynTeam();
+                this.asynInmates();
+                this._alert(`欢迎新队友：${oUnit.nm} ！`,5);
+            }
+            else{
+                this._alert(`${employer.nm} 的金币不足`);
+            }
+        },
+        onTapJoinTeam(unit){ // 点击【入队】
+            let oUnit = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
+            if(this.team.length<4){
+                oUnit.rel = 3;
+                oUnit.tms = 99;
+                this.showUnitPop = false;
+                this.asynTeam();
+                this.asynInmates();
+            }
+            else{
+                this._alert(`队伍人数已满`);
+            }
+        },
+        onTapLeavTeam(unit){ // 点击【离队】
+            let oUnit = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
+            oUnit.rel = 2;
+            if(this.viewingUnit.id==unit.id){
+                this.showUnitPop = false;
+                this.viewingUnit = this.team[0];
+            }
+            this._alert(`${unit.nm} 已回到酒馆`,5);
+            this.asynTeam();
+            this.asynInmates();
         },
         onTapClosePop(){ // 点击【弹窗-关闭】
             this.resetViewingUnitPopData();
@@ -587,7 +711,8 @@ export default {
         },
 
         onTapCheat(){ // 点击【作弊】按钮
-
+            this.game.allUnits[1].g += 100000;
+            this.asynTeam();
         },
     },
     components:{
@@ -599,6 +724,7 @@ export default {
         Toast,
         SwipeTabs,
         EquipList,
+        UnitList,
         Unit1,
         Avatar,
         draggable,

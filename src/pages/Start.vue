@@ -129,15 +129,21 @@ export default {
             let me = this.genMe();
             // 生成其他角色
             let tempUnitList = [],tempEquipList = [], tempSkillList = [];
-            for(let i=0;i<4;i++){ // @test
+            for(let i=0;i<15;i++){ // @test
                 let unit = common.genUnit({
                     id: i+1,
                     game: this.game,
-                    level: i+1,
+                    level: r(1,9),
                     equipList: tempEquipList,
                     skillList: tempSkillList,
                 });
                 tempUnitList.push(unit);
+                if(i==7){
+                    unit.rel = 2;
+                }
+                else{
+                    unit.rel = 1;
+                }
                 if(i<3){
                     unit.tms = 1;
                     unit.rel = 3;
@@ -154,35 +160,6 @@ export default {
             // me.es = cloneObj(this.game.allUnits[4].es);
             // me.ss = cloneObj(this.game.allUnits[4].ss);
             // me.b = cloneObj(this.game.allUnits[4].b);
-        },
-        loadPresets(){ // 载入预设数据
-            // 载入预设角色
-            for(let unit of PRESETS.unitList){
-                let cUnit = cloneObj(unit);
-                let newUnit = common.genUnitData({id:cUnit.id,level:cUnit.level,game:this.game,});
-                for(let key in cUnit){
-                    newUnit[key] = cUnit[key];
-                }
-                this.game.allUnits.push(newUnit);
-            }
-            // 载入预设技能
-            for(let unit of PRESETS.skillList){
-
-            }
-            // 载入预设装备
-            for(let unit of PRESETS.equipList){
-
-            }
-            // 生成初始随机装备
-            for(let i=1;i<=3;i++){
-                let type = 1;
-                if(i>1){
-                    type = r(2,5);
-                }
-                let newEquip = common.genEquipData({id:i,level:1,type,game:this.game,});
-                this.game.allUnits[0].b.push(newEquip.id); // 放入商人酒保的背包
-                this.game.allEquips.push(newEquip);
-            }
         },
         genMe(){ // 生成主角
             let unit = common.genUnitData({
@@ -218,10 +195,40 @@ export default {
 
             unit.ss.push(skill.id);
             unit.g = 0;
+            unit.nk = `穿越者`;
 
             this.game.allUnits.push(unit);
             this.game.allSkills.push(skill);
             return unit;
+        },
+        loadPresets(){ // 载入预设数据
+            // 载入预设角色
+            for(let unit of PRESETS.unitList){
+                let cUnit = cloneObj(unit);
+                let newUnit = common.genUnitData({id:cUnit.id,level:cUnit.level,game:this.game,});
+                for(let key in cUnit){
+                    newUnit[key] = cUnit[key];
+                }
+                this.game.allUnits.push(newUnit);
+            }
+            // 载入预设技能
+            for(let unit of PRESETS.skillList){
+
+            }
+            // 载入预设装备
+            for(let unit of PRESETS.equipList){
+
+            }
+            // 生成初始随机装备
+            for(let i=1;i<=13;i++){
+                let type = 1;
+                if(i>1){
+                    type = r(2,5);
+                }
+                let newEquip = common.genEquipData({id:i,level:1,type,game:this.game,});
+                this.game.allUnits[0].b.push(newEquip.id); // 放入商人酒保的背包
+                this.game.allEquips.push(newEquip);
+            }
         },
 
         _alert(text){ // 显示提示

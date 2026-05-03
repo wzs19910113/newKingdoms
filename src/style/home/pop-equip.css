@@ -1,7 +1,6 @@
 /* 弹窗-单位-装备 */
 .unit-equip-board{
     padding: .04rem .06rem;
-    padding-bottom: 4.2rem;
 }
 .unit-equip-board .btn{
     box-shadow: 0 0 .14rem orangeRed inset;
@@ -125,6 +124,7 @@
 .unit-bag{
     padding-top: .02rem;
     background-color: #131313;
+    padding-bottom: 3rem;
 }
 .unit-bag-title{
     position: relative;

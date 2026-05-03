@@ -81,13 +81,17 @@ export default {
             this.$nextTick(() => {
                 this.scrollToActivePage();
                 this.updateIndicator();
+                // let dom = this.$refs.contentRef;
+                // if(dom){
+                //     // dom.scrollTop = 0;
+                // }
             });
         },
         scrollToActivePage() {
             if (!this.$refs.contentRef) return;
             const contentWidth = this.$refs.contentRef.clientWidth;
             const scrollLeft = this.activeIndex * contentWidth;
-            this.$refs.contentRef.scrollTo({ left: scrollLeft, behavior: "smooth" });
+            this.$refs.contentRef.scrollTo({ left: scrollLeft, top: 0, behavior: 'auto' });
         },
         onScroll() {
             if (!this.$refs.contentRef) return;
@@ -174,9 +178,11 @@ export default {
 
 /* 横向滚动内容区 */
 .tabs-content {
+    /* overflow-x: hidden;
+    overflow-y: auto; */
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
+    /* scroll-behavior: smooth; */
     flex: 1;
     background: inherit;
 }
@@ -191,10 +197,6 @@ export default {
 }
 
 .tab-page {
-    /* scroll-snap-align: start;
-    flex-shrink: 0;
-    padding: .24rem; */
     box-sizing: border-box;
-    /* color: #fff; */
 }
 </style>

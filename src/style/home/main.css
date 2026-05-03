@@ -20,6 +20,9 @@
     border-right: .02rem solid #134;
     border-top: .02rem solid #acd;
 }
+.money{
+    color: gold;
+}
 .panel{
     width: 100%;
     height: 100%;

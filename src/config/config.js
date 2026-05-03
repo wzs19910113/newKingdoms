@@ -44,6 +44,7 @@ module.exports = {
 			currentMapID: 101, // 当前所在地图ID
 			guard: 0, // 警戒值 0-1000000
 			conqueredMapIDList: [], // 已经攻克的地牢ID数组
+			wantedList: [], // 悬赏榜
 
 			allUnits: [], // 角色
 			unitIndex: 101, // 角色 ID 索引
@@ -389,6 +390,8 @@ module.exports = {
 
 		followChangesDelay: .35, // 跟随 changes 的结算延时（秒）
 
+		sellingRatio: .25, // 售卖价格比率
+
 		// 全部地图数据
 		mapConfig: [
 			{id:101, level:1, type:1, name:'龙虾村',    floors:[], },
@@ -416,6 +419,7 @@ module.exports = {
 			st: [43150,8535,],
 			tms: 0,
 			rel: 1,
+			rt: 100001,
 			ss: [], // 技能ID数组
 			es: [0,0,0,0,0,0,0,], // 装备ID数组 [0手一，1手二，2配饰一，3配饰二，4身体，5头，6脚]
 			b: [], // 背包，存放装备ID
@@ -430,7 +434,8 @@ game = {
 	day: 1,
 	currentMapID: 101, // 当前所在地图ID
 	guard: 0, // 警戒值 0-1000000
-	conqueredMapIDList: [], // 已经攻克的地牢ID数组
+	conqueredMapIDList: [101,102,], // 已经攻克的地牢ID数组
+	wantedList: [], // 悬赏榜
 
 	allUnits: [], // 角色
 	unitIndex: 101, // 角色 ID 索引
@@ -440,8 +445,16 @@ game = {
 	skillIndex: 101, // 技能 ID 索引
 }
 
+wanted = {
+	id: 101,
+	e: 5, // 截至日期（天）
+	t: `柳唐`, // 目标单位名字
+	n: `祭品盗贼`, // 目标单位昵称
+	s: 0, // 状态 0未公示 1悬赏中 2逾期 3已完成
+}
+
 skill = {
-	id: 11,
+	id: 101,
 	l: 7, // 等级(1-9)
 	n: '治愈术',
 	t: 1, // 1自己 2我方单体 3敌方单体
@@ -460,7 +473,7 @@ skill = {
 }
 
 equip = {
-	id: 11,
+	id: 102,
 	n: '龙虾刀', // 名字
 	l: 7, // 等级(1-15)
 	it: 0, // 强度(0-4)
@@ -488,7 +501,7 @@ equip = {
 }
 
 unit = {
-	id: 1, //
+	id: 106, //
 	l: 7, // 等级(1-15)
 	it: 2, // 强度(0-4)
 
@@ -502,6 +515,8 @@ unit = {
 	g: 18470,
 	i: '1', // 头像型号 1-3
 
+	rt: 100034, // registerTime注册时间：十万位数=天，其他位数=秒
+
 	as: [50,35,2,0, 20,14,16,17,14,25,13,], // 11维身体属性（4个外在，7个内在） [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
 
 	st: [50,35,], // 当前状态 [0血量,1精力,]
@@ -513,6 +528,7 @@ unit = {
 	b: [], // 背包，存放装备ID
 
 	btd: { // 战斗中的状态
+
 		hp: [50,50,], // 生命力
 		def: [2,2,], // 护甲
 		eng: [35,35,], // 精力
@@ -529,7 +545,7 @@ unit = {
 		weaponName1: '龙虾刀',
 		weaponName2: '',
 		weaponList: [{...equip数据}], // 武器，最多2个
-		equipList: [{...equip数据}], // 身上的装备
+		equipList: [{...equip数据},null,{...equip数据},{...equip数据},null,{...equip数据},{...equip数据},], // 身上的装备[0手一，1手二，2配饰一，3配饰二，4身体，5头，6脚]
 		bagList: [{...equip数据}], // 包里的装备
 		skillList: [{...skill数据}],
 
@@ -561,6 +577,7 @@ unit = {
 		isPlayer: 1, // 玩家可操控
 		roundTotal: 1, // 每回合可以行动的次数
 		score: 19000, // 战斗分数
+		price: 374900, // 雇佣价格
 
 		penetrated: 0, // 本回合已被破防
 		changes:{

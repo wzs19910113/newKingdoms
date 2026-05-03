@@ -1,5 +1,5 @@
 <template>
-    <div class="pop" @click.stop="_onTap">
+    <div class="pop">
         <div class="pop-main">
             <div class="pop-title" v-if="title">
                 {{title}}
@@ -10,6 +10,7 @@
             </div>
             <a class="btn btn-close" v-if="showCloseButton" @click.stop="_onTapClose">✖</a>
         </div>
+        <div class="pop-cover" @click.stop="_onTapClose"></div>
     </div>
 </template>
 <script>
@@ -57,7 +58,26 @@ export default {
 </script>
 <style scoped>
     .pop{
-
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 5000;
+    }
+    .pop-cover{
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background-color: rgba(255,255,255,.5);
+        z-index: 4990;
     }
     .pop-main{
         position: absolute;

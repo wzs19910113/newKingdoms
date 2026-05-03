@@ -275,12 +275,13 @@ export default {
 
 .confirm-buttons {
     display: flex;
+    height: 1rem;
+    line-height: 1rem;
     border-top: 0.01rem solid rgba(138, 228, 241, 0.3);
 }
 
 .confirm-btn {
     flex: 1;
-    padding: 0.2rem 0;
     font-size: 0.24rem;
     text-align: center;
     cursor: pointer;

@@ -1,6 +1,6 @@
 .banner-wrap{
     position: relative;
-    z-index: 600;
+    z-index: 500;
     height: .88rem;
     width: 100%;
     background-image: url('./../../assets/bg-banner.png');
@@ -13,8 +13,8 @@
 .banner-wrap .day,
 .banner-wrap .money-wrap{
     position: absolute;
+    left: .14rem;
     height: .4rem;
-    top: .1rem;
     line-height: .4rem;
     font-size: .22rem;
     display: block;
@@ -24,19 +24,21 @@
     overflow: hidden;
 }
 .banner-wrap .day{
-    left: 0;
-    width: 2rem;
-    height: .5rem;
-    line-height: .5rem;
-    font-size: .4rem;
+    top: .06rem;
+    width: 1.5rem;
+    height: .23rem;
+    line-height: .23rem;
+    font-size: .24rem;
+    text-align: left;
     color: #afd;
     text-shadow: .12rem 0 .44rem #fff;
 }
 .banner-wrap .money-wrap{
-    left: 2rem;
-    width: 3rem;
-    height: .4rem;
-    line-height: .4rem;
+    top: .35rem;
+    width: 2.43rem;
+    height: .48rem;
+    line-height: .48rem;
+    text-align: left;
     font-size: .3rem;
 }
 .banner-wrap .money-wrap .money{
@@ -44,26 +46,30 @@
 }
 .banner-wrap .money-wrap .money-preifx{
     color: #fff;
+    height: .32rem;
+    line-height: .32rem;
     display: inline-block;
     border-radius: .1rem;
-    width: .88rem;
+    font-size: .24rem;
+    width: .58rem;
+    text-align: center;
     background-image: linear-gradient(to right bottom, rgba(255,69,0,1) 0%, rgba(155,69,0,1) 100%);
 }
 .brand{
     position: absolute;
     display: flex;
     justify-content: space-around;
-    padding-top: .32rem;
-    z-index: 500;
+    padding-top: .24rem;
+    z-index: 600;
     top: -1.14rem;
-    left: .4rem;
+    left: 2.6rem;
     margin: auto;
-    width: 3rem;
-    height: 1.4rem;
-    line-height: 1.4rem;
+    width: 2.4rem;
+    height: 1.1rem;
+    line-height: 1.1rem;
     color: #146;
     font-weight: bold;
-    font-size: .4rem;
+    font-size: .34rem;
     text-align: center;
     text-shadow: 0 0 .04rem #fff;
     background-image: url('./../../assets/banner-brand.png');
@@ -74,10 +80,10 @@
 }
 @keyframes pulldown1 {
     60%{
-        top: .82rem;
+        top: -.06rem;
     }
     100%{
-        top: .52rem;
+        top: -.18rem;
     }
 }
 .btn-gear,

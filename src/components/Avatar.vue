@@ -1,7 +1,10 @@
 <template>
     <a class="avatar" ref="avatar" :class="common.isCrumble(unit)?'avatar-crumble':''" @click.stop="_onTap">
+        <span class="nickname" v-if="showNickName&&unit.nk">
+            “{{unit.nk}}”
+        </span>
         <span class="name">
-            {{unit.btd.name}}
+            {{unit.nm}}
         </span>
         <img class="bg-src" :src="require(`../assets/${common.calcIconSrc(unit)}`)" />
     </a>
@@ -16,6 +19,7 @@ export default {
             type: Object,
             default: function(){},
         },
+        showNickName: Boolean,
         onTap: { // 点击事件
             type: Function,
             default: function(){},
@@ -46,28 +50,32 @@ export default {
         width: 100%;
         height: 100%;
         border-radius: 50%;
-        /* box-shadow: 0 0 .1rem #fff; */
-        /* border: .03rem double #131313; */
-        /* box-shadow: 0 0 .06rem .02rem #aaa; */
     }
     .avatar-crumble{
         box-shadow: 0 0 .4rem #e81313 inset;
     }
+    .avatar .nickname,
     .avatar .name{
         position: absolute;
         display: inline-block;
         z-index: 10;
-        bottom: 0;
         left: 0;
         right: 0;
         margin: 0 auto;
-        height: .3rem;
-        line-height: .32rem;
         text-align: center;
         color: #000;
         font-weight: bold;
-        /* text-shadow: 0 0 .1rem #fff; */
-        background-color: rgba(255,255,255,.75);
+        background-color: rgba(255,255,255,.85);
+    }
+    .avatar .nickname{
+        bottom: .32rem;
+        height: .24rem;
+        line-height: .26rem;
+    }
+    .avatar .name{
+        bottom: 0;
+        height: .3rem;
+        line-height: .32rem;
     }
     .avatar .bg-src{
         position: absolute;

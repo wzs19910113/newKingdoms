@@ -17,6 +17,26 @@
 .menu-wrap-expand{
     height: 100%;
 }
+.icon-arrow-down{
+    position: absolute;
+    top: -.8rem;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: .7rem;
+    height: .6rem;
+    background-image: url('./../../assets/arrow-down.png');
+    background-size: 100% 100%;
+    background-position: top;
+    background-repeat: no-repeat;
+    z-index: 10;
+    animation: arrowFloat .5s ease-in-out infinite alternate;
+}
+@keyframes arrowFloat {
+    to{
+        top: -.6rem;
+    }
+}
 
 /* 单位 */
 .unit-list-group{

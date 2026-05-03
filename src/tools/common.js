@@ -381,6 +381,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
         ss: [],
         es: [0,0,0,0,0,0,0,],
         b: [],
+        rt: 999999,
         i: icon||r(1,7),
     };
     // 设置定力最小值
@@ -714,6 +715,15 @@ export function genSkillData({id,game,level=1,beni,melee}){ // 生成一个技�
 
     return res;
 }
+export function genRegisterTime({id,game,}){ // 根据单位ID生成注册时间
+    let res = 999999;
+    let sdSuffix = id+'';
+    for(let i=sdSuffix.length;i<5;i++){
+        sdSuffix = `0`+sdSuffix;
+    }
+    res = `${game.day}${sdSuffix}`;
+    return res;
+}
 
 export function genUnit({id,level=1,inten=0,game,equipList,skillList,}){ // 生成一个完整的单位数据（带装备、背包和技能）
     let unit = genUnitData({ id, level, inten, game, });
@@ -766,7 +776,7 @@ export function genUnit({id,level=1,inten=0,game,equipList,skillList,}){ // 生�
     }
     return unit;
 }
-export function registerUnit({unit,equipList,skillList,game,}){ // 注册一个单位
+export function registerUnit({unit,equipList,skillList,game,}){ // 注册一个单位入村
     // 逐一注册身上的装备
     for(let i=0;i<unit.es.length;i++){
         let equip = getMatchList(equipList,[['id',unit.es[i]]])[0];
@@ -792,6 +802,10 @@ export function registerUnit({unit,equipList,skillList,game,}){ // 注册一个�
     }
     // 注册单位
     unit.id = game.unitIndex++;
+    unit.rt = genRegisterTime({id:unit.id,game,});
+    if(unit.rel<1){
+        unit.rel = 1;
+    }
     game.allUnits.push(unit);
     return unit;
 }
@@ -923,6 +937,11 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.skillScore = cl(skillScore);
     btd.attrScore = cl(attrScore);
     btd.score = cl(attrScore+equipScore+skillScore);
+
+    //计算雇佣价格
+    let tempUnit = cloneObj(unit);
+    tempUnit.btd = btd;
+    btd.price = getUnitHirePrice(tempUnit);
 
     // @test
     /* let allBuffs = shuffle([...CONFIG.goodBuffs,...CONFIG.badBuffs]);
@@ -1215,6 +1234,56 @@ export function calcEquipValue(equip){ // 计算装备的价值
     //     score -= awaReduce;
     // }
     return score;
+}
+export function calcUnitValue(unit){ // 计算单位的总价值（要求btd）
+    let res = 0;
+    let bodyValue = calcBodyValue(unit);
+    let bagValue = calcBagValue(unit);
+    let skillsValue = calcSkillsValue(unit);
+    res = unit.btd.score+bodyValue+bagValue+skillsValue+unit.g;
+    return res;
+}
+export function calcBodyValue(unit){ // 计算单位的所有已着装备价值（要求btd）
+    let res = 0;
+    let equipList = unit.btd.equipList;
+    for(let equip of equipList){
+        if(equip){
+            res += equip.v;
+        }
+    }
+    return res;
+}
+export function calcBagValue(unit){ // 计算单位的背包所有装备价值（要求btd）
+    let res = 0;
+    let bagList = unit.btd.bagList;
+    for(let equip of bagList){
+        res += equip.v;
+    }
+    return res;
+}
+export function calcSkillsValue(unit){ // 计算单位的所有技能价值（要求btd）
+    let res = 0;
+    let skillList = unit.btd.skillList;
+    for(let skill of skillList){
+        res += skill.v;
+    }
+    return res;
+}
+export function getUnitHirePrice(unit){ // 获取单位的雇佣价格（要求btd）
+    let res = 0;
+    let value = calcUnitValue(unit);
+    res = value;
+    return res;
+}
+export function getSellPrice(equip){ // 获取装备的售卖价格
+    let res = equip.v;
+    res = Math.ceil(res*CONFIG.sellingRatio);
+    return res;
+}
+export function getSellAllPrice(unit){ // 获取单位的背包售卖价格（要求btd）
+    let res = calcBagValue(unit);
+    res = Math.ceil(res*CONFIG.sellingRatio);
+    return res;
 }
 
 export function calcDodgeRate(dodge){ // 计算躲避因素

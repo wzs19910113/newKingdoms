@@ -1,26 +1,29 @@
 <template>
-    <div class="equip-list">
-        <a class="unit-bag-equip-wrap" :class="selectingEquip.id==equip.id?'unit-bag-equip-wrap-sel':''" v-for="equip of unit.btd.bagList" :key="equip.id"  @click.stop="onTapEquip(equip)">
+    <div class="equip-list" ref="list">
+        <a class="unit-bag-equip-wrap" :ref="`eqp${equip.id}`" :class="selectingEquip.id==equip.id?'unit-bag-equip-wrap-sel':''" v-for="equip of unit.btd.bagList" :key="equip.id"  @click.stop="onTapEquip(equip)">
             <Equip class="unit-bag-equip" :equip="equip" />
             <div class="unit-bag-op-wrap" v-show="selectingEquip.id==equip.id">
                 <!-- 在队或同道单位 -->
-                <div class="unit-bag-op" v-if="unit.rel>=2">
-                    <a class="btn" v-if="showSell" @click.stop="onTapSellEquip(equip,unit)">售卖</a>
+                <div class="unit-bag-op" v-if="unit.rel==3">
+                    <a class="btn" v-if="showSell" @click.stop="onTapSellEquip(equip,unit)">
+                        售卖 <b class="money" v-html="`${common.moneyFormat(common.getSellPrice(equip))} $`"></b>
+                    </a>
                     <a class="btn" @click.stop="onTapMoveEquip(equip,unit)">转移</a>
                     <a class="btn" v-if="selectingEquip.t!=1&&selectingEquip.t!=4" @click.stop="onTapEquipOn(equip,unit,0)">装上</a>
                     <a class="btn" v-if="selectingEquip.t==1||selectingEquip.t==4" @click.stop="onTapEquipOn(equip,unit,1)">装上1</a>
                     <a class="btn" v-if="selectingEquip.t==1||selectingEquip.t==4" @click.stop="onTapEquipOn(equip,unit,2)">装上2</a>
                 </div>
-                <!-- 相识单位 -->
+                <!-- 购买栏 -->
                 <div class="unit-bag-op" v-if="showBuy">
-                    <a class="btn" :class="money<calcPrice(equip.v)?'btn-ban':''" @click.stop="onTapBuyEquip(equip,calcPrice(equip.v),unit,viewingUnit)">
-                        购买 <b class="money" v-html="` ${common.moneyFormat(calcPrice(equip.v))} $ `"></b>
+                    <a class="btn btn-switch" v-if="onTapSwitchViewingUnit" @click.stop="onTapSwitchViewingUnit(equip)">切换</a>
+                    <a class="btn" :class="viewingUnit.g<calcPrice(equip.v)?'btn-ban':''" @click.stop="onTapBuyEquip(equip,calcPrice(equip.v),unit,viewingUnit)">
+                        由 {{viewingUnit.nm}} 购买 <b class="money" v-html="` ${common.moneyFormat(calcPrice(equip.v))} $ `"></b>
                     </a>
                 </div>
                 <!-- 对比装备 -->
                 <div class="unit-bag-compare-wrap" v-if="selectingEquip.id==equip.id">
                     <div class="unit-bag-compare-title">
-                        {{viewingUnit.btd.name}}身上的装备：<a class="btn btn-switch" v-if="onTapSwitchViewingUnit" @click.stop="onTapSwitchViewingUnit">切换</a>
+                        {{viewingUnit.btd.name}}身上的装备：
                     </div>
                     <Equip :ref="`compareEquip1-${equip.id}`" class="unit-bag-equip unit-bag-compare" v-if="compare1.id" :equip="compare1" :compare="selectingEquip" />
                     <Equip :ref="`compareEquip2-${equip.id}`" class="unit-bag-equip unit-bag-compare" v-if="compare2.id" :equip="compare2" :compare="selectingEquip" />
@@ -77,10 +80,6 @@ export default {
         onTapSwitchViewingUnit: Function, // 点击【切换浏览者】
         showSell: Boolean, // 是否显示售卖按钮
         showBuy: Boolean, // 是否显示购买按钮
-        money: {
-            type: Number,
-            default: 0,
-        },
         discount: {
             type: Number,
             default: 10,
@@ -116,7 +115,7 @@ export default {
         setSelectingEquip(equip){
             this.onTapEquip(equip);
         },
-        calcPrice(value){
+        calcPrice(value){ // 计算装备的购入价格
             return Math.ceil(value*this.discount/10);
         },
         onTapEquip(equip){ // 点击【背包中的装备】
@@ -161,6 +160,7 @@ export default {
 <style scoped>
     .equip-list{
         display: block;
+        padding-bottom: 4rem;
     }
     .unit-bag-equip-wrap{
         display: block;
@@ -191,17 +191,22 @@ export default {
 
     }
     .unit-bag-equip-wrap .unit-bag-op{
-        text-align: right;
-        padding: 0 .1rem;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 0 .06rem;
         height: .8rem;
         line-height: .8rem;
     }
     .btn{
         display: inline-block;
-        padding: 0 .2rem;
+        padding: 0 .1rem;
         height: .55rem;
         line-height: .55rem;
+        margin-left: .08rem;
         font-size: .3rem;
+        white-space: nowrap;
+        word-break: keep-all;
         box-shadow: 0 0 .14rem orangeRed inset;
         border: .02rem solid orangeRed;
     }
@@ -218,8 +223,7 @@ export default {
         padding: 0 .1rem;
     }
     .btn-switch{
-        height: .4rem;
-        line-height: .4rem;
+
     }
     .unit-bag-compare{
         border-radius: .2rem;
