@@ -38,7 +38,7 @@
                             <a class="anchor mover" v-if="team.length>1">拖移</a>
                             <Bar1 class="unit-bar" @onTap="onTapUnit(team[index])" :suffix="team[index].btd.def[1]?`${team[index].btd.def[1]}`:''" :type="1" :crt="team[index].btd.hp[0]" :max="team[index].btd.hp[1]" />
                             <Bar1 class="unit-bar" @onTap="onTapUnit(team[index])" :suffix="team[index].btd.phy[1]?`${team[index].btd.phy[1]}`:''" :type="2" :crt="team[index].btd.eng[0]" :max="team[index].btd.eng[1]" />
-                            <div class="icon-arrow-down" v-if="viewingUnit&&team[index]&&(team[index].id==viewingUnit.id)"></div>
+                            <div class="icon-arrow-down" v-if="viewingUnit&&!coverTip&&!showMoneyTrasferCover&&team[index]&&(team[index].id==viewingUnit.id)"></div>
                         </a>
                         <div class="unit unit-empty" v-else></div>
                     </div>
@@ -95,9 +95,9 @@
             </div>
             <!-- 角色技能表 -->
             <div class="unit-info-pop unit-skill-board" v-if="popUnitTab==3">
-                <div class="skill-x-wrap" v-if="selectingUnit.id==me.id&&(me.x>0||me.xp>0)">
-                    <Bar1 class="skill-x" title="灵感指数" :mode="3" :type="4" :crt="me.x" :max="10000" @onTap="onTapXPointBar" />
-                    <a class="btn btn-skill-x" :class="`${me.xp>0?'btn-skill-x-active':''}`" @click="onTapXPoint">{{me.xp}}</a>
+                <div class="skill-x-wrap" v-if="selectingUnit.id==me.id&&(game.x>0||game.xp>0)">
+                    <Bar1 class="skill-x" title="灵感指数" :mode="2" :type="4" :crt="game.x" :max="common.calcSkillXDemand(game.xl)" @onTap="onTapXPointBar" />
+                    <a class="btn btn-skill-x" :class="`${game.xp>0?'btn-skill-x-active':''}`" @click="onTapXPoint">{{game.xp}}</a>
                 </div>
                 <div class="skill-copy-wrap" v-if="selectingUnit.id==me.id&&showSkillCopy">
                     <div class="title">选择要复制的技能（{{skillCopyList.length}}）：</div>
@@ -117,8 +117,14 @@
             <SwipeTabs class="tarven-tabs-wrap" ref="tarven-wrap" :tabs="[{label:`商人酒保·${(bartender||{}).nm}`,},{label:`大厅（${inmateList.length}）`},{label:`悬赏榜`,}]">
                 <!-- 商人酒保 -->
                 <template #tab-0>
-                    <div class="tarven-cot tarven-shop" v-if="viewingUnit&&bartender&&bartender.btd.bagList">
-                        <EquipList v-show="bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :viewingUnit="viewingUnit" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="5" />
+                    <div class="tarven-cot tarven-shop" v-if="viewingUnit&&bartender">
+                        <div class="bartender">
+                            <a class="btn" @click="onTapChatButton">聊天</a>
+                            <a class="btn" @click="onTapSellButton">当卖</a>
+                            <a class="btn" @click="onTapRestButton">住宿</a>
+                        </div>
+                        <van-divider class="bartender-divider">装备交易（{{calcShopRefreshRemainDays()}}天后更新）</van-divider>
+                        <EquipList v-if="bartender.btd.bagList&&bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :viewingUnit="viewingUnit" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="3" />
                         <div class="tarven-shop-empty" v-if="bartender.btd.bagList.length<=0">暂无商品</div>
                     </div>
                 </template>
@@ -148,7 +154,7 @@
         <!-- 普通提示遮罩 -->
         <Cover v-if="coverTip" @onTap="onTapCover" :tip="coverTip"></Cover>
         <!-- 右上角系统菜单弹窗 -->
-        <div class="pop-gear" v-if="showGearPop">
+        <div class="pop-gear" v-show="showGearPop">
             <div class="pop-gear-bg"></div>
             <a class="btn btn-save" @click="onTapSave">存档</a>
             <a class="btn btn-guide" @click="onTapGuide">指引</a>
@@ -184,8 +190,9 @@ import * as common from '../tools/common';
 import * as ai from '../tools/ai';
 import Vue from 'vue';
 import { Slider } from 'vant-green';
+import { Divider } from 'vant-green';
 import 'vant-green/lib/index.css';
-Vue.use(Slider);
+Vue.use(Slider).use(Divider);
 
 import { DEBUG, CONFIG, CACHE, ASSETS, } from '../config/config';
 
@@ -342,7 +349,7 @@ export default {
             this.selectingUnit = null;
             this.selectingUnitBodyEquipIndex = -1; // 单位弹窗-放大的装备 index
         },
-        setViewingUnit(unit,showUnitPop){ // 切换浏览者
+        setViewingUnit(unit,showUnitPop,callback){ // 切换浏览者
             // 记录shop中原有的“选择中的装备”
             let shopDom = this.$refs[`shop`];
             let oldSelectingEquip;
@@ -367,6 +374,7 @@ export default {
                 if(showUnitPop){
                     this.showUnitPop = true;
                 }
+                callback&&callback();
                 if(oldSelectingEquip){ // 处于酒馆中，并且shop中存在“原有的选择中的装备”，则选中这个装备
                     this.$nextTick(_=>{
                         shopDom = this.$refs[`shop`];
@@ -383,6 +391,15 @@ export default {
                     });
                 }
             });
+        },
+        dayPass(){ // 经历一天
+            this.game.day++;
+            // 悬赏令状态更新
+            for(let wanted of this.game.wantedList){
+                if(this.game.day>=wanted.e&&wanted.s!=3){
+                    wanted.s = 2;
+                }
+            }
         },
 
         equipOn(equip,unit,seq){ // 装上装备
@@ -434,6 +451,11 @@ export default {
             for(let unit of this.team){
                 res += unit.g;
             }
+            return res;
+        },
+        calcShopRefreshRemainDays(){ // 计算商品更新剩余天数
+            let res;
+            res = CONFIG.shopRefreshInterval-this.game.day%CONFIG.shopRefreshInterval;
             return res;
         },
 
@@ -692,8 +714,32 @@ export default {
             this.asynTeam();
             this.asynInmates();
         },
+        onTapChatButton(){ // 点击【聊天】
+            this.coverTip = `酒保：`+CONFIG.bartenderChats[r(0,CONFIG.bartenderChats.length-1)];
+        },
+        onTapRestButton(){ // 点击【住宿】
+            this._confirm(`是否消耗 1 天的时间休息，完全恢复生命和精力？`,_=>{
+                this.dayPass();
+                for(let unit of this.game.allUnits){
+                    let btd = common.getUnitBtd(unit,this.game);
+                    unit.st[0] = btd.hp[1];
+                    unit.st[1] = btd.eng[1];
+                }
+                this.asynTeam();
+                this.asynBartender();
+                this.asynInmates();
+                this._alert(`所有人状态恢复`);
+            });
+        },
+        onTapSellButton(){ // 点击【当卖】
+            this.showUnitPop = true;
+            let viewingUnit = this.viewingUnit||this.me;
+            this.setViewingUnit(viewingUnit,true,_=>{
+                this.popUnitTab = 2;
+            });
+        },
         onTapXPointBar(){ // 点击【灵感进度条】
-            if(this.me.xp<=0){
+            if(this.game.xp<=0){
                 this._alert(`每次战斗后积累，槽满后可复制队友的一个技能`,5);
             }
             else{
@@ -702,7 +748,11 @@ export default {
         },
         onTapXPoint(){ // 点击【灵感进度数字】
             let skillCopyList = [];
-            if(this.me.xp>0){
+            if(this.team.length<2){
+                this._alert(`没有队友`);
+                return;
+            }
+            if(this.game.xp>0){
                 for(let unit of this.team){
                     if(unit.id!=this.me.id){
                         // 从所有队友技能中筛选“我未拥有的技能”
@@ -726,13 +776,13 @@ export default {
                 return;
             }
             this._confirm(`确定要复制技能 “${skill.n}” 吗？`,_=>{
-                let oMe = getMatchList(this.game.allUnits,[['id',101]])[0];
-                if(oMe.xp>0){
+                if(this.game.xp>0){
+                    let oMe = getMatchList(this.game.allUnits,[['id',this.me.id]])[0];
                     oMe.ss.push(skill.id);
-                    oMe.xp -= 1;
+                    this.game.xp -= 1;
                     this.asynTeam();
                     this.asynInmates();
-                    if(oMe.xp<=0){
+                    if(this.game.xp<=0){
                         this.showSkillCopy = false;
                     }
                     else{
@@ -781,12 +831,7 @@ export default {
         onTapCheat(){ // 点击【作弊】按钮
             let me = this.game.allUnits[1];
             me.g += 100000;
-            // me.x += r(10,100)*25;
-            me.x += r(300,300)*25;
-            if(me.x>=10000){
-                me.xp += Math.floor(me.x/10000);
-                me.x = me.x%10000;
-            }
+            common.skillXIncrease(55000,this.game);
             this.asynTeam();
         },
     },

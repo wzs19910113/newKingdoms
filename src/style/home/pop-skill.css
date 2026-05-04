@@ -59,8 +59,8 @@
     height: .67rem;
     line-height: .67rem;
     border-radius: 50%;
-    background-image: radial-gradient(closest-corner, #816CBD 0%, #614C8D 100%);
     border: .02rem solid #fff;
+    background-image: radial-gradient(closest-corner, #555 0%, #aaa 100%);
     color: #fff;
     font-weight: bold;
     font-size: .4rem;
@@ -69,6 +69,7 @@
 }
 .skill-x-wrap .btn-skill-x-active{
     box-shadow: 0 0 .1rem #aaf;
+    background-image: radial-gradient(closest-corner, #816CBD 0%, #614C8D 100%);
     animation: xActive .4s ease-in-out infinite alternate;
 }
 @keyframes xActive {

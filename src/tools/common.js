@@ -383,8 +383,6 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
         b: [],
         rt: 999999,
         i: icon||r(1,7),
-        x: 0,
-        xp: 0,
     };
     // 设置定力最小值
     if(level>5){
@@ -811,6 +809,26 @@ export function registerUnit({unit,equipList,skillList,game,}){ // 注册一个�
     game.allUnits.push(unit);
     return unit;
 }
+export function skillXIncrease(val,game){ // 灵感提升
+    let lvlupDemand; // 当前等级的升级需求值
+    lvlupDemand = calcSkillXDemand(game.xl);
+    let afterX = game.x+val; // 增加之后的经验值
+    let diff = afterX-lvlupDemand; // 差值
+
+    // console.log();
+
+    if(diff<0){ // 不够升级
+        game.x = afterX;
+    }
+    else{ // 升级
+        game.xl += 1;
+        game.xp += 1;
+        game.x = 0;
+        if(diff>0){
+            skillXIncrease(diff,game);
+        }
+    }
+}
 
 
 /* ---------------------------- 计算 ---------------------------- */
@@ -842,7 +860,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
         }
     }
     // 把 ss 中的每个技能ID转化为完整的技能对象，保存到 skillList 里并排序
-    for(let i=0,j=0;i<unit.ss.length&&j<6;i++,j++){
+    for(let i=0;i<unit.ss.length;i++){
         let skillId = unit.ss[i];
         let skill = getMatchList(game.allSkills,[['id',skillId]])[0];
         if(skill){
@@ -1285,6 +1303,17 @@ export function getSellPrice(equip){ // 获取装备的售卖价格
 export function getSellAllPrice(unit){ // 获取单位的背包售卖价格（要求btd）
     let res = calcBagValue(unit);
     res = Math.ceil(res*CONFIG.sellingRatio);
+    return res;
+}
+export function calcSkillXDemand(level){ // 计算技能经验的升级需求
+    let res = 0;
+    if(level<=6){
+        res = CONFIG.skillXLevelMap[level-1];
+    }
+    else{
+        let overXl = level-6;
+        res = cl(CONFIG.skillXLevelMap[5]*Math.pow(CONFIG.skillXLevelRate,overXl));
+    }
     return res;
 }
 

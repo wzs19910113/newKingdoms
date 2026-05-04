@@ -1,7 +1,9 @@
 <template>
     <a class="bar-wrap" @click.stop="_onTap">
         <div class="bar" :class="{'bar-x-wrap':type==4,}">
-            <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2,'bar-flee':type==3,'bar-x':type==4,}" :style="{width:`${calcBarLength()}%`}"></div>
+            <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2,'bar-flee':type==3,'bar-x':type==4,}" :style="{width:`${calcBarLength()}%`}">
+                <div class="bar-full-bg" v-if="type==4"></div>
+            </div>
             <div class="bar-label">
                 <span class="txt" v-if="title">{{title}}</span>
                 <span class="num" v-if="mode==1">
@@ -85,6 +87,7 @@ export default {
         z-index: 2;
         transform-origin: 0% 50%;
         transform: scaleX(0);
+        overflow: hidden;
         animation: bargrow .33s ease-in forwards;
     }
     @keyframes bargrow {
@@ -160,5 +163,25 @@ export default {
         margin: auto;
         justify-content: center;
         align-items: center;
+    }
+    /* bg floating */
+    .bar-full-bg{
+        position: absolute;
+        top:0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 200%;
+        height: 100%;
+        z-index: 2;
+        background-image: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,.4) 100%);
+        background-repeat: no-repeat;
+        animation: floating 2s ease-out infinite;
+        transform: translateX(-100%);
+    }
+    @keyframes floating {
+        to{
+            transform: translateX(100%);
+        }
     }
 </style>
