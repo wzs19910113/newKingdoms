@@ -127,36 +127,37 @@ export default {
             this.loadPresets();
             // 生成我
             let me = this.genMe();
-            // 生成其他角色
-            let tempUnitList = [],tempEquipList = [], tempSkillList = [];
-            for(let i=0;i<15;i++){ // @test
-                let unit = common.genUnit({
-                    id: i+1,
-                    game: this.game,
-                    level: r(1,9),
-                    equipList: tempEquipList,
-                    skillList: tempSkillList,
-                });
-                tempUnitList.push(unit);
-                if(i==7){
-                    unit.rel = 2;
-                }
-                else{
-                    unit.rel = 1;
-                }
-                if(i<3){
-                    unit.tms = 1;
-                    unit.rel = 3;
-                }
-            }
-            for(let unit of tempUnitList){
-                let newUnit = common.registerUnit({
-                    unit,
-                    game: this.game,
-                    equipList: tempEquipList,
-                    skillList: tempSkillList,
-                });
-            }
+            this.genBosses();
+            // 生成其他角色 @test
+            // let tempUnitList = [],tempEquipList = [], tempSkillList = [];
+            // for(let i=0;i<15;i++){ // @test
+            //     let unit = common.genUnit({
+            //         id: i+1,
+            //         game: this.game,
+            //         level: r(1,9),
+            //         equipList: tempEquipList,
+            //         skillList: tempSkillList,
+            //     });
+            //     tempUnitList.push(unit);
+            //     if(i==7){
+            //         unit.rel = 2;
+            //     }
+            //     else{
+            //         unit.rel = 1;
+            //     }
+            //     if(i<3){
+            //         unit.tms = 1;
+            //         unit.rel = 3;
+            //     }
+            // }
+            // for(let unit of tempUnitList){
+            //     let newUnit = common.registerUnit({
+            //         unit,
+            //         game: this.game,
+            //         equipList: tempEquipList,
+            //         skillList: tempSkillList,
+            //     });
+            // }
             // me.es = cloneObj(this.game.allUnits[4].es);
             // me.ss = cloneObj(this.game.allUnits[4].ss);
             // me.b = cloneObj(this.game.allUnits[4].b);
@@ -200,6 +201,37 @@ export default {
             this.game.allUnits.push(unit);
             this.game.allSkills.push(skill);
             return unit;
+        },
+        genBosses(){ // 生成所有boss
+            let tempUnitList = [], tempEquipList = [], tempSkillList = [];
+            let bossId = 51;
+            for(let i=0;i<2;i++){
+                let map = CONFIG.mapConfig[i];
+                let { type, level, bosses, } = map;
+                if(type==2){
+                    for(let boss of bosses){
+                        let unit = common.genUnit({
+                            id: bossId++,
+                            game: this.game,
+                            level,
+                            inten: boss.inten,
+                            nickname: boss.title,
+                            equipList: tempEquipList,
+                            skillList: tempSkillList,
+                            isBoss: true,
+                        });
+                        tempUnitList.push(unit);
+                    }
+                }
+            }
+            for(let unit of tempUnitList){
+                let newUnit = common.registerUnit({
+                    unit,
+                    game: this.game,
+                    equipList: tempEquipList,
+                    skillList: tempSkillList,
+                });
+            }
         },
         loadPresets(){ // 载入预设数据
             // 载入预设角色

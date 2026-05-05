@@ -9,6 +9,10 @@
             <div class="panel-loading">加载中...</div>
         </div>
         <div class="panel" v-if="state==1">
+            <!-- 导航板块 -->
+            <div class="nav-wrap">
+
+            </div>
             <!-- 顶部栏位 -->
             <div class="banner-wrap">
                 <div class="day">
@@ -209,6 +213,7 @@ export default {
             team: [],
             map: {},
             me: null,
+            navis: [], // 导航数据
 
             bartender: null, // 商人酒保单位
             inmateList: [], // 酒馆大厅单位数组
@@ -270,6 +275,7 @@ export default {
                 this.asynTeam();
                 this.asynBartender();
                 this.asynInmates();
+                this.initNavis();
                 this.viewingUnit = this.me;
                 this.state = 1;
                 console.log(this.game);
@@ -287,6 +293,48 @@ export default {
                 this._alert(`游戏保存失败：${err.message}`);
                 console.error(err);
             }
+        },
+
+        initNavis(){ // 初始化导航数据
+            this.game.conqueredMapIDList = [101,102,103,104,105,106,107,108,109,];
+
+            let navis = [];
+            let conqueredIDList = [];
+            let conqueres = this.game.conqueredMapIDList;
+            // 获取所有“已攻克”地图
+            for(let map of CONFIG.mapConfig){
+                let newNav;
+                if(arrContains(conqueres,map.id)!=-1){ // 如果已攻克
+                    newNav = cloneObj(map);
+                    newNav.conquered = true;
+                    conqueredIDList.push(map.id);
+                    if(map.id!=this.map.id){
+                        navis.push(newNav);
+                    }
+                }
+            }
+            // 获取所有“可攻克”地图（ conqueredIDList = 目前为所有已攻克地图ID数组）
+            for(let map of CONFIG.mapConfig){
+                let newNav;
+                let canConquere = true; // 这个地图是否可攻克
+                for(let link of map.links){
+                    if(arrContains(conqueredIDList,link)==-1){ // 如果conqueredIDList不包含link
+                        canConquere = false;
+                        break;
+                    }
+                }
+                if(canConquere&&(!getMatchList(navis,[['id',map.id]])[0])){
+                    newNav = cloneObj(map);
+                    newNav.conquered = false;
+                    if(map.id!=this.map.id){
+                        navis.push(newNav);
+                    }
+                }
+            }
+            this.navis = navis;
+            // for(let i=0;i<this.navis.length;i++){
+            //     console.log(this.navis[i].name,this.navis[i].id,this.navis[i].conquered);
+            // }
         },
         asynTeam(){ // 同步 team 数据到 home，并重新计算每个单位的 btd
             let team = [];

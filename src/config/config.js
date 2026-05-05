@@ -43,7 +43,7 @@ module.exports = {
 			day: 1,
 			currentMapID: 101, // 当前所在地图ID
 			guard: 0, // 警戒值 0-1000000
-			conqueredMapIDList: [], // 已经攻克的地牢ID数组
+			conqueredMapIDList: [101,], // 已经攻克的地牢ID数组
 			wantedList: [], // 悬赏榜
 			x: 0, // 主角技能经验（0-10000）
 			xl: 1, // 主角技能经验等级
@@ -400,16 +400,115 @@ module.exports = {
 
 		// 全部地图数据
 		mapConfig: [
-{id:101, level:1, type:1, name:'龙虾村',    floors:[],                                       boss:[],},
-{id:102, level:1, type:2, name:'活死人墓穴',floors:[`流民`,`盗墓贼`,],                        boss:['祭品盗贼',],},
-{id:103, level:2, type:2, name:'禁行山',    floors:[`混混`,`悍匪`,`悍匪头目`,],               boss:['霸山虎',], },
-{id:104, level:3, type:2, name:'熔碎洞窟',  floors:[`学徒`,`匠人`,`铸剑宗师`,],               boss:['光明剑','黑暗刀'], },
-{id:105, level:4, type:2, name:'冻海',      floors:[`水手`,`海盗`,`舰长`,],                   boss:['夺命渔人',], },
-{id:106, level:5, type:2, name:'落叶城',    floors:[`猎人`,`剑士`,`参谋`,`领袖`,],            boss:['王城将军',], },
-{id:107, level:6, type:2, name:'愚困密道',  floors:[`密探`,`信徒`,`邪术师`,`主教`,],           boss:['食梦鬼','血幻妖',],},
-{id:108, level:7, type:2, name:'云谷',      floors:[`鸟人`,`求道者`,`天使`,],                 boss:['神圣护盾',],},
-{id:109, level:8, type:2, name:'终神宫',    floors:[`士族`,`卫兵`,`骑士`,`副统帅`,`统帅`,],    boss:['疾病之神','痛苦之源','谎言之主',],},
-{id:110, level:9, type:2, name:'漩涡',      floors:[`天选`,`神话`,],                          boss:['系统管理员',],},
+			{
+				id:101, level:1, type:1, name:'龙虾村', links: [],
+				floors:[], bosses:[],
+			},
+			{
+				id:102, level:1, type:2, name:'活死人墓穴', links: [],
+				floors:[
+					{title:`流民`,thresGuard:0,guard:5,},
+					{title:`盗墓贼`,thresGuard:30,guard:10,},
+				],
+				bosses:[{
+					title: `祭品盗贼`,inten: 3,
+				}],
+			},
+			{
+				id:103, level:2, type:2, name:'禁行山', links: [102,],
+				floors:[
+					{title:`混混`,thresGuard:0,guard:1,},
+					{title:`悍匪`,thresGuard:25,guard:2,},
+					{title:`悍匪头目`,thresGuard:50,guard:3,},
+				],
+				bosses:[{
+					title: `乌鸦`,inten: 4,
+				}],
+			},
+			{
+				id:104, level:3, type:2, name:'熔碎洞窟', links: [103,],
+				floors:[
+					{title:`学徒`,thresGuard:0,guard:1,},
+					{title:`匠人`,thresGuard:20,guard:2,},
+					{title:`铸剑宗师`,thresGuard:40,guard:4,},
+				],
+				bosses:[
+					{ title: `光明剑`,inten: 4, },
+					{ title: `黑暗刀`,inten: 4, },
+				],
+			},
+			{
+				id:105, level:4, type:2, name:'冻海', links: [103,],
+				floors:[
+					{title:`水手`,thresGuard:0,guard:1,},
+					{title:`海盗`,thresGuard:15,guard:2,},
+					{title:`舰长`,thresGuard:30,guard:4,},
+				],
+				bosses:[{
+					title: `巡海使`,inten: 4,
+				}],
+			},
+			{
+				id:106, level:5, type:2, name:'落叶城', links: [105,],
+				floors:[
+					{title:`猎人`,thresGuard:0,guard:1,},
+					{title:`剑士`,thresGuard:15,guard:2,},
+					{title:`参谋`,thresGuard:30,guard:4,},
+					{title:`领袖`,thresGuard:45,guard:8,},
+				],
+				bosses:[{
+					title: `无名侠`,inten: 4,
+				}],
+			},
+			{
+				id:107, level:6, type:2, name:'愚困密道', links: [106,],
+				floors:[
+					{title:`密探`,thresGuard:0,guard:1,},
+					{title:`信徒`,thresGuard:15,guard:2,},
+					{title:`邪术师`,thresGuard:30,guard:4,},
+					{title:`主教`,thresGuard:45,guard:8,},
+				],
+				bosses:[
+					{ title: `食梦鬼`,inten: 4, },
+					{ title: `血幻妖`,inten: 4, },
+				],
+			},
+			{
+				id:108, level:7, type:2, name:'云谷', links: [106,],
+				floors:[
+					{title:`鸟人`,thresGuard:0,guard:1,},
+					{title:`求道者`,thresGuard:15,guard:3,},
+					{title:`天使`,thresGuard:30,guard:8,},
+				],
+				bosses:[{
+					title: `天庭护卫`,inten: 4,
+				}],
+			},
+			{
+				id:109, level:8, type:2, name:'终神宫', links: [107,108,],
+				floors:[
+					{title:`士族`,thresGuard:0,guard:1,},
+					{title:`卫兵`,thresGuard:15,guard:2,},
+					{title:`骑士`,thresGuard:30,guard:4,},
+					{title:`副统帅`,thresGuard:45,guard:8,},
+					{title:`统帅`,thresGuard:60,guard:15,},
+				],
+				bosses:[
+					{ title: `疾病之神`,inten: 4, },
+					{ title: `痛苦之源`,inten: 4, },
+					{ title: `谎言之主`,inten: 4, },
+				],
+			},
+			{
+				id:110, level:9, type:2, name:'漩涡', links: [109,],
+				floors:[
+					{title:`天选`,thresGuard:0,guard:5,},
+					{title:`神话`,thresGuard:30,guard:10,},
+				],
+				bosses:[{
+					title: `系统管理员`,inten: 4,
+				}],
+			},
 		],
 
 		// 商人聊天
@@ -543,6 +642,7 @@ unit = {
 
 	as: [50,35,2,0, 20,14,16,17,14,25,13,], // 11维身体属性（4个外在，7个内在） [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
 
+	ba: [1000,500,], // Boss附加属性 [0血量,1精力,]
 	st: [50,35,], // 当前状态 [0血量,1精力,]
 
 	ss: [1,], // 技能ID数组

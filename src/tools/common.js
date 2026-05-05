@@ -312,7 +312,7 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
     return newAtk;
 }
 
-export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRandomAge(),tms=0,level=1,inten=0,rel=0,icon,}){ // 生成一个角色数据 level（1-15） inten强度（0-4）
+export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRandomAge(),tms=0,level=1,inten=0,rel=0,icon,isBoss,}){ // 生成一个角色数据 level（1-15） inten强度（0-4）
     let genAttr = (stable=0) =>{ // 生成一个内在属性
         let res = 1;
         let min=CONFIG.attrRangeMap[level-1][0], max=CONFIG.attrRangeMap[level-1][1];
@@ -336,21 +336,27 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     }
     let hp = exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],3); // 血量
     let eng = exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],2); // 精力
+    let ba = [0,0]; // Boss附加属性[血量，精力]
     let phy = exptr(level,level*2+1,1); // 体力
+    let fixStable = isBoss?.75:0;
     let innerAttrList = [
-        genAttr(), // 力量
-        genAttr(), // 精准
-        genAttr(), // 速度
-        genAttr(), // 智力
+        genAttr(fixStable), // 力量
+        genAttr(fixStable), // 精准
+        genAttr(fixStable), // 速度
+        genAttr(fixStable), // 智力
         genAttr(.75), // 定力
-        genAttr(), // 隐蔽
-        genAttr(), // 爆发
+        genAttr(fixStable), // 隐蔽
+        genAttr(fixStable), // 爆发
     ];
 
     // 外在属性强化
     hp = hp+cl(hp*pow(3.5,inten));
     eng = eng+cl(eng*pow(2,inten));
     phy = phy+cl(phy*pow(2,inten));
+    if(isBoss){
+        ba[0] = hp+cl(hp*pow(1.5,inten));
+        ba[1] = eng+cl(eng*pow(1.5,inten));
+    }
 
     // 内在属性强化
     if(inten&&inten>0){
@@ -378,6 +384,9 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
             hp,eng,phy,0,
             ...innerAttrList,
         ],
+        ba,
+        st: [],
+        sty: [],
         ss: [],
         es: [0,0,0,0,0,0,0,],
         b: [],
@@ -554,7 +563,7 @@ export function genEquipData({id,game,level=1,inten=0,type=1,melee,}){ // 生成
 
     return res;
 }
-export function genSkillData({id,game,level=1,beni,melee}){ // 生成一个技能数据 level（1-15） melee力准倾向（0|1）
+export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // 生成一个技能数据 level（1-15） melee力准倾向（0|1）isTrace为追踪型技能
 	/*id: 11,
 	l: 1,
 	n: '治愈术',
@@ -581,6 +590,9 @@ export function genSkillData({id,game,level=1,beni,melee}){ // 生成一个技�
     };
     let sfdBuffs; // 可能拥有的buff数组，洗乱
     // 参数倾向
+    if(isTrace){ // 若为追踪型技能
+        beni = 0;
+    }
     if(beni===undefined){ // 是增益技能
         beni = r(0,1);
     }
@@ -612,11 +624,23 @@ export function genSkillData({id,game,level=1,beni,melee}){ // 生成一个技�
         res.n = genSkillName({level,beni:0});
     }
     // 技能效果
-    let eCount = exptr(1,3,1); // 效果数量
-    if(level<3){
-        eCount = r(1,level);
+    let eCount; // 效果数量
+    if(isTrace){ // 若为追踪型技能，则效果数量为 0-2
+        eCount = exptr(0,2,1);
+    }
+    else{
+        if(level<3){
+            eCount = r(1,level);
+        }
+        else{
+            eCount = exptr(1,3,1);
+        }
     }
     let sfdSkillEffectList = []; // 可能拥有的效果数组
+    if(isTrace){ // 若为追踪型技能，则添加追踪效果
+        eCount += 1;
+        sfdSkillEffectList.push(9);
+    }
     let _sfdSkillEffectList = [];
     for(let e of skillEffectList){
         for(let i=0;i<SKILL_EFFECT_MAP[e-1];i++){
@@ -692,6 +716,9 @@ export function genSkillData({id,game,level=1,beni,melee}){ // 生成一个技�
                 }
                 else{ // 减益效果，设置存在感提升值
                     newEffect.d.d = exptr(80,100+level*30,1)*25*(-fact);
+                    if(isTrace){ // 若为追踪型技能，则强化
+                        newEffect.d.d += r(80,120)*25*(-fact);
+                    }
                     newEffect.d.d = setInRange(newEffect.d.d,-10000,10000);
                 }
             break;
@@ -725,8 +752,8 @@ export function genRegisterTime({id,game,}){ // 根据单位ID生成注册时间
     return res;
 }
 
-export function genUnit({id,level=1,inten=0,game,equipList,skillList,}){ // 生成一个完整的单位数据（带装备、背包和技能）
-    let unit = genUnitData({ id, level, inten, game, });
+export function genUnit({id,level=1,inten=0,game,nickname='',equipList,skillList,isBoss=false,}){ // 生成一个完整的单位数据（带装备、背包和技能）
+    let unit = genUnitData({ id, level, inten, nickname, isBoss, game, });
     let melee = unit.as[4]>unit.as[5];
     // 配备装备·武器
     let weaponCount = exptr(1,2,2);
@@ -736,7 +763,7 @@ export function genUnit({id,level=1,inten=0,game,equipList,skillList,}){ // 生�
         equipList.push(newWeapon);
     }
     // 配备装备·配饰
-    let accessoryCount = exptr(0,2,1);
+    let accessoryCount = isBoss?2:exptr(0,2,1);
     for(let i=0;i<accessoryCount;i++){
         let newAccessroy = genEquipData({ id:id*10000+1000+i, type:4, level, inten, melee, game, });
         unit.es[i+2] = newAccessroy.id;
@@ -769,8 +796,16 @@ export function genUnit({id,level=1,inten=0,game,equipList,skillList,}){ // 生�
     }
     // 配备技能
     let skillCount = 4+exptr(0,2,2);
+    let lastSkillId;
     for(let i=0;i<skillCount;i++){
-        let newSkill = genSkillData({ id:id*10000+i, level, melee, game, });
+        let newSkill = genSkillData({ id:id*10000+i, level, melee, isBoss, game, });
+        unit.ss.push(newSkill.id);
+        skillList.push(newSkill);
+        lastSkillId = newSkill.id;
+    }
+    // 如果是boss，且等级>4，则添加追踪型技能
+    if(isBoss&&level>4){
+        let newSkill = genSkillData({ id:lastSkillId+1, level, melee, isBoss, game, isTrace:true, });
         unit.ss.push(newSkill.id);
         skillList.push(newSkill);
     }
@@ -884,14 +919,17 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.name = _unit.nm;
 
     // 获取当前血精状态
-    let curHp = unit.st[0];
-    let curEng = unit.st[1];
-    curHp = setInRange(curHp,1,btd.attrs[0]);
-    curEng = setInRange(curEng,1,btd.attrs[1]);
+    let curHp = unit.st[0]+unit.ba[0];
+    let curEng = unit.st[1]+unit.ba[1];
+    let maxHp = btd.attrs[0]+unit.ba[0];
+    let maxEng = btd.attrs[1]+unit.ba[1];
+    curHp = setInRange(curHp,1,maxHp);
+    curEng = setInRange(curEng,1,maxEng);
+    if(unit.nk=='祭品盗贼')console.log(`${curHp}=${unit.st[0]}+${unit.ba[0]}（${btd.attrs[0]}）`);
 
-    btd.hp = [curHp,btd.attrs[0],]; // 血
+    btd.hp = [curHp,maxHp,]; // 血
     btd.def = [btd.attrs[3],btd.attrs[3],], // 护甲
-    btd.eng = [curEng,btd.attrs[1],], // 精力
+    btd.eng = [curEng,maxEng,], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
 
     btd.dge = cl(awa+7500*(1-calcDodgeRate(btd.attrs[9]))); // 隐蔽
