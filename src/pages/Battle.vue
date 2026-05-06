@@ -56,7 +56,7 @@
 
                                 <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[6]} ${checkMenuButtonBan({flag:7,checkCrumble:1})?'btn-ban':''}`" @click="onTapMenu({flag:9,ban:checkMenuButtonBan({flag:7,checkCrumble:1}),})">话术</a>
 
-                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[7]} ${checkMenuButtonBan({flag:8,})?'btn-ban':''}`" @click="onTapMenu({flag:10,ban:checkMenuButtonBan({flag:8,}),})">撤离</a>
+                                <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${mode==4?0:CONFIG.baseConsumeList[7]} ${checkMenuButtonBan({flag:8,})?'btn-ban':''}`" @click="onTapMenu({flag:10,ban:checkMenuButtonBan({flag:8,}),})">{{mode==4?`离开`:`撤离`}}</a>
                             </div>
                         </div>
                         <div class="menu-tag" v-if="menuData.state==2">
@@ -152,13 +152,30 @@ const INIT_CHANGES = {
     domAni: '',
 }
 
+/*
+window.GLOBAL.battle = { // 输入：战斗参数
+    mode: 4, // 战斗模式 【 1：普通|2：BOSS|3：切磋|4：营地 】
+    envirs: {
+        mapId: this.map.id,
+    },
+    field: 1, // 战场 0-9
+    playerTeamIds: [],
+    enemyTeamIds: [],
+}
+window.GLOBAL.battleResult = { // 输出：战斗结果数据
+    battle: {...}, // 战斗参数
+    result: 1, // 结果 0离开营地 1获胜 2战败 3撤离成功
+    playerTeam: [],
+    enemyTeam: [],
+    bonusRate: 1, // 额外金币奖励比率
+    roundCount: 56, // 战斗的回合数
+}
+*/
+
 export default {
     name: 'Battle',
     props:{
-        onBattleEnd: { // 战斗结束事件
-            type: Function,
-            default: function(){},
-        },
+
     },
     data(){
         return {
@@ -196,6 +213,7 @@ export default {
             ],
 
             game: null,
+            battle: null,
 
             field: 0,
 
@@ -228,236 +246,235 @@ export default {
     },
     mounted(){
         let _nus = [];
-        _nus.push(common.genUnitData({id:1,name:'赵日天',age:20,gender:1,level:1,tms:1,rel:3,game:this.game,}));
-        _nus.push(common.genUnitData({id:2,gender:2,tms:2,level:1,inten:1,rel:3,game:this.game,}));
-        _nus.push(common.genUnitData({id:3,tms:3,level:1,inten:2,rel:3,game:this.game,}));
-        _nus.push(common.genUnitData({id:4,tms:4,level:1,inten:3,rel:3,game:this.game,}));
-        _nus.push(common.genUnitData({id:11,gender:1,level:9,inten:0,game:this.game,}));
-        _nus.push(common.genUnitData({id:12,gender:1,level:9,inten:0,game:this.game,}));
-        _nus.push(common.genUnitData({id:13,gender:2,level:9,inten:0,game:this.game,}));
-        _nus.push(common.genUnitData({id:14,gender:2,level:9,inten:0,game:this.game,}));
-        window.GLOBAL = {};
-        window.GLOBAL.game = {
-        	money: 1000,
-        	day: 1,
-        	hour: 0,
-        	meTeamIDs: [1,], // 队伍角色ID
-        	currentMapID: 101, // 当前所在地图ID
-        	luck: 0, // 夺宝能力
-        	allUnits: [], // 角色
-        	unitIndex: 101, // 角色 ID 索引
-        	allEquips: [], // 装备
-        	equipIndex: 101, // 装备 ID 索引
-        	allSkills: [], // 技能
-        	skillIndex: 101, // 技能 ID 索引
-        	allMaps: [], // 地图
-        };
-        window.GLOBAL.game.battle = {
-            mode: 1, // 战斗模式【1:普通|2：BOSS|3：切磋|4：营地】
-            envirs: {
-                mapId: 1,
-                floor: 2,
-            },
-            field: 9, // 战场 1-9
-            playerTeamIds: [1,2,3,4,],
-            enemyTeamIds: [11,12,13,14,],
-        }
-        // 预设装备
-        window.GLOBAL.game.allUnits = _nus;
-        window.GLOBAL.game.allEquips = [];
-
-        // _nus[0].as[6] = 50;
-        // _nus[1].as[6] = 50;
-        // _nus[2].as[6] = 50;
-        // _nus[3].as[6] = 50;
-
-        _nus[0].as[6] = 800;
-        _nus[1].as[6] = 800;
-        _nus[2].as[6] = 800;
-        _nus[3].as[6] = 800;
-        _nus[1].as[0] = 1800;
-        _nus[1].as[7] = 100;
-        _nus[1].as[10] = 1000;
-        _nus[3].as[9] = 250;
-        _nus[3].as[0] = 2300;
-        _nus[3].as[2] = 100;
-        _nus[3].as[1] = 400;
-        _nus[3].as[3] = 100;
-        _nus[3].as[10] = 200;
-        _nus[3].as[7] = 500;
-        _nus[3].ss[0] = 12;
-        // _nus[3].as[8] = -500;
-        _nus[7].as[1] = 1;
-        _nus[7].as[1] = 1;
-        _nus[6].as[0] = 2350;
-        _nus[7].as[0] = 1350;
-        _nus[7].as[1] = 300;
-        _nus[7].as[2] = 100;
-        _nus[7].as[3] = 242;
-        _nus[7].as[6] = 944;
-        //
-        _nus[1].es[0] = 1;
-        _nus[1].es[0] = 2;
-        _nus[1].es[5] = 6;
-        _nus[1].es[3] = 7;
-        _nus[1].es[0] = 3;
-        _nus[2].es[5] = 6;
-        _nus[2].es[3] = 7;
-        //
-        _nus[3].es[0] = 4;
-        _nus[3].es[1] = 5;
-        _nus[3].es[5] = 6;
-        _nus[3].es[3] = 7;
-        _nus[3].es[4] = 8;
-        //
-        // _nus[6].as[6] = 15;
-        // _nus[5].as[6] = 14;
-        // _nus[4].as[6] = 13;
-        _nus[4].es[0] = 9;
-        _nus[4].es[5] = 10;
-        _nus[4].es[1] = 1;
-        _nus[5].es[1] = 2;
-        _nus[6].es[1] = 3;
-        _nus[7].es[1] = 4;
-        _nus[7].es[2] = 5;
-        //
-        // // _nus[4].ss[0] = 11;
-        // // _nus[5].ss[0] = 11;
-        // // _nus[6].ss[0] = 11;
-        // // _nus[7].ss[0] = 11;
-        // // _nus[7].ss[1] = 12;
-        // // _nus[7].ss[2] = 13;
-        // // _nus[7].ss[3] = 14;
-        // // _nus[7].ss[3] = 12;
-        // // _nus[7].ss[2] = 11;
-        // // _nus[7].ss[1] = 13;
-        // _nus[7].ss[0] = 14;
-
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:1,game:{},level:1,inten:0,type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:2,game:{},level:1,inten:0,type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:3,game:{},level:1,inten:1,inten:3,type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:4,game:{},level:1,inten:2,type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:5,game:{},level:1,inten:3,type:r(1,1)}));
-
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:6,game:{},level:r(1,1),type:r(3,3)}));
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:7,game:{},level:r(1,1),type:r(5,5)}));
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:8,game:{},level:r(1,1),type:r(5,5)}));
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:9,game:{},level:r(1,1),type:r(1,1)}));
-        window.GLOBAL.game.allEquips.push(common.genEquipData({id:10,game:{},level:r(1,1),type:r(5,5)}));
-        // 预设技能
-        for(let i=0;i<10;i++){
-            _nus[0].ss[i] = i+1;
-            window.GLOBAL.game.allSkills.push(common.genSkillData({id:i+1,game:{},level:r(1,9)}));
-        }
-
-        // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
-       // 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
-       // 固疗和百分疗 { h:100, rx:35, }，心防固伤和智力补正 { d:100, rx1:0, rx2:44, }
-       // 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
-        window.GLOBAL.game.allSkills.push({
-            id: 11,
-        	l: 1,
-        	n: '治愈术',
-        	t: 2, // 1自己 2我方单体 3敌方单体
-        	el: [{ // 技能效果数组
-                t: 5,
-        		d: {h:117,rx:10},
-            },],
-        	c: 39, // 体力消耗
-        	d: 1200, // 存在感
-        	v: 133, // 价值
-        });
-        window.GLOBAL.game.allSkills.push({
-            id: 12,
-        	l: 1,
-        	n: '龙虾斩',
-        	t: 3, // 1自己 2我方单体 3敌方单体
-        	el: [{ // 技能效果数组
-                t: 1,
-        		d: {
-                    n: '挥砍',
-        			d: 16, // 基础伤害
-        			r1: 13, // 力量补正
-        			r2: 15, // 精准补正
-        			b: [], // buff制造表（buff id）
-        			bl: [], // buff等级表（1-9）
-        			s: 0, // SP效果 1压制 2破盾 3气溃 4漩流 5锁敌 6攻心 7摸金
-        			sl: 9, // SP效果等级
-        			et: 1, // 特效类型 1劈砍 2钝击 3子弹 4飞刀 5火炮 6雷击
-                },
-            },{
-                t: 2,
-                d: { b:[114,115], bl:[2,4], },
-            }],
-        	c: 10, // 体力消耗
-        	d: 5200, // 存在感
-        	v: 1533, // 价值
-        });
-        window.GLOBAL.game.allSkills.push({
-            id: 13,
-        	l: 1,
-        	n: '蝴蝶阵法',
-        	t: 1, // 1自己 2我方单体 3敌方单体
-        	el: [{ // 技能效果数组
-                t: 9,
-        		d: { d:-5346, rx:115, },
-            },{ // 技能效果数组
-                t: 2,
-        		d: { b:[5,14,], bl:[4,3,], },
-            },],
-        	c: 46, // 体力消耗
-        	d: 5200, // 存在感
-        	v: 1533, // 价值
-        });
-        window.GLOBAL.game.allSkills.push({
-            id: 14,
-        	l: 1,
-        	n: '凝视',
-        	t: 3, // 1自己 2我方单体 3敌方单体
-        	el: [{
-                t: 9,
-        		// d: {d:100,rx1:35,rx2:40,},
-        		d: {d:3100,rx:0,},
-            },],
-        	c: 23, // 体力消耗
-        	d: 1600, // 存在感
-        	v: 0, // 价值
-        });
-        window.GLOBAL.game.allSkills.push({
-            id: 15,
-        	l: 3,
-        	n: '大绝命',
-        	t: 3, // 1自己 2我方单体 3敌方单体
-        	el: [
-                {
-                    t: 8,
-            		d: { d:-146, rx1:115, rx2:12, },
-                },
-                {
-                    t: 9,
-            		d: { d:3400, rx:35, },
-                },
-                {
-                    t: 2,
-            		d: { b:[115,103,], bl:[1,5,], },
-                },
-            ],
-        	c: 144, // 体力消耗
-        	d: 700, // 存在感
-        	v: 0, // 价值
-        });
-        for(let i=0;i<4;i++){
-            let skill = window.GLOBAL.game.allSkills[i];
-            skill.v = common.calcSkillValue(skill);
-        }
-        if(window.GLOBAL&&window.GLOBAL.game&&window.GLOBAL.game.battle){
+       //  _nus.push(common.genUnitData({id:1,name:'赵日天',age:20,gender:1,level:1,tms:1,rel:3,game:this.game,}));
+       //  _nus.push(common.genUnitData({id:2,gender:2,tms:2,level:1,inten:1,rel:3,game:this.game,}));
+       //  _nus.push(common.genUnitData({id:3,tms:3,level:1,inten:2,rel:3,game:this.game,}));
+       //  _nus.push(common.genUnitData({id:4,tms:4,level:1,inten:3,rel:3,game:this.game,}));
+       //  _nus.push(common.genUnitData({id:11,gender:1,level:9,inten:0,game:this.game,}));
+       //  _nus.push(common.genUnitData({id:12,gender:1,level:9,inten:0,game:this.game,}));
+       //  _nus.push(common.genUnitData({id:13,gender:2,level:9,inten:0,game:this.game,}));
+       //  _nus.push(common.genUnitData({id:14,gender:2,level:9,inten:0,game:this.game,}));
+       //  window.GLOBAL = {};
+       //  window.GLOBAL.game = {
+       //  	money: 1000,
+       //  	day: 1,
+       //  	hour: 0,
+       //  	meTeamIDs: [1,], // 队伍角色ID
+       //  	currentMapID: 101, // 当前所在地图ID
+       //  	luck: 0, // 夺宝能力
+       //  	allUnits: [], // 角色
+       //  	unitIndex: 101, // 角色 ID 索引
+       //  	allEquips: [], // 装备
+       //  	equipIndex: 101, // 装备 ID 索引
+       //  	allSkills: [], // 技能
+       //  	skillIndex: 101, // 技能 ID 索引
+       //  	allMaps: [], // 地图
+       //  };
+       //  window.GLOBAL.battle = {
+       //      mode: 1, // 战斗模式【1:普通|2：BOSS|3：切磋|4：营地】
+       //      envirs: {
+       //          mapId: 101,
+       //      },
+       //      field: 9, // 战场 1-9
+       //      playerTeamIds: [1,2,3,4,],
+       //      enemyTeamIds: [11,12,13,14,],
+       //  }
+       //  // 预设装备
+       //  window.GLOBAL.game.allUnits = _nus;
+       //  window.GLOBAL.game.allEquips = [];
+       //
+       //  // _nus[0].as[6] = 50;
+       //  // _nus[1].as[6] = 50;
+       //  // _nus[2].as[6] = 50;
+       //  // _nus[3].as[6] = 50;
+       //
+       //  _nus[0].as[6] = 800;
+       //  _nus[1].as[6] = 800;
+       //  _nus[2].as[6] = 800;
+       //  _nus[3].as[6] = 800;
+       //  _nus[1].as[0] = 1800;
+       //  _nus[1].as[7] = 100;
+       //  _nus[1].as[10] = 1000;
+       //  _nus[3].as[9] = 250;
+       //  _nus[3].as[0] = 2300;
+       //  _nus[3].as[2] = 100;
+       //  _nus[3].as[1] = 400;
+       //  _nus[3].as[3] = 100;
+       //  _nus[3].as[10] = 200;
+       //  _nus[3].as[7] = 500;
+       //  _nus[3].ss[0] = 12;
+       //  // _nus[3].as[8] = -500;
+       //  _nus[7].as[1] = 1;
+       //  _nus[7].as[1] = 1;
+       //  _nus[6].as[0] = 2350;
+       //  _nus[7].as[0] = 1350;
+       //  _nus[7].as[1] = 300;
+       //  _nus[7].as[2] = 100;
+       //  _nus[7].as[3] = 242;
+       //  _nus[7].as[6] = 944;
+       //  //
+       //  _nus[1].es[0] = 1;
+       //  _nus[1].es[0] = 2;
+       //  _nus[1].es[5] = 6;
+       //  _nus[1].es[3] = 7;
+       //  _nus[1].es[0] = 3;
+       //  _nus[2].es[5] = 6;
+       //  _nus[2].es[3] = 7;
+       //  //
+       //  _nus[3].es[0] = 4;
+       //  _nus[3].es[1] = 5;
+       //  _nus[3].es[5] = 6;
+       //  _nus[3].es[3] = 7;
+       //  _nus[3].es[4] = 8;
+       //  //
+       //  // _nus[6].as[6] = 15;
+       //  // _nus[5].as[6] = 14;
+       //  // _nus[4].as[6] = 13;
+       //  _nus[4].es[0] = 9;
+       //  _nus[4].es[5] = 10;
+       //  _nus[4].es[1] = 1;
+       //  _nus[5].es[1] = 2;
+       //  _nus[6].es[1] = 3;
+       //  _nus[7].es[1] = 4;
+       //  _nus[7].es[2] = 5;
+       //  //
+       //  // // _nus[4].ss[0] = 11;
+       //  // // _nus[5].ss[0] = 11;
+       //  // // _nus[6].ss[0] = 11;
+       //  // // _nus[7].ss[0] = 11;
+       //  // // _nus[7].ss[1] = 12;
+       //  // // _nus[7].ss[2] = 13;
+       //  // // _nus[7].ss[3] = 14;
+       //  // // _nus[7].ss[3] = 12;
+       //  // // _nus[7].ss[2] = 11;
+       //  // // _nus[7].ss[1] = 13;
+       //  // _nus[7].ss[0] = 14;
+       //
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:1,game:{},level:1,inten:0,type:r(1,1)}));
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:2,game:{},level:1,inten:0,type:r(1,1)}));
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:3,game:{},level:1,inten:1,inten:3,type:r(1,1)}));
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:4,game:{},level:1,inten:2,type:r(1,1)}));
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:5,game:{},level:1,inten:3,type:r(1,1)}));
+       //
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:6,game:{},level:r(1,1),type:r(3,3)}));
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:7,game:{},level:r(1,1),type:r(5,5)}));
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:8,game:{},level:r(1,1),type:r(5,5)}));
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:9,game:{},level:r(1,1),type:r(1,1)}));
+       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:10,game:{},level:r(1,1),type:r(5,5)}));
+       //  // 预设技能
+       //  for(let i=0;i<10;i++){
+       //      _nus[0].ss[i] = i+1;
+       //      window.GLOBAL.game.allSkills.push(common.genSkillData({id:i+1,game:{},level:r(1,9)}));
+       //  }
+       //
+       //  // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
+       // // 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
+       // // 固疗和百分疗 { h:100, rx:35, }，心防固伤和智力补正 { d:100, rx1:0, rx2:44, }
+       // // 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
+       //  window.GLOBAL.game.allSkills.push({
+       //      id: 11,
+       //  	l: 1,
+       //  	n: '治愈术',
+       //  	t: 2, // 1自己 2我方单体 3敌方单体
+       //  	el: [{ // 技能效果数组
+       //          t: 5,
+       //  		d: {h:117,rx:10},
+       //      },],
+       //  	c: 39, // 体力消耗
+       //  	d: 1200, // 存在感
+       //  	v: 133, // 价值
+       //  });
+       //  window.GLOBAL.game.allSkills.push({
+       //      id: 12,
+       //  	l: 1,
+       //  	n: '龙虾斩',
+       //  	t: 3, // 1自己 2我方单体 3敌方单体
+       //  	el: [{ // 技能效果数组
+       //          t: 1,
+       //  		d: {
+       //              n: '挥砍',
+       //  			d: 16, // 基础伤害
+       //  			r1: 13, // 力量补正
+       //  			r2: 15, // 精准补正
+       //  			b: [], // buff制造表（buff id）
+       //  			bl: [], // buff等级表（1-9）
+       //  			s: 0, // SP效果 1压制 2破盾 3气溃 4漩流 5锁敌 6攻心 7摸金
+       //  			sl: 9, // SP效果等级
+       //  			et: 1, // 特效类型 1劈砍 2钝击 3子弹 4飞刀 5火炮 6雷击
+       //          },
+       //      },{
+       //          t: 2,
+       //          d: { b:[114,115], bl:[2,4], },
+       //      }],
+       //  	c: 10, // 体力消耗
+       //  	d: 5200, // 存在感
+       //  	v: 1533, // 价值
+       //  });
+       //  window.GLOBAL.game.allSkills.push({
+       //      id: 13,
+       //  	l: 1,
+       //  	n: '蝴蝶阵法',
+       //  	t: 1, // 1自己 2我方单体 3敌方单体
+       //  	el: [{ // 技能效果数组
+       //          t: 9,
+       //  		d: { d:-5346, rx:115, },
+       //      },{ // 技能效果数组
+       //          t: 2,
+       //  		d: { b:[5,14,], bl:[4,3,], },
+       //      },],
+       //  	c: 46, // 体力消耗
+       //  	d: 5200, // 存在感
+       //  	v: 1533, // 价值
+       //  });
+       //  window.GLOBAL.game.allSkills.push({
+       //      id: 14,
+       //  	l: 1,
+       //  	n: '凝视',
+       //  	t: 3, // 1自己 2我方单体 3敌方单体
+       //  	el: [{
+       //          t: 9,
+       //  		// d: {d:100,rx1:35,rx2:40,},
+       //  		d: {d:3100,rx:0,},
+       //      },],
+       //  	c: 23, // 体力消耗
+       //  	d: 1600, // 存在感
+       //  	v: 0, // 价值
+       //  });
+       //  window.GLOBAL.game.allSkills.push({
+       //      id: 15,
+       //  	l: 3,
+       //  	n: '大绝命',
+       //  	t: 3, // 1自己 2我方单体 3敌方单体
+       //  	el: [
+       //          {
+       //              t: 8,
+       //      		d: { d:-146, rx1:115, rx2:12, },
+       //          },
+       //          {
+       //              t: 9,
+       //      		d: { d:3400, rx:35, },
+       //          },
+       //          {
+       //              t: 2,
+       //      		d: { b:[115,103,], bl:[1,5,], },
+       //          },
+       //      ],
+       //  	c: 144, // 体力消耗
+       //  	d: 700, // 存在感
+       //  	v: 0, // 价值
+       //  });
+       //  for(let i=0;i<4;i++){
+       //      let skill = window.GLOBAL.game.allSkills[i];
+       //      skill.v = common.calcSkillValue(skill);
+       //  }
+        if(window.GLOBAL&&window.GLOBAL.game&&window.GLOBAL.battle){
             this.game = window.GLOBAL.game;
+            this.battle = window.GLOBAL.battle;
             this.init();
         }
         else{
             this.$router.push('/');
         }
-       //  console.log(window.GLOBAL);
     },
     beforeDestroy(){
         this.clearAllTimers();
@@ -466,7 +483,7 @@ export default {
     methods: {
         /* 流程相关 */
         init(){ // 初始化全部
-            let { playerTeamIds, enemyTeamIds, field, } = this.game.battle;
+            let { playerTeamIds, enemyTeamIds, field, mode, } = this.battle;
             let playerTeam = [], enemyTeam = [];
             let unitAction = (ids,team) => {
                 for(let unitId of ids){
@@ -485,10 +502,17 @@ export default {
             this.enemyTeam = unitAction(enemyTeamIds,enemyTeam);
 
             this.field = field;
+            this.mode = mode;
 
-            this.timerList.push(setTimeout(_=>{
-                this.goPageState(1);
-            },800));
+            if(this.mode==4){ // 营地模式
+                this.goPageState(2);
+                this.boardTip(`营地模式`);
+            }
+            else{
+                this.timerList.push(setTimeout(_=>{
+                    this.goPageState(1);
+                },800));
+            }
 
             // this.itv = setInterval(_=>{
             //     this.forceUpdatePage();
@@ -727,8 +751,20 @@ export default {
             for(let unit of allAliveUnits){
                 this.pushAniByChanges({caster:curUnit,target:unit});
             }
-            // 计算完动作后，播放DOM动画+所有画布动画
-            this.playAniList();
+            if(this.mode==4){ // 营地模式，不播放动画
+                this.timerList.push(setTimeout(_=>{
+                    this.onAnimationResponse();
+                    this.$nextTick(_=>{
+                        this.timerList.push(setTimeout(_=>{
+                            this.onAnimationEnd();
+                        },100));
+                    });
+                },100));
+            }
+            else{
+                // 计算完动作后，播放DOM动画+所有画布动画
+                this.playAniList();
+            }
         },
         playAniList(){ // 播放所有单位的dom动画，同时逐一播放 aniList 中的全部画布动画
             this.goPageState(4);
@@ -832,7 +868,7 @@ export default {
                 }
             }
         },
-        battleEnd(result){ // 战斗结束
+        battleEnd(result=0){ // 战斗结束 @todo
             if(result==1){ // 获胜
                 this._alert(`获胜！`);
             }
@@ -845,8 +881,14 @@ export default {
             this.goPageState(99);
             let resultData = {
                 result,
+                battle: this.battle,
+                playerTeam: this.playerTeam,
+                enemyTeam: this.enemyTeam,
+                bonusRate: this.bonusRate,
+                roundCount: this.roundCount,
             };
-            this.$emit('onBattleEnd',resultData);
+            window.GLOBAL.battleResult = resultData;
+            this.$router.push('home');
         },
 
         /* 快捷功能 */
@@ -887,6 +929,9 @@ export default {
         },
         checkEnd(){ // 检查胜负 0未结束 1我方获胜 2敌人获胜 3撤离成功
             let res = 0;
+            if(this.mode==4){ // 营地模式
+                return res;
+            }
             let playerDefeat = 1, enemyDefeat = 1;
             for(let unit of this.playerTeam){
                 if(!unit.btd.out){
@@ -915,6 +960,9 @@ export default {
             let res = 0;
             let consume = CONFIG.baseConsumeList[flag-1];
             let curUnit = this.curUnitList[this.curUnitListIndex];
+            if(this.mode==4&&flag==8){ // 营地模式撤离不需要消耗体力
+                consume = 0;
+            }
             // 体力不够时禁止防御
             if(consume>(curUnit.btd.phy[0]+curUnit.btd.eng[0])){
                 res = 1;
@@ -927,6 +975,13 @@ export default {
             }
             // 没有防御力的情况下禁止防御
             if(flag==1&&curUnit.btd.def[1]<=0){
+                res = 1;
+            }
+            if(this.mode==4&&(flag==3||flag==5||flag==6||flag==7)){
+                res = 1;
+            }
+            // BOSS战禁止撤离
+            if(this.mode==2&&flag==8){
                 res = 1;
             }
             return res;
@@ -1530,8 +1585,14 @@ export default {
                                     target.btd.changes.weakenBuff = { id:weakenBuff.id, level:d, };
                                 }
                             }
-                            this.registerAniEffect(10,target);
-                            target.btd.changes.domAni = skill.t==3?'shake':'strand';
+                            if(t==3){ // 有利
+                                this.registerAniEffect(10,target);
+                                target.btd.changes.domAni = 'shake';
+                            }
+                            else{ // 有害
+                                this.registerAniEffect(50,target);
+                                target.btd.changes.domAni = 'strand';
+                            }
                         }
                         else if(t==5){ // 治疗
                             let cureDmg = common.calcCure({caster,target,data:d,});
@@ -1689,18 +1750,23 @@ export default {
             this.unitRoundEpilog(caster);
         },
         unitFlee(caster){ // 单位撤离
-            let allEnemyUnits = [...this.enemyTeam];
-            let allAliveEnemyUnits = getSubMatchList(allEnemyUnits,[['out',0]],'btd');
-            let fleeMoveIncresement = 0; // 所有存活敌方单位的速度总和
-            for(let unit of allAliveEnemyUnits){
-                fleeMoveIncresement += common.getSpeed(unit);
+            if(this.mode==4){ // 营地模式
+                this.battleEnd();
             }
-            this.isFleeing = 1;
-            this.totalFleeMove = fleeMoveIncresement*CONFIG.fleeTotalMoveFactor;
-            if(this.consumeAction({consume:CONFIG.baseConsumeList[7],unit:caster,})){ // 结算消耗
-                this.registerAniEffect(201,caster);
+            else{ // 非营地模式
+                let allEnemyUnits = [...this.enemyTeam];
+                let allAliveEnemyUnits = getSubMatchList(allEnemyUnits,[['out',0]],'btd');
+                let fleeMoveIncresement = 0; // 所有存活敌方单位的速度总和
+                for(let unit of allAliveEnemyUnits){
+                    fleeMoveIncresement += common.getSpeed(unit);
+                }
+                this.isFleeing = 1;
+                this.totalFleeMove = fleeMoveIncresement*CONFIG.fleeTotalMoveFactor;
+                if(this.consumeAction({consume:CONFIG.baseConsumeList[7],unit:caster,})){ // 结算消耗
+                    this.registerAniEffect(201,caster);
+                }
+                this.unitRoundEpilog(caster);
             }
-            this.unitRoundEpilog(caster);
         },
 
         /* 点击事件 */
@@ -1807,7 +1873,12 @@ export default {
                 this.goMenuState(4,{type:1,caster:curUnit});
             }
             else if(flag==10){ // 撤离
-                this.unitAction({caster:curUnit,type:10});
+                if(this.mode==4){ // 营地模式
+                    this.unitFlee(curUnit);
+                }
+                else{
+                    this.unitAction({caster:curUnit,type:10});
+                }
             }
             else if(flag==21){ // 选择单位
                 switch(this.menuData.unitOptionType){

@@ -350,17 +350,17 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     ];
 
     // 外在属性强化
-    hp = hp+cl(hp*pow(3.5,inten));
-    eng = eng+cl(eng*pow(2,inten));
-    phy = phy+cl(phy*pow(2,inten));
+    hp = hp+cl(hp*pow(2.1,inten));
+    eng = eng+cl(eng*pow(1.5,inten));
+    phy = phy+cl(phy*pow(1.5,inten));
     if(isBoss){
-        ba[0] = hp+cl(hp*pow(1.5,inten));
-        ba[1] = eng+cl(eng*pow(1.5,inten));
+        ba[0] = hp+cl(hp*pow(1.7,inten));
+        ba[1] = eng+cl(eng*pow(1.6,inten));
     }
 
     // 内在属性强化
     if(inten&&inten>0){
-        let intenVolumn = cl(genAttr(1)*pow(2.5,inten)*3);
+        let intenVolumn = cl(genAttr(1)*pow(1.9,inten)*3);
         let intenCount = 20;
         let eachIntenVolumn = cl(intenVolumn/intenCount);
         for(let i=0;i<intenCount;i++){
@@ -683,7 +683,7 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
             break;
             case 5: // 治疗
                 newEffect.d = { h:0, rx:0, };
-                newEffect.d.h = 5+exptr(1,cl(CONFIG.hpRangeMap[level-1][1]/100+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
+                newEffect.d.h = 15+exptr(1,cl(CONFIG.hpRangeMap[level-1][1]/100+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
                 if(level>=r(4,5)){ // 施法者的智力补正
                     newEffect.d.rx = genRx(level);
                 }
@@ -742,6 +742,33 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
 
     return res;
 }
+export function genMapData(mapConfig){ // 根据 mapConfig 生成随机的地图数据
+    let res;
+    let { id, size, level, } = mapConfig;
+    let flagCount = size-1;
+    let cellCount = size*size;
+    let flagList = [];
+
+    res = {
+        id,
+    	flagIndexes: [], // 所有标旗所在index
+    	flagMarks: [], // 所有标旗的标记状态 [0未标记 1已标记]
+    	coreIndex: 0, // 核心所在index
+    	coreMark: 0, // 核心的标记状态
+    }
+
+    for(let i=0;i<cellCount;i++){
+        flagList.push(i);
+    }
+    flagList = shuffle(flagList);
+    res.flagIndexes = flagList.slice(0,flagCount);
+    res.flagMarks = Array.from(res.flagIndexes,item=>{
+        return 0;
+    });
+    res.coreIndex = flagList[flagCount];
+
+    return res;
+}
 export function genRegisterTime({id,game,}){ // 根据单位ID生成注册时间
     let res = 999999;
     let sdSuffix = id+'';
@@ -752,8 +779,8 @@ export function genRegisterTime({id,game,}){ // 根据单位ID生成注册时间
     return res;
 }
 
-export function genUnit({id,level=1,inten=0,game,nickname='',equipList,skillList,isBoss=false,}){ // 生成一个完整的单位数据（带装备、背包和技能）
-    let unit = genUnitData({ id, level, inten, nickname, isBoss, game, });
+export function genUnit({id,level=1,inten=0,rel,game,nickname='',equipList,skillList,isBoss=false,}){ // 生成一个完整的单位数据（带装备、背包和技能）
+    let unit = genUnitData({ id, level, inten, rel, nickname, isBoss, game, });
     let melee = unit.as[4]>unit.as[5];
     // 配备装备·武器
     let weaponCount = exptr(1,2,2);
@@ -811,7 +838,7 @@ export function genUnit({id,level=1,inten=0,game,nickname='',equipList,skillList
     }
     return unit;
 }
-export function registerUnit({unit,equipList,skillList,game,}){ // 注册一个单位入村
+export function registerUnit({unit,equipList,skillList,goTarven=false,game,}){ // 注册一个单位 goTarven是否进入酒馆
     // 逐一注册身上的装备
     for(let i=0;i<unit.es.length;i++){
         let equip = getMatchList(equipList,[['id',unit.es[i]]])[0];
@@ -836,9 +863,12 @@ export function registerUnit({unit,equipList,skillList,game,}){ // 注册一个�
         game.allSkills.push(skill);
     }
     // 注册单位
-    unit.id = game.unitIndex++;
+    if(goTarven){
+        unit.id = game.unitIndex++;
+    }
     unit.rt = genRegisterTime({id:unit.id,game,});
-    if(unit.rel<1){
+    // 设置单位关系值
+    if(goTarven&&unit.rel<1){
         unit.rel = 1;
     }
     game.allUnits.push(unit);
@@ -863,6 +893,11 @@ export function skillXIncrease(val,game){ // 灵感提升
             skillXIncrease(diff,game);
         }
     }
+}
+export function recoverUnit(unit,game){ // 单位完全恢复状态
+    let btd = getUnitBtd(unit,game);
+    unit.st[0] = btd.hp[1]+unit.ba[0];
+    unit.st[1] = btd.eng[1]+unit.ba[1];
 }
 
 
@@ -923,9 +958,9 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     let curEng = unit.st[1]+unit.ba[1];
     let maxHp = btd.attrs[0]+unit.ba[0];
     let maxEng = btd.attrs[1]+unit.ba[1];
-    curHp = setInRange(curHp,1,maxHp);
-    curEng = setInRange(curEng,1,maxEng);
-    if(unit.nk=='祭品盗贼')console.log(`${curHp}=${unit.st[0]}+${unit.ba[0]}（${btd.attrs[0]}）`);
+    curHp = setInRange(curHp,0,maxHp);
+    curEng = setInRange(curEng,0,maxEng);
+    // if(unit.nk=='祭品盗贼')console.log(`${curHp}=${unit.st[0]}+${unit.ba[0]}（${btd.attrs[0]}）`);
 
     btd.hp = [curHp,maxHp,]; // 血
     btd.def = [btd.attrs[3],btd.attrs[3],], // 护甲
@@ -1229,9 +1264,9 @@ export function calcSkillValue(skill){ // 计算技能价值
                 }
             break;
             case 8: // 改变心防
-                res += cl(pow(Math.abs(d.d),1.39)*42); // 固定值
+                res += cl(pow(Math.abs(d.d),1.39)*12); // 固定值
                 if(d.rx1){ // 技能倾向为利好
-                    res += cl(pow(Math.abs(d.rx1),1.44)*25); // 定力补正
+                    res += cl(pow(Math.abs(d.rx1),1.44)*13); // 定力补正
                 }
                 if(d.rx2){ // 技能倾向为伤害
                     res += cl(pow(Math.abs(d.rx2),1.34)*45); // 智力补正

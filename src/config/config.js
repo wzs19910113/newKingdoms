@@ -43,7 +43,7 @@ module.exports = {
 			day: 1,
 			currentMapID: 101, // 当前所在地图ID
 			guard: 0, // 警戒值 0-1000000
-			conqueredMapIDList: [101,], // 已经攻克的地牢ID数组
+			mapList: [], // 所有地图数据数组
 			wantedList: [], // 悬赏榜
 			x: 0, // 主角技能经验（0-10000）
 			xl: 1, // 主角技能经验等级
@@ -68,7 +68,7 @@ module.exports = {
 				construction: [.75, .72, .69, .66, .63, .6, .57, .54, .51, ],
 			},{
 				id: 3,name: '祝福',trend:1,good:1,
-				desc: '不会获得低于祝福强度的负面状态',
+				desc: '阻挡同级和低级的负面状态',
 				construction: [0, 0, 0, 0, 0, 0, 0, 0, 0,],
 			},{
 				id: 4,name: '节流',trend:2,good:1,
@@ -157,7 +157,7 @@ module.exports = {
 				construction: [.03, .035, .04, .045, .05, .055, .06, .065, .07],
 			},{
 				id: 103,name: '诅咒',trend:3,good:0,
-				desc: '不会获得低于诅咒强度的所有正面状态',
+				desc: '阻挡同级和低级的正面状态',
 				construction: [0, 0, 0, 0, 0, 0, 0, 0, 0,],
 			},{
 				id: 104,name: '剧痛',trend:3,good:0,
@@ -399,69 +399,69 @@ module.exports = {
 		skillXLevelRate: 1.5, // 技能经验升级阈值上涨比率（6级之后）
 
 		// 全部地图数据
-		mapConfig: [
+		mapConfigs: [
 			{
-				id:101, level:1, type:1, name:'龙虾村', links: [],
+				id:101, level:1, type:1, name:'龙虾村', links: [], size:1,
 				floors:[], bosses:[],
 			},
 			{
-				id:102, level:1, type:2, name:'活死人墓穴', links: [],
+				id:102, level:1, type:2, name:'活死人墓穴', links: [], size:4,
 				floors:[
 					{title:`流民`,thresGuard:0,guard:5,},
 					{title:`盗墓贼`,thresGuard:30,guard:10,},
 				],
 				bosses:[{
-					title: `祭品盗贼`,inten: 3,
+					title: `祭品盗贼`,inten: 4,
 				}],
 			},
 			{
-				id:103, level:2, type:2, name:'禁行山', links: [102,],
+				id:103, level:2, type:2, name:'非法森林', links: [102,], size:5,
 				floors:[
 					{title:`混混`,thresGuard:0,guard:1,},
 					{title:`悍匪`,thresGuard:25,guard:2,},
 					{title:`悍匪头目`,thresGuard:50,guard:3,},
 				],
 				bosses:[{
-					title: `乌鸦`,inten: 4,
+					title: `渡雨鸦`,inten: 5,
 				}],
 			},
 			{
-				id:104, level:3, type:2, name:'熔碎洞窟', links: [103,],
+				id:104, level:3, type:2, name:'熔碎洞窟', links: [103,], size:5,
 				floors:[
 					{title:`学徒`,thresGuard:0,guard:1,},
 					{title:`匠人`,thresGuard:20,guard:2,},
 					{title:`铸剑宗师`,thresGuard:40,guard:4,},
 				],
 				bosses:[
-					{ title: `光明剑`,inten: 4, },
-					{ title: `黑暗刀`,inten: 4, },
+					{ title: `舞女剑`,inten: 4, },
+					{ title: `练星刀`,inten: 4, },
 				],
 			},
 			{
-				id:105, level:4, type:2, name:'冻海', links: [103,],
+				id:105, level:4, type:2, name:'雪海', links: [103,], size:5,
 				floors:[
 					{title:`水手`,thresGuard:0,guard:1,},
 					{title:`海盗`,thresGuard:15,guard:2,},
-					{title:`舰长`,thresGuard:30,guard:4,},
+					{title:`船长`,thresGuard:30,guard:4,},
 				],
 				bosses:[{
-					title: `巡海使`,inten: 4,
+					title: `替罪法师`,inten: 5,
 				}],
 			},
 			{
-				id:106, level:5, type:2, name:'落叶城', links: [105,],
+				id:106, level:5, type:2, name:'落叶城', links: [105,], size:6,
 				floors:[
-					{title:`猎人`,thresGuard:0,guard:1,},
-					{title:`剑士`,thresGuard:15,guard:2,},
-					{title:`参谋`,thresGuard:30,guard:4,},
-					{title:`领袖`,thresGuard:45,guard:8,},
+					{title:`佣兵`,thresGuard:0,guard:1,},
+					{title:`佩剑士`,thresGuard:15,guard:2,},
+					{title:`谋臣`,thresGuard:30,guard:4,},
+					{title:`大将`,thresGuard:45,guard:8,},
 				],
 				bosses:[{
-					title: `无名侠`,inten: 4,
+					title: `无尘侠客`,inten: 5,
 				}],
 			},
 			{
-				id:107, level:6, type:2, name:'愚困密道', links: [106,],
+				id:107, level:6, type:2, name:'愚困密道', links: [106,], size:6,
 				floors:[
 					{title:`密探`,thresGuard:0,guard:1,},
 					{title:`信徒`,thresGuard:15,guard:2,},
@@ -469,44 +469,44 @@ module.exports = {
 					{title:`主教`,thresGuard:45,guard:8,},
 				],
 				bosses:[
-					{ title: `食梦鬼`,inten: 4, },
-					{ title: `血幻妖`,inten: 4, },
+					{ title: `饲梦鬼`,inten: 5, },
+					{ title: `患血妖`,inten: 5, },
 				],
 			},
 			{
-				id:108, level:7, type:2, name:'云谷', links: [106,],
+				id:108, level:7, type:2, name:'云观', links: [106,], size:5,
 				floors:[
-					{title:`鸟人`,thresGuard:0,guard:1,},
-					{title:`求道者`,thresGuard:15,guard:3,},
-					{title:`天使`,thresGuard:30,guard:8,},
+					{title:`道士`,thresGuard:0,guard:1,},
+					{title:`散仙`,thresGuard:15,guard:3,},
+					{title:`破道者`,thresGuard:30,guard:8,},
 				],
 				bosses:[{
-					title: `天庭护卫`,inten: 4,
+					title: `天体轨道护卫`,inten: 6,
 				}],
 			},
 			{
-				id:109, level:8, type:2, name:'终神宫', links: [107,108,],
+				id:109, level:8, type:2, name:'终神宫', links: [107,108,], size:7,
 				floors:[
 					{title:`士族`,thresGuard:0,guard:1,},
-					{title:`卫兵`,thresGuard:15,guard:2,},
-					{title:`骑士`,thresGuard:30,guard:4,},
+					{title:`亲卫兵`,thresGuard:15,guard:2,},
+					{title:`亲卫骑士`,thresGuard:30,guard:4,},
 					{title:`副统帅`,thresGuard:45,guard:8,},
 					{title:`统帅`,thresGuard:60,guard:15,},
 				],
 				bosses:[
-					{ title: `疾病之神`,inten: 4, },
-					{ title: `痛苦之源`,inten: 4, },
-					{ title: `谎言之主`,inten: 4, },
+					{ title: `恐惧之神`,inten: 5, },
+					{ title: `痛苦之源`,inten: 5, },
+					{ title: `谎言之主`,inten: 5, },
 				],
 			},
 			{
-				id:110, level:9, type:2, name:'漩涡', links: [109,],
+				id:110, level:9, type:2, name:'漩涡', links: [109,], size:4,
 				floors:[
 					{title:`天选`,thresGuard:0,guard:5,},
 					{title:`神话`,thresGuard:30,guard:10,},
 				],
 				bosses:[{
-					title: `系统管理员`,inten: 4,
+					title: `系统权限`,inten: 6,
 				}],
 			},
 		],
@@ -554,7 +554,7 @@ game = {
 	day: 1,
 	currentMapID: 101, // 当前所在地图ID
 	guard: 0, // 警戒值 0-1000000
-	conqueredMapIDList: [101,102,], // 已经攻克的地牢ID数组
+	mapList: [], // 所有地图数据数字
 	wantedList: [], // 悬赏榜
 	x: 370, // 主角技能经验
 	xl: 1, // 主角技能经验等级
@@ -566,6 +566,14 @@ game = {
 	equipIndex: 101, // 装备 ID 索引
 	allSkills: [], // 技能
 	skillIndex: 101, // 技能 ID 索引
+}
+
+map = {
+	id: 102,
+	flagIndexes: [4,7,9,15,], // 所有标旗所在index
+	flagMarks: [0,0,1,0,], // 所有标旗的标记状态 [0未标记 1已标记]
+	coreIndex: 6, // 核心所在index
+	coreMark: 1, // 核心的标记状态
 }
 
 wanted = {

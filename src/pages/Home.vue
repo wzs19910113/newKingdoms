@@ -23,8 +23,10 @@
                     &nbsp;
                     <b class="money" v-html="common.moneyFormat(calcTotalMoney())+' $'"></b>
                 </div>
+                <!-- 模营地 -->
+                <a class="btn btn-simbat" @click.stop="onTapSimBattle"></a>
                 <!-- 齿轮 -->
-                <a class="btn btn-gear" v-if="map.type==1" @click.stop="onTapGear">系统</a>
+                <a class="btn btn-gear" @click.stop="onTapGear">系统</a>
             </div>
             <!-- 吊牌 -->
             <a class="brand" @click="onTapBrand()">{{map.name}}</a>
@@ -160,12 +162,10 @@
         <!-- 右上角系统菜单弹窗 -->
         <div class="pop-gear" v-show="showGearPop">
             <div class="pop-gear-bg"></div>
-            <a class="btn btn-save" @click="onTapSave">存档</a>
+            <a class="btn btn-save" v-if="map.type==1" @click="onTapSave">存档</a>
             <a class="btn btn-guide" @click="onTapGuide">指引</a>
             <a class="btn btn-restart" @click="onTapRestart">退出</a>
             <a class="btn btn-cheat" v-if="DEBUG" @click="onTapCheat">作弊</a>
-            <!-- <a class="btn" v-if="DEBUG">{{selectingUnit?'---S':'----'}}</a>
-            <a class="btn" v-if="DEBUG">{{showUnitPop?'---P':'----'}}</a> -->
         </div>
         <!-- alert -->
         <Toast ref="toast-alert" />
@@ -269,15 +269,68 @@ export default {
     methods: {
         init(){ // 初始化
             // this._alert(`成功加载 ${images.length} 张图片`,3);
+            if(window.GLOBAL.battleResult){ // 从战斗场景回来
+                /*window.GLOBAL.battleResult = { // 输出：战斗结果数据
+                    battle: {...}, // 战斗参数
+                    result: 1, // 结果 0离开营地 1获胜 2战败 3撤离成功
+                    playerTeam: [],
+                    enemyTeam: [],
+                    bonusRate: 1, // 额外金币奖励比率
+                    roundCount: 56, // 战斗的回合数
+                }*/
+                let { battle, result, playerTeam, enemyTeam, bonusRate, roundCount, } = window.GLOBAL.battleResult;
+                let { mode, envirs, field, } = battle;
+                let mapId = envirs.mapId;
+                let setAllUnits = _ =>{ // 所有单位赋值
+                    for(let player of playerTeam){
+                        let btd = player.btd;
+                        let oUnit = getMatchList(this.game.allUnits,[['id',player.id]])[0];
+                        oUnit.st[1] = btd.eng[0];
+                        oUnit.g = btd.money;
+                        if(btd.out!=0){ // 若战退或屈服
+                            oUnit.st[0] = 1;
+                        }
+                        else{
+                            oUnit.st[0] = btd.hp[0];
+                        }
+                    }
+                }
+                if(mode==3){ // 切磋模式
+
+                }
+                else{
+                    setAllUnits();
+                    if(result==3){ // 撤离成功
+
+                    }
+                    else if(result==2){ // 战败
+                        // 惩罚：所有人金币归零
+                        for(let player of playerTeam){
+                            let oUnit = getMatchList(this.game.allUnits,[['id',player.id]])[0];
+                            oUnit.g = 0;
+                        }
+                    }
+                    else if(result==1){ // 战败
+                        // 奖励金币和随机装备 @todo
+                        // 屈服的敌人加入酒馆 @todo
+                    }
+                    else if(result==0){ // 离开营地
+
+                    }
+                }
+                window.GLOBAL.battleResult = null;
+            }
             this.state = 0;
             this.$nextTick(_=>{
-                this.map = getMatchList(CONFIG.mapConfig,[['id',this.game.currentMapID]])[0];
+                this.map = getMatchList(CONFIG.mapConfigs,[['id',this.game.currentMapID]])[0];
                 this.asynTeam();
-                this.asynBartender();
-                this.asynInmates();
-                this.initNavis();
+                if(this.map.type==1){ // 如果当前位于村落
+                    this.asynBartender();
+                    this.asynInmates();
+                    this.initNavis();
+                }
                 this.viewingUnit = this.me;
-                this.state = 1;
+                this.state = this.map.type;
                 console.log(this.game);
             });
         },
@@ -296,13 +349,11 @@ export default {
         },
 
         initNavis(){ // 初始化导航数据
-            this.game.conqueredMapIDList = [101,102,103,104,105,106,107,108,109,];
-
             let navis = [];
             let conqueredIDList = [];
-            let conqueres = this.game.conqueredMapIDList;
+            let conqueres = [101,102,103,104,105,106,107,108,109,];
             // 获取所有“已攻克”地图
-            for(let map of CONFIG.mapConfig){
+            for(let map of CONFIG.mapConfigs){
                 let newNav;
                 if(arrContains(conqueres,map.id)!=-1){ // 如果已攻克
                     newNav = cloneObj(map);
@@ -314,7 +365,7 @@ export default {
                 }
             }
             // 获取所有“可攻克”地图（ conqueredIDList = 目前为所有已攻克地图ID数组）
-            for(let map of CONFIG.mapConfig){
+            for(let map of CONFIG.mapConfigs){
                 let newNav;
                 let canConquere = true; // 这个地图是否可攻克
                 for(let link of map.links){
@@ -383,7 +434,7 @@ export default {
             this.$nextTick(_=>{
                 let inmateList = [];
                 for(let unit of this.game.allUnits){
-                    if(unit.rel<3){
+                    if(unit.rel<3&&unit.rel>0){
                         let newInmate = cloneObj(unit);
                         newInmate.btd = common.getUnitBtd(newInmate,this.game);
                         inmateList.push(newInmate);
@@ -769,9 +820,7 @@ export default {
             this._confirm(`是否消耗 1 天的时间休息，完全恢复生命和精力？`,_=>{
                 this.dayPass();
                 for(let unit of this.game.allUnits){
-                    let btd = common.getUnitBtd(unit,this.game);
-                    unit.st[0] = btd.hp[1];
-                    unit.st[1] = btd.eng[1];
+                    common.recoverUnit(unit,this.game);
                 }
                 this.asynTeam();
                 this.asynBartender();
@@ -845,6 +894,22 @@ export default {
                     this._alert(`灵感点数不够`);
                 }
             });
+        },
+        onTapSimBattle(){ // 点击【营地】
+            let playerTeamIds = Array.from(this.team,unit=>{
+                return unit.id;
+            });
+            window.GLOBAL.game = this.game;
+            window.GLOBAL.battle={
+                mode: 4, // 战斗模式【1:普通|2：BOSS|3：切磋|4：营地】
+                envirs: {
+                    mapId: this.map.id,
+                },
+                field: 0, // 战场 0-9
+                playerTeamIds,
+                enemyTeamIds: [],
+            }
+            this.$router.push('battle');
         },
         onTapClosePop(){ // 点击【弹窗-关闭】
             this.resetViewingUnitPopData();

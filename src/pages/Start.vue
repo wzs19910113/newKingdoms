@@ -128,13 +128,14 @@ export default {
             // 生成我
             let me = this.genMe();
             this.genBosses();
+            this.genAllMaps();
             // 生成其他角色 @test
             // let tempUnitList = [],tempEquipList = [], tempSkillList = [];
             // for(let i=0;i<15;i++){ // @test
             //     let unit = common.genUnit({
             //         id: i+1,
             //         game: this.game,
-            //         level: r(1,9),
+            //         level: 1,
             //         equipList: tempEquipList,
             //         skillList: tempSkillList,
             //     });
@@ -174,39 +175,92 @@ export default {
                 rel: 3,
                 icon: r(1,3),
             });
-            let firstSkillConsume = 5+r(0,3);
-            let skill = {
+            let skill1Consume = 5+r(0,3);
+            let skill2Consume = 10+r(0,6);
+            let melee = unit.as[4]>unit.as[5];
+            let skill2Attack;
+            if(melee){
+                skill2Attack = {
+        			n: '挥砍',
+        			d: 5+Math.ceil(skill2Consume*2.5), // 基础伤害
+        			r1: 0, // 力量补正
+        			r2: 0, // 精准补正
+        			b: [], // buff制造表（buff id）
+        			bl: [], // buff等级表（1-9）
+        			s: 0, // SP效果 1压制 2破盾 3气溃 4漩流 5锁敌 6攻心 7摸金
+        			sl: 0, // SP效果等级
+        			a: 0, // 目标是否为全体
+        			c: 0, // 体力消耗
+        			et: 1, // 特效类型 1劈砍 2钝击 3子弹 4飞刀 5火炮 6雷击
+        			sid: this.game.skillIndex+1, // 所属的技能id
+        			eid: 0, // 所属的武器id
+        		}
+            }
+            else{
+                skill2Attack = {
+        			n: '射击',
+        			d: 5+Math.ceil(skill2Consume*2.5), // 基础伤害
+        			r1: 0, // 力量补正
+        			r2: 0, // 精准补正
+        			b: [], // buff制造表（buff id）
+        			bl: [], // buff等级表（1-9）
+        			s: 0, // SP效果 1压制 2破盾 3气溃 4漩流 5锁敌 6攻心 7摸金
+        			sl: 0, // SP效果等级
+        			a: 0, // 目标是否为全体
+        			c: 0, // 体力消耗
+        			et: 3, // 特效类型 1劈砍 2钝击 3子弹 4飞刀 5火炮 6雷击
+        			sid: this.game.skillIndex+1, // 所属的技能id
+        			eid: 0, // 所属的武器id
+        		}
+            }
+            let skill1 = {
                 id: this.game.skillIndex++,
             	l: 1, // 等级(1-9)
             	n: '轻语',
             	t: 1, // 1自己 2我方单体 3敌方单体
             	el: [{ // 技能效果数组
-                    t: 3, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
+                    t: 4, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
             		// 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
             		// 固疗和百分疗 { h:100, rx:35, }，心防固定修改值和定力、智力补正 { d:100, rx1:0, rx2:44, }
             		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
             		// 减弱状态强度 7
             		d: 1,
-                },{ t: 5, d: { h:firstSkillConsume+9, rx:0, },},],
-            	c: firstSkillConsume, // 体力消耗
+                },{ t: 5, d: { h:skill1Consume+5, rx:0, },},],
+            	c: skill1Consume, // 体力消耗
             	d: 1200, // 存在感
             	o: 1, // 顺位
             };
-            skill.v = common.calcSkillValue(skill);
+            let skill2 = {
+                id: this.game.skillIndex++,
+            	l: 1,
+            	n: melee?'龙虾斩':'龙虾箭',
+            	t: 3, // 3敌方单体
+            	el: [{
+                    t: 1,
+            		d: skill2Attack,
+                },],
+            	c: skill2Consume, // 体力消耗
+            	d: 2000+(20-unit.as[9])*25, // 存在感
+            	o: 1, // 顺位
+            };
+            skill1.v = common.calcSkillValue(skill1);
+            skill2.v = common.calcSkillValue(skill2);
 
-            unit.ss.push(skill.id);
+            unit.ss.push(skill1.id);
+            unit.ss.push(skill2.id);
             unit.g = 0;
             unit.nk = `穿越者`;
 
             this.game.allUnits.push(unit);
-            this.game.allSkills.push(skill);
+            this.game.allSkills.push(skill1);
+            this.game.allSkills.push(skill2);
             return unit;
         },
         genBosses(){ // 生成所有boss
             let tempUnitList = [], tempEquipList = [], tempSkillList = [];
             let bossId = 51;
-            for(let i=0;i<2;i++){
-                let map = CONFIG.mapConfig[i];
+            for(let i=0;i<CONFIG.mapConfigs.length;i++){
+                let map = CONFIG.mapConfigs[i];
                 let { type, level, bosses, } = map;
                 if(type==2){
                     for(let boss of bosses){
@@ -218,6 +272,7 @@ export default {
                             nickname: boss.title,
                             equipList: tempEquipList,
                             skillList: tempSkillList,
+                            rel: 0,
                             isBoss: true,
                         });
                         tempUnitList.push(unit);
@@ -231,7 +286,17 @@ export default {
                     equipList: tempEquipList,
                     skillList: tempSkillList,
                 });
+                common.recoverUnit(newUnit,this.game);
             }
+        },
+        genAllMaps(){ // 生成所有地图数据
+            let mapList = [];
+            let newMap;
+            for(let mapConfig of CONFIG.mapConfigs){
+                newMap = common.genMapData(mapConfig);
+                mapList.push(newMap);
+            }
+            this.game.mapList = mapList;
         },
         loadPresets(){ // 载入预设数据
             // 载入预设角色
@@ -252,7 +317,7 @@ export default {
 
             }
             // 生成初始随机装备
-            for(let i=1;i<=13;i++){
+            for(let i=1;i<=3;i++){
                 let type = 1;
                 if(i>1){
                     type = r(2,5);
