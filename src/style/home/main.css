@@ -6,6 +6,7 @@
     color: #4a4a4a;
     font-size: .24rem;
     line-height: 0;
+    overflow: hidden;
     background-color: #fff;
 }
 .btn{
@@ -27,6 +28,7 @@
     width: 100%;
     height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 .panel-loading{
     width: 100%;
@@ -58,27 +60,14 @@
 
 .beer{
     position: absolute;
-    right: .16rem;
+    right: .08rem;
     bottom: 3rem;
     width: 1rem;
     height: 1rem;
     border-radius: 50%;
     border: .01rem solid orangeRed;
     background-color: #000;
-    /* overflow: hidden; */
     z-index: 450;
-    animation: fade-beer 1s ease-in-out infinite alternate;
-}
-@keyframes fade-beer {
-    33%{
-        box-shadow: 0 0 .01rem orangeRed;
-    }
-    66%{
-        box-shadow: 0 0 .44rem orangeRed;
-    }
-    100%{
-        box-shadow: 0 0 .01rem orangeRed;
-    }
 }
 .beer-icon{
     position: absolute;
@@ -86,9 +75,25 @@
     left: auto;
     right: auto;
     display: block;
-    width: 1rem;
-    height: 1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
     z-index: 5;
+    animation: shake-beer 3s ease-in-out infinite alternate;
+}
+@keyframes shake-beer {
+    78%{
+        transform: rotateZ(0);
+    }
+    83%{
+        transform: rotateZ(15deg);
+    }
+    93%{
+        transform: rotateZ(-15deg);
+    }
+    100%{
+        transform: rotateZ(7deg);
+    }
 }
 .btn-beer{
     display: block;
@@ -155,4 +160,28 @@
     width: .5rem;
     height: .5rem;
     line-height: .5rem;
+}
+
+.btn-bonfire{
+    position: absolute;
+    display: block;
+    width: .78rem;
+    height: .78rem;
+    line-height: .72rem;
+    font-size: .24rem;
+    border-radius: 50%;
+    font-weight: bold;
+    text-shadow: 0 0 .4rem #000;
+    bottom: 3rem;
+    right: .08rem;
+    z-index: 3;
+    background-color: rgba(144,75,76,.8);
+    background-image: url('./../../assets/icon-bonfire.png');
+    background-size: 100% 100%;
+    background-position: right;
+    background-repeat: no-repeat;
+    border-left: .06rem solid #fa7;
+    border-bottom: .06rem solid orangeRed;
+    border-right: .06rem solid orangeRed;
+    border-top: .06rem solid #fa7;
 }

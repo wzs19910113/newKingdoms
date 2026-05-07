@@ -874,6 +874,40 @@ export function registerUnit({unit,equipList,skillList,goTarven=false,game,}){ /
     game.allUnits.push(unit);
     return unit;
 }
+export function unregisterUnits({unitIdList,game,}){ // 根据ID注销单位数组
+    let newAllUnits = [];
+    for(let oUnit of game.allUnits){ // 遍历所有单位
+        if(arrContains(unitIdList,oUnit.id)==-1){ // 不在“移除单位数组”中，则保留
+            newAllUnits.push(oUnit);
+        }
+        else{ // 在“移除单位数组”中，则注销相关装备和技能
+            // 逐一注销身上和背包里的装备
+            unregisterEquips({equipIdList:[...oUnit.es,...oUnit.b],game,});
+            // 逐一注销技能
+            unregisterSkills({skillIdList:oUnit.ss,game,});
+        }
+    }
+    gam.allUnits = newAllUnits;
+}
+export function unregisterEquips({equipIdList,game,}){ // 根据ID注销装备数组
+    let newAllEquips = [];
+    for(let oEquip of game.allEquips){
+        if(arrContains(equipIdList,oEquip.id)==-1){
+            newAllEquips.push(oEquip);
+        }
+    }
+    game.allEquips = newAllEquips;
+}
+export function unregisterSkills({skillIdList,game,}){ // 根据ID注销技能数组
+    let newAllSkills = [];
+    for(let oSkill of game.allSkills){
+        if(arrContains(skillIdList,oSkill.id)==-1){
+            newAllSkills.push(oSkill);
+        }
+    }
+    game.allSkills = newAllSkills;
+}
+
 export function skillXIncrease(val,game){ // 灵感提升
     let lvlupDemand; // 当前等级的升级需求值
     lvlupDemand = calcSkillXDemand(game.xl);
@@ -899,7 +933,28 @@ export function recoverUnit(unit,game){ // 单位完全恢复状态
     unit.st[0] = btd.hp[1]+unit.ba[0];
     unit.st[1] = btd.eng[1]+unit.ba[1];
 }
-
+export function genWantedList(game){ // 生成榜单数据
+    let res = [];
+    let { wantedList, mapList, } = game;
+    for(let mapConfig of CONFIG.mapConfigs){
+        let { bosses, } = mapConfig;
+        for(let boss of bosses){
+            let oBoss = getMatchList(game.allUnits,[['id',boss.id]])[0];
+            if(oBoss){
+                let newWanted = {
+                    id: boss.id,
+                    e: boss.expired,
+                    t: oBoss.nm,
+                    n: oBoss.nk,
+                    s: 0,
+                    g: boss.gold,
+                }
+                res.push(newWanted);
+            }
+        }
+    }
+    return res;
+}
 
 /* ---------------------------- 计算 ---------------------------- */
 export function getUnitBtd(unit,game){ // 获取单位战斗数据

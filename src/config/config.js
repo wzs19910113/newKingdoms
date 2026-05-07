@@ -381,7 +381,7 @@ module.exports = {
 		leakDmgRatio: 2, // 破绽状态增伤倍数
 
 		defAutoRecoverFactor: .5, // 防御值自动回升系数
-		baseConsumeList: [1,1,1,0,1,1,2,3,], // 基础操作的体力消耗 0防御 1躲避 2追踪 3调息 4集气 5爆气 6劝降 7撤离
+		baseConsumeList: [1,3,1,0,1,1,2,5,], // 基础操作的体力消耗 0防御 1躲避 2追踪 3调息 4集气 5爆气 6劝降 7撤离
 		spAttackRate: 25, // 武器的 SP 效果触发概率
 		enviorDamageInterval: 30, // 战意流失触发频率（回合数）
 		enviorDamageBase: 100, // 战意流失基础伤害
@@ -411,7 +411,7 @@ module.exports = {
 					{title:`盗墓贼`,thresGuard:30,guard:10,},
 				],
 				bosses:[{
-					title: `祭品盗贼`,inten: 4,
+					title: `祭品盗贼`, id: 51, inten: 4, expired: 5, gold: 5000,
 				}],
 			},
 			{
@@ -419,10 +419,10 @@ module.exports = {
 				floors:[
 					{title:`混混`,thresGuard:0,guard:1,},
 					{title:`悍匪`,thresGuard:25,guard:2,},
-					{title:`悍匪头目`,thresGuard:50,guard:3,},
+					{title:`头目`,thresGuard:50,guard:3,},
 				],
 				bosses:[{
-					title: `渡雨鸦`,inten: 5,
+					title: `渡鸦`, id: 52, inten: 5, expired: 15, gold: 15000,
 				}],
 			},
 			{
@@ -430,11 +430,11 @@ module.exports = {
 				floors:[
 					{title:`学徒`,thresGuard:0,guard:1,},
 					{title:`匠人`,thresGuard:20,guard:2,},
-					{title:`铸剑宗师`,thresGuard:40,guard:4,},
+					{title:`铸剑师`,thresGuard:40,guard:4,},
 				],
 				bosses:[
-					{ title: `舞女剑`,inten: 4, },
-					{ title: `练星刀`,inten: 4, },
+					{ title: `舞女剑`, id: 53, inten: 4, expired: 20, gold: 20000, },
+					{ title: `练星刀`, id: 54, inten: 4, expired: 20, gold: 20000, },
 				],
 			},
 			{
@@ -445,7 +445,7 @@ module.exports = {
 					{title:`船长`,thresGuard:30,guard:4,},
 				],
 				bosses:[{
-					title: `替罪法师`,inten: 5,
+					title: `机密武器`, id: 55, inten: 5, expired: 25, gold: 50000,
 				}],
 			},
 			{
@@ -453,11 +453,11 @@ module.exports = {
 				floors:[
 					{title:`佣兵`,thresGuard:0,guard:1,},
 					{title:`佩剑士`,thresGuard:15,guard:2,},
-					{title:`谋臣`,thresGuard:30,guard:4,},
+					{title:`副将`,thresGuard:30,guard:4,},
 					{title:`大将`,thresGuard:45,guard:8,},
 				],
 				bosses:[{
-					title: `无尘侠客`,inten: 5,
+					title: `乱世谋臣`, id: 56, inten: 5, expired: 30, gold: 80000,
 				}],
 			},
 			{
@@ -465,12 +465,12 @@ module.exports = {
 				floors:[
 					{title:`密探`,thresGuard:0,guard:1,},
 					{title:`信徒`,thresGuard:15,guard:2,},
-					{title:`邪术师`,thresGuard:30,guard:4,},
+					{title:`邪师`,thresGuard:30,guard:4,},
 					{title:`主教`,thresGuard:45,guard:8,},
 				],
 				bosses:[
-					{ title: `饲梦鬼`,inten: 5, },
-					{ title: `患血妖`,inten: 5, },
+					{ title: `处刑人`, id: 57, inten: 5, expired: 35, gold: 100000, },
+					{ title: `替罪者`, id: 58, inten: 5, expired: 35, gold: 100000, },
 				],
 			},
 			{
@@ -481,7 +481,7 @@ module.exports = {
 					{title:`破道者`,thresGuard:30,guard:8,},
 				],
 				bosses:[{
-					title: `天体轨道护卫`,inten: 6,
+					title: `天体轨道护卫`, id: 59, inten: 6, expired: 40, gold: 250000,
 				}],
 			},
 			{
@@ -494,9 +494,9 @@ module.exports = {
 					{title:`统帅`,thresGuard:60,guard:15,},
 				],
 				bosses:[
-					{ title: `恐惧之神`,inten: 5, },
-					{ title: `痛苦之源`,inten: 5, },
-					{ title: `谎言之主`,inten: 5, },
+					{ title: `恐惧之神`, id: 60, inten: 5, expired: 45, gold: 300000, },
+					{ title: `痛苦之源`, id: 61, inten: 5, expired: 45, gold: 300000, },
+					{ title: `谎言之主`, id: 62, inten: 5, expired: 45, gold: 300000, },
 				],
 			},
 			{
@@ -506,7 +506,7 @@ module.exports = {
 					{title:`神话`,thresGuard:30,guard:10,},
 				],
 				bosses:[{
-					title: `系统权限`,inten: 6,
+					title: `系统权限`, id: 63, inten: 6, expired: 50, gold: 1,
 				}],
 			},
 		],
@@ -534,7 +534,8 @@ module.exports = {
 		unitList: [{ // 商人酒保
 			id: 1,
 			level: 15,
-			age: 35,
+			age: 37,
+			nk: '商人酒保',
 			as: [43150,8535,1280,250, 650,1795,1600,1900,1890,242,715,], // 11维身体属性（4个外在，7个内在） [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
 			st: [43150,8535,],
 			tms: 0,
@@ -577,11 +578,12 @@ map = {
 }
 
 wanted = {
-	id: 101,
+	id: 51, // 目标单位的id
 	e: 5, // 截至日期（天）
 	t: `柳唐`, // 目标单位名字
 	n: `祭品盗贼`, // 目标单位昵称
-	s: 0, // 状态 0未公示 1悬赏中 2逾期 3已完成
+	s: 0, // 状态 0未公示 1悬赏中 2逾期 3已领取 4已完成
+	g: 5000, // 奖励金额
 }
 
 skill = {

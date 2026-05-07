@@ -72,7 +72,6 @@
 .tarven-cot{
     display: block;
     /* height: calc( 100% -  ); */
-    height: 100%;
     /* overflow-x: hidden;
     overflow-y: scroll; */
     padding: .2rem .24rem;
@@ -84,4 +83,99 @@
 }
 .tarven-inmate{
 
+}
+.tarven-wanted{
+    padding-bottom: 2rem;
+}
+
+.tarven-wanted .wanted{
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    height: 1rem;
+    padding-left: .25rem;
+    padding-right: .5rem;
+    width: 100%;
+    color: #000;
+    margin-bottom: .2rem;
+    background-image: url('./../../assets/bg-roll.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+.wanted .stamp{
+    position: absolute;
+    right: 1rem;
+    top: 0;
+    bottom: 0;
+    margin: auto 0;
+    width: 1.8rem;
+    height: .65rem;
+    line-height: .55rem;
+    font-size: .5rem;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    word-break: keep-all;
+    transform: rotateZ(9deg);
+}
+.wanted-2 .stamp{
+    border: .06rem solid #e81313;
+    color: #e81313;
+}
+.wanted-4 .stamp{
+    border: .06rem solid #13a843;
+    opacity: .7;
+    color: #13a843;
+}
+.wanted .title{
+    width: 3rem;
+    height: .85rem;
+    text-align: center;
+    line-height: .35rem;
+}
+.wanted .title .name,
+.wanted .title .expire{
+    height: 50%;
+    text-align: center;
+    white-space: nowrap;
+    word-break: keep-all;
+}
+.wanted .title .name{
+    height: .55rem;
+    line-height: .55rem;
+    font-size: .33rem;
+}
+.wanted .title .expire{
+    height: .3rem;
+    line-height: .3rem;
+}
+.wanted-2 .title{
+    text-decoration: line-through;
+    color: #555;
+}
+.wanted .gold{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    height: 100%;
+    color: #fff;
+    background-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,.8) 11%, rgba(0,0,0,.8) 90%, rgba(0,0,0,0) 100%);
+}
+.wanted .gold .btn-check-wanted{
+    height: .6rem;
+    line-height: .6rem;
+    padding: 0 .1rem;
+    white-space: nowrap;
+    word-break: keep-all;
+    border: .02rem solid orangeRed;
+    background-image: none;
+    animation: checkWanted .5s ease-in-out infinite alternate;
+}
+@keyframes checkWanted {
+    to{
+        box-shadow: 0 0 .4rem orangeRed;
+    }
 }

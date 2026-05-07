@@ -1,0 +1,28 @@
+.pop-guide{
+
+}
+.guide{
+    padding: .08rem;
+    color: #fff;
+    max-height: 9.5rem;
+}
+.guide .guide-row{
+    margin-bottom: .16rem;
+    text-align: left;
+}
+.guide .guide-row .guide-title{
+    display: block;
+    border-left: .06rem solid orangeRed;
+    font-weight: bold;
+    font-size: .3rem;
+    text-indent: .14rem;
+    height: .5rem;
+    line-height: .5rem;
+}
+.guide .guide-row .guide-para{
+    display: block;
+    font-size: .24rem;
+    padding-left: .5rem;
+    line-height: .4rem;
+
+}

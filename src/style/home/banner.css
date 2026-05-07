@@ -109,21 +109,6 @@
     right: .08rem;
     z-index: 3;
 }
-.btn-simbat{
-    position: absolute;
-    top: .02rem;
-    right: 1.1rem;
-    z-index: 3;
-    background-color: rgba(144,75,76,.8);
-    background-image: url('./../../assets/icon-bonfire.png');
-    background-size: 100% 100%;
-    background-position: right;
-    background-repeat: no-repeat;
-    border-left: .06rem solid #fa7;
-    border-bottom: .06rem solid orangeRed;
-    border-right: .06rem solid orangeRed;
-    border-top: .06rem solid #fa7;
-}
 .pop-gear{
     position: absolute;
     width: .78rem;

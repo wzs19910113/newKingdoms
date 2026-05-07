@@ -129,6 +129,7 @@ export default {
             let me = this.genMe();
             this.genBosses();
             this.genAllMaps();
+            this.game.wantedList = common.genWantedList(this.game);
             // 生成其他角色 @test
             // let tempUnitList = [],tempEquipList = [], tempSkillList = [];
             // for(let i=0;i<15;i++){ // @test
@@ -233,14 +234,14 @@ export default {
             let skill2 = {
                 id: this.game.skillIndex++,
             	l: 1,
-            	n: melee?'龙虾斩':'龙虾箭',
+            	n: melee?'龙虾斩':'以太箭',
             	t: 3, // 3敌方单体
             	el: [{
                     t: 1,
             		d: skill2Attack,
                 },],
             	c: skill2Consume, // 体力消耗
-            	d: 2000+(20-unit.as[9])*25, // 存在感
+            	d: 2000+(300-unit.as[9]*5)*25, // 存在感
             	o: 1, // 顺位
             };
             skill1.v = common.calcSkillValue(skill1);
@@ -258,14 +259,13 @@ export default {
         },
         genBosses(){ // 生成所有boss
             let tempUnitList = [], tempEquipList = [], tempSkillList = [];
-            let bossId = 51;
             for(let i=0;i<CONFIG.mapConfigs.length;i++){
-                let map = CONFIG.mapConfigs[i];
-                let { type, level, bosses, } = map;
+                let mapConfig = CONFIG.mapConfigs[i];
+                let { type, level, bosses, } = mapConfig;
                 if(type==2){
                     for(let boss of bosses){
                         let unit = common.genUnit({
-                            id: bossId++,
+                            id: boss.id,
                             game: this.game,
                             level,
                             inten: boss.inten,
@@ -322,7 +322,7 @@ export default {
                 if(i>1){
                     type = r(2,5);
                 }
-                let newEquip = common.genEquipData({id:i,level:1,type,game:this.game,});
+                let newEquip = common.genEquipData({id:this.game.equipIndex++,level:1,type,game:this.game,});
                 this.game.allUnits[0].b.push(newEquip.id); // 放入商人酒保的背包
                 this.game.allEquips.push(newEquip);
             }
