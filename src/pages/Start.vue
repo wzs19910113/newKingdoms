@@ -61,10 +61,8 @@ export default {
         };
     },
     mounted(){
-        window.GLOBAL = {
-            game: cloneObj(CONFIG.initGameData), // 游戏数据
-        }
-        this.game = window.GLOBAL.game;
+        window.GLOBAL.game = null;
+        this.game = cloneObj(CONFIG.initGameData);
 
         let _storage = localStorage.getItem(CACHE.sto);
         let storage = JSON.parse(_storage);
@@ -83,7 +81,6 @@ export default {
         },
         onTapLoad(){ // 点击读档按钮
             try{
-                window.GLOBAL.game = this.storage;
                 localStorage.setItem(CACHE.sto,JSON.stringify(this.storage));
                 this.$router.push('home');
             }
@@ -110,10 +107,8 @@ export default {
             // 校对通过，生成游戏初始数据
             this.genGameData({name,gender,age});
 
-            window.GLOBAL.game = this.game;
-
             try{
-                let newStorage = window.GLOBAL.game;
+                let newStorage = this.game;
                 localStorage.setItem(CACHE.sto,JSON.stringify(newStorage));
                 this.$router.push('home');
             }

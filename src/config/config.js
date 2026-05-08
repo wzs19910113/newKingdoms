@@ -41,7 +41,6 @@ module.exports = {
 	CONFIG:{
 		initGameData: {
 			day: 1,
-			currentMapID: 101, // 当前所在地图ID
 			guard: 0, // 警戒值 0-1000000
 			mapList: [], // 所有地图数据数组
 			wantedList: [], // 悬赏榜
@@ -411,30 +410,30 @@ module.exports = {
 					{title:`盗墓贼`,thresGuard:30,guard:10,},
 				],
 				bosses:[{
-					title: `祭品盗贼`, id: 51, inten: 4, expired: 5, gold: 5000,
+					title: `祭品盗贼`, id: 51, inten: 4, expired: 15, gold: 5000,
 				}],
 			},
 			{
-				id:103, level:2, type:2, name:'非法森林', links: [102,], size:5,
+				id:103, level:2, type:2, name:'非法山林', links: [102,], size:5,
 				floors:[
 					{title:`混混`,thresGuard:0,guard:1,},
 					{title:`悍匪`,thresGuard:25,guard:2,},
 					{title:`头目`,thresGuard:50,guard:3,},
 				],
 				bosses:[{
-					title: `渡鸦`, id: 52, inten: 5, expired: 15, gold: 15000,
+					title: `渡鸦`, id: 52, inten: 5, expired: 20, gold: 15000,
 				}],
 			},
 			{
-				id:104, level:3, type:2, name:'熔碎洞窟', links: [103,], size:5,
+				id:104, level:3, type:2, name:'熔铁洞窟', links: [103,], size:5,
 				floors:[
 					{title:`学徒`,thresGuard:0,guard:1,},
 					{title:`匠人`,thresGuard:20,guard:2,},
 					{title:`铸剑师`,thresGuard:40,guard:4,},
 				],
 				bosses:[
-					{ title: `舞女剑`, id: 53, inten: 4, expired: 20, gold: 20000, },
-					{ title: `练星刀`, id: 54, inten: 4, expired: 20, gold: 20000, },
+					{ title: `舞女剑`, id: 53, inten: 4, expired: 25, gold: 20000, },
+					{ title: `练星刀`, id: 54, inten: 4, expired: 25, gold: 20000, },
 				],
 			},
 			{
@@ -445,7 +444,7 @@ module.exports = {
 					{title:`船长`,thresGuard:30,guard:4,},
 				],
 				bosses:[{
-					title: `机密武器`, id: 55, inten: 5, expired: 25, gold: 50000,
+					title: `寒冰魅影`, id: 55, inten: 5, expired: 30, gold: 50000,
 				}],
 			},
 			{
@@ -457,7 +456,7 @@ module.exports = {
 					{title:`大将`,thresGuard:45,guard:8,},
 				],
 				bosses:[{
-					title: `乱世谋臣`, id: 56, inten: 5, expired: 30, gold: 80000,
+					title: `镇压官`, id: 56, inten: 5, expired: 35, gold: 80000,
 				}],
 			},
 			{
@@ -469,8 +468,8 @@ module.exports = {
 					{title:`主教`,thresGuard:45,guard:8,},
 				],
 				bosses:[
-					{ title: `处刑人`, id: 57, inten: 5, expired: 35, gold: 100000, },
-					{ title: `替罪者`, id: 58, inten: 5, expired: 35, gold: 100000, },
+					{ title: `处刑人`, id: 57, inten: 5, expired: 40, gold: 100000, },
+					{ title: `替罪者`, id: 58, inten: 5, expired: 40, gold: 100000, },
 				],
 			},
 			{
@@ -481,7 +480,7 @@ module.exports = {
 					{title:`破道者`,thresGuard:30,guard:8,},
 				],
 				bosses:[{
-					title: `天体轨道护卫`, id: 59, inten: 6, expired: 40, gold: 250000,
+					title: `天体轨道护卫`, id: 59, inten: 6, expired: 45, gold: 250000,
 				}],
 			},
 			{
@@ -494,9 +493,9 @@ module.exports = {
 					{title:`统帅`,thresGuard:60,guard:15,},
 				],
 				bosses:[
-					{ title: `恐惧之神`, id: 60, inten: 5, expired: 45, gold: 300000, },
-					{ title: `痛苦之源`, id: 61, inten: 5, expired: 45, gold: 300000, },
-					{ title: `谎言之主`, id: 62, inten: 5, expired: 45, gold: 300000, },
+					{ title: `恐惧之神`, id: 60, inten: 5, expired: 50, gold: 300000, },
+					{ title: `痛苦之源`, id: 61, inten: 5, expired: 50, gold: 300000, },
+					{ title: `谎言之主`, id: 62, inten: 5, expired: 50, gold: 300000, },
 				],
 			},
 			{
@@ -506,7 +505,7 @@ module.exports = {
 					{title:`神话`,thresGuard:30,guard:10,},
 				],
 				bosses:[{
-					title: `系统权限`, id: 63, inten: 6, expired: 50, gold: 1,
+					title: `系统权限`, id: 63, inten: 6, expired: 60, gold: 1,
 				}],
 			},
 		],
@@ -553,7 +552,6 @@ module.exports = {
 ∷⊕▓▣▦░↔†✉◘◙
 game = {
 	day: 1,
-	currentMapID: 101, // 当前所在地图ID
 	guard: 0, // 警戒值 0-1000000
 	mapList: [], // 所有地图数据数字
 	wantedList: [], // 悬赏榜

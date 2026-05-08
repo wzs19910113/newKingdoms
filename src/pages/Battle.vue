@@ -155,18 +155,16 @@ const INIT_CHANGES = {
 /*
 window.GLOBAL.battle = { // 输入：战斗参数
     mode: 4, // 战斗模式 【 1：普通|2：BOSS|3：切磋|4：营地 】
-    envirs: {
-        mapId: this.map.id,
-    },
-    field: 1, // 战场 0-9
+    field: 1, // 战场 1-9
+    map: {}, // 当前所在地图数据
     playerTeamIds: [],
     enemyTeamIds: [],
 }
 window.GLOBAL.battleResult = { // 输出：战斗结果数据
     battle: {...}, // 战斗参数
     result: 1, // 结果 0离开营地 1获胜 2战败 3撤离成功
-    playerTeam: [],
-    enemyTeam: [],
+    playerTeam: [], // 我方单位数据数组
+    enemyTeam: [], // 敌方单位数据数组
     bonusRate: 1, // 额外金币奖励比率
     roundCount: 56, // 战斗的回合数
 }
@@ -261,7 +259,6 @@ export default {
        //  	day: 1,
        //  	hour: 0,
        //  	meTeamIDs: [1,], // 队伍角色ID
-       //  	currentMapID: 101, // 当前所在地图ID
        //  	luck: 0, // 夺宝能力
        //  	allUnits: [], // 角色
        //  	unitIndex: 101, // 角色 ID 索引
