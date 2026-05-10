@@ -6,6 +6,7 @@ module.exports = {
 	ASSETS: {
 		image_urls:[
 		    require('../assets/bg-battle.png'),
+		    require('../assets/bg-battle-0.png'),
 		    require('../assets/bg-battle-1.png'),
 		    require('../assets/bg-battle-2.png'),
 		    require('../assets/bg-battle-3.png'),
@@ -36,12 +37,20 @@ module.exports = {
 		    require('../assets/banner-chain.png'),
 		    require('../assets/bg-banner.png'),
 		    require('../assets/banner-brand.png'),
+		    require('../assets/bg-tarven.png'),
+		    require('../assets/arrow-down.png'),
+		    require('../assets/bg-roll.png'),
+		    require('../assets/icon-beer.png'),
+		    require('../assets/icon-bonfire.png'),
+		    require('../assets/icon-brick-off.png'),
+		    require('../assets/icon-brick-on.png'),
+		    require('../assets/icon-core.png'),
+		    require('../assets/icon-flag.png'),
 		],
 	},
 	CONFIG:{
 		initGameData: {
 			day: 1,
-			guard: 0, // 警戒值 0-1000000
 			mapList: [], // 所有地图数据数组
 			wantedList: [], // 悬赏榜
 			x: 0, // 主角技能经验（0-10000）
@@ -552,7 +561,6 @@ module.exports = {
 ∷⊕▓▣▦░↔†✉◘◙
 game = {
 	day: 1,
-	guard: 0, // 警戒值 0-1000000
 	mapList: [], // 所有地图数据数字
 	wantedList: [], // 悬赏榜
 	x: 370, // 主角技能经验

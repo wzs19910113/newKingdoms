@@ -140,6 +140,12 @@
 .btn-cdot-3::after{
     content: '3';
 }
+.btn-cdot-4::after{
+    content: '4';
+}
+.btn-cdot-5::after{
+    content: '5';
+}
 .btn-ban::after{
     color: #777;
 }

@@ -1,9 +1,10 @@
 <template>
-    <div class="main" v-if="game">
+    <div class="main" v-if="battle">
         <!--作弊-->
         <!-- <nut-drag direction="y" :style="{right:'0px',top:'75px',zIndex:'200'}" v-if="DEBUG">
             <a class="btn touch-dom" @click="onTapCheat">cheat</a>
         </nut-drag> -->
+
         <!--页面内容-->
         <div class="panel">
             <div class="body" v-if="pageState!=0">
@@ -125,7 +126,6 @@ import Skill from '../components/Skill';
 import Attack from '../components/Attack';
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
-import Bar4 from '../components/Bar4';
 import Buff from '../components/Buff';
 import Ani from '../components/Ani';
 import Pop from '../components/Pop';
@@ -156,7 +156,28 @@ const INIT_CHANGES = {
 window.GLOBAL.battle = { // 输入：战斗参数
     mode: 4, // 战斗模式 【 1：普通|2：BOSS|3：切磋|4：营地 】
     field: 1, // 战场 1-9
-    map: {}, // 当前所在地图数据
+    map: { // 当前所在地图数据
+        id: 101,
+        level: 2,
+        name: '地图名字',
+        size: 5,
+        type: 2,
+        links: [],
+        bosses: [],
+        floors: [],
+        guard: 17,
+        conquered: false,
+
+        cellList: [{ // 单元格数据数组
+            id: 1,
+            show: false,
+            flag: true,
+            core: false,
+            marked: false, // 是否显示路标或核心标识
+            enemy: 0, // 0无敌人 1+敌人数量
+        },...],
+        tempGame: {...}, 游戏数据样本
+    },
     playerTeamIds: [],
     enemyTeamIds: [],
 }
@@ -211,7 +232,6 @@ export default {
                 {name:'撤离',desc:'敌人攻击命中会打断'},
             ],
 
-            game: null,
             battle: null,
 
             field: 0,
@@ -245,14 +265,14 @@ export default {
     },
     mounted(){
         let _nus = [];
-       //  _nus.push(common.genUnitData({id:1,name:'赵日天',age:20,gender:1,level:1,tms:1,rel:3,game:this.game,}));
-       //  _nus.push(common.genUnitData({id:2,gender:2,tms:2,level:1,inten:1,rel:3,game:this.game,}));
-       //  _nus.push(common.genUnitData({id:3,tms:3,level:1,inten:2,rel:3,game:this.game,}));
-       //  _nus.push(common.genUnitData({id:4,tms:4,level:1,inten:3,rel:3,game:this.game,}));
-       //  _nus.push(common.genUnitData({id:11,gender:1,level:9,inten:0,game:this.game,}));
-       //  _nus.push(common.genUnitData({id:12,gender:1,level:9,inten:0,game:this.game,}));
-       //  _nus.push(common.genUnitData({id:13,gender:2,level:9,inten:0,game:this.game,}));
-       //  _nus.push(common.genUnitData({id:14,gender:2,level:9,inten:0,game:this.game,}));
+       //  _nus.push(common.genUnitData({id:1,name:'赵日天',age:20,gender:1,level:1,tms:1,rel:3,game:this.battle.tempGame,}));
+       //  _nus.push(common.genUnitData({id:2,gender:2,tms:2,level:1,inten:1,rel:3,game:this.battle.tempGame,}));
+       //  _nus.push(common.genUnitData({id:3,tms:3,level:1,inten:2,rel:3,game:this.battle.tempGame,}));
+       //  _nus.push(common.genUnitData({id:4,tms:4,level:1,inten:3,rel:3,game:this.battle.tempGame,}));
+       //  _nus.push(common.genUnitData({id:11,gender:1,level:9,inten:0,game:this.battle.tempGame,}));
+       //  _nus.push(common.genUnitData({id:12,gender:1,level:9,inten:0,game:this.battle.tempGame,}));
+       //  _nus.push(common.genUnitData({id:13,gender:2,level:9,inten:0,game:this.battle.tempGame,}));
+       //  _nus.push(common.genUnitData({id:14,gender:2,level:9,inten:0,game:this.battle.tempGame,}));
        //  window.GLOBAL = {};
        //  window.GLOBAL.game = {
        //  	money: 1000,
@@ -465,8 +485,7 @@ export default {
        //      let skill = window.GLOBAL.game.allSkills[i];
        //      skill.v = common.calcSkillValue(skill);
        //  }
-        if(window.GLOBAL&&window.GLOBAL.game&&window.GLOBAL.battle){
-            this.game = window.GLOBAL.game;
+        if(window.GLOBAL&&window.GLOBAL.battle){
             this.battle = window.GLOBAL.battle;
             this.init();
         }
@@ -485,9 +504,9 @@ export default {
             let playerTeam = [], enemyTeam = [];
             let unitAction = (ids,team) => {
                 for(let unitId of ids){
-                    let unit = getMatchList(this.game.allUnits,[['id',unitId]])[0];
+                    let unit = getMatchList(this.battle.map.tempGame.allUnits,[['id',unitId]])[0];
                     if(unit){
-                        let btd = common.getUnitBtd(unit,this.game); // 获取单位战斗数据
+                        let btd = common.getUnitBtd(unit,this.battle.map.tempGame); // 获取单位战斗数据
                         let _unit = cloneObj(unit);
                         _unit.btd = btd;
                         team.push(_unit);
@@ -1982,7 +2001,6 @@ export default {
         Attack,
         Bar1,
         Bar2,
-        Bar4,
         Buff,
         Ani,
         Pop,

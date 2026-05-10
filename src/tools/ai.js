@@ -58,9 +58,11 @@ export function genAction({unit,meTeam,youTeam,isFleeing,}){ // 生成 AI 动作
             let btd = action.caster.btd;
             let effect = getMatchList(el,[['t',9]])[0];
             let consumeRate = c/(btd.eng[0]+btd.phy[0]);
-            let dmgRate = effect.d.d/10000*.25;
-            if(t==3&&effect&&consumeRate<dmgRate){
-                traceSkillActionList.push(action);
+            if(effect){
+                let dmgRate = effect.d.d/10000*.25;
+                if(t==3&&effect&&consumeRate<dmgRate){
+                    traceSkillActionList.push(action);
+                }
             }
         }
     }

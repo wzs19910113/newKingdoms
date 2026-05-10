@@ -5,10 +5,10 @@
             <a class="btn touch-dom" @click="onTapCheat">cheat</a>
         </nut-drag> -->
         <!-- 主体 -->
-        <div class="panel" v-if="loading">
+        <div class="panel" v-if="loadingResources">
             <div class="panel-loading">加载中...</div>
         </div>
-        <div class="panel" v-if="!loading">
+        <div class="panel" v-if="!loadingResources">
             <!-- 顶部栏位 -->
             <div class="banner-wrap">
                 <div class="day">
@@ -36,7 +36,13 @@
             </div>
             <!-- 地牢页面 -->
             <div class="page" v-if="state==2">
-
+                <Dungeon class="bg-pic-fade" :map="map"
+                    :onTapGuard="onTapGuard"
+                    :onTapCell="onTapCell"
+                    :onTapLeave="onTapLeaveDungeon"
+                    :onTapCore="onTapDungeonCore"
+                    :onTapResident="onTapResident"
+                />
             </div>
             <!-- 啤酒按钮 -->
             <a class="beer" v-if="state==1" @click="onTapBeer()">
@@ -61,8 +67,8 @@
                 </draggable>
             </div>
             <!-- 背景 -->
-            <div class="bg" v-if="!loading">
-                <img class="bg-pic" :src="require(`../assets/${calcBgName()}.png`)" />
+            <div class="bg" v-if="!loadingResources">
+                <img class="bg-pic" :class="state==2?'bg-pic-fade':''" :src="require(`../assets/${calcBgName()}.png`)" />
             </div>
         </div>
         <!-- 单位浏览弹窗 -->
@@ -133,7 +139,7 @@
             </div>
         </Pop>
         <!-- 酒馆 -->
-        <div class="pop-tarven" :class="showTarven?'pop-tarven-expand':''" v-if="!loading">
+        <div class="pop-tarven" :class="showTarven?'pop-tarven-expand':''" v-if="!loadingResources">
             <SwipeTabs class="tarven-tabs-wrap" ref="tarven-wrap" :tabs="[{label:`商人酒保·${(bartender||{}).nm}`,},{label:`大厅（${inmateList.length}）`},{label:`悬赏榜`,}]">
                 <!-- 商人酒保 -->
                 <template #tab-0>
@@ -238,6 +244,7 @@ import Equip from '../components/Equip';
 import Skill from '../components/Skill';
 import Toast from '../components/Toast';
 import Pop from '../components/Pop';
+import Dungeon from '../components/Dungeon';
 import SwipeTabs from '../components/SwipeTabs';
 import Cover from '../components/Cover';
 import EquipList from '../components/EquipList';
@@ -261,11 +268,11 @@ export default {
     name: 'Home',
     data(){
         return {
-            loading: true,
+            loadingResources: true,
+            banReactive: false,
             state: 0, // 1村落 2地牢
 
             game: {},
-            map: {},
 
             team: [],
             me: null,
@@ -297,6 +304,32 @@ export default {
 
             unitDraggable: false,
 
+            /*  地图数据
+                map = {
+                    bosses: [],
+                    conquered: false,
+                    floors: [],
+                    id: 102,
+                    level: 1,
+                    links: [],
+                    name: `活死人墓穴`,
+                    size: 4,
+                    type: 2,
+
+                    cellList: [{ // 单元格数组
+                        id: 1,
+                        show: false,
+                        flag: true,
+                        core: false,
+                        marked: false, // 是否显示路标或核心标识
+                        enemy: 0, // 0无敌人 1+敌人数量
+                    },...],
+                    guard: 19, // 警戒值 0-100
+                }
+            */
+            map: {},
+            tempGame: null,
+
             common,
             ASSETS,
             CONFIG,
@@ -314,6 +347,7 @@ export default {
             if(_storage){
                 let storage = JSON.parse(_storage);
                 this.game = storage;
+                window.GLOBAL.game = this.game;
                 loadImages(ASSETS.image_urls).then(images=>{
                     this._alert(`成功加载 ${images.length} 张图片`);
                     this.init();
@@ -345,7 +379,7 @@ export default {
                 }
                 this.viewingUnit = this.me;
                 this.state = this.map.type;
-                this.loading = false;
+                this.loadingResources = false;
                 console.log(this.game);
             });
         },
@@ -378,6 +412,7 @@ export default {
             let navis = [];
             let conqueredIDList = [];
             let conqueres = [];
+            // let conqueres = [101,102,103,104,105,106,107,108,109,110];
             // 获取已攻克地图的ID数组
             for(let map of this.game.mapList){
                 if(arrContains(map.flagMarks,0)==-1){
@@ -567,7 +602,7 @@ export default {
                 this.asynBartender();
             }
         },
-        goBattle({mode=1,playerTeamIds=[],enemyTeamIds=[]}){ // 进入战斗
+        goBattle({mode=1,playerTeamIds=[],enemyTeamIds=[],game=cloneObj(this.game)}){ // 进入战斗
             let field;
             if(mode<3){
                 field = this.map.id-101;
@@ -575,7 +610,7 @@ export default {
             else{
                 field = 0;
             }
-            window.GLOBAL.game = this.game;
+            this.map.tempGame = cloneObj(game);
             window.GLOBAL.battle={
                 mode, // 战斗模式【1:普通|2：BOSS|3：切磋|4：营地】
                 field, // 战场 0-9
@@ -735,6 +770,7 @@ export default {
         },
 
         onTapUnit(unit){ // 点击【单位】
+            if(this.banReactive) return;
             if(this.selectingUnit&&this.movingEquipList.length>0){ // 如果正在转移装备
                 if(unit.id!=this.selectingUnit.id){ // 点击的不是本人
                     this.moveEquipList(unit,this.selectingUnit,this.movingEquipList);
@@ -767,12 +803,14 @@ export default {
             }
         },
         onTapInmate(unit){ // 点击【酒馆客人】
+            if(this.banReactive) return;
             let btd = common.getUnitBtd(unit,this.game);
             this.selectingUnit = unit;
             this.selectingUnit.btd = btd;
             this.showUnitPop = true;
         },
         onTapSkill(data){ // 点击【技能】
+            if(this.banReactive) return;
             let { flag, skill, buffId, buffLevel, text, } = data;
             if(flag==1){ //
 
@@ -785,6 +823,7 @@ export default {
             }
         },
         onTapEquip(data){ // 点击【装备】
+            if(this.banReactive) return;
             let { flag, equip, buffId, buffLevel, sp, spLevel, } = data;
             if(flag==1){ //
                 // console.log(equip);
@@ -797,18 +836,22 @@ export default {
             }
         },
         onTapBuff(id,level){ // 点击【buff】
+            if(this.banReactive) return;
             let buff = getMatchList(BUFF_LIST,[['id',id]])[0]||{};
             this._alert(`给予目标：${buff.name}（强度${level}）- ${buff.desc}`,5);
         },
         onTapBrand(){ // 点击【标牌】
+            if(this.banReactive) return;
             this.showTarven = false;
         },
         onTapBeer(){ // 点击【啤酒】
+            if(this.banReactive) return;
             this.showTarven = !this.showTarven;
             this.selling = this.showTarven;
             this.showUnitPop = false;
         },
         onTapSwitchMember(equip){ // 点击【切换队员】
+            if(this.banReactive) return;
             let index;
             if(this.viewingUnit&&this.viewingUnit.id){
                 for(let i=0;i<this.team.length;i++){
@@ -825,11 +868,68 @@ export default {
             this.setViewingUnit(this.team[index]);
         },
         onTapNavi(navi){ // 点击【导航】
-            this.map = navi;
+            if(this.banReactive) return;
+            let { id, size, floors, } = navi;
+            let { flagIndexes, flagMarks, coreIndex, coreMark, } = getMatchList(this.game.mapList,[['id',id]])[0];
+            let map = cloneObj(navi);
+            /*  地图数据
+                map = {
+                    bosses: [],
+                    conquered: false,
+                    floors: [],
+                    id: 102,
+                    level: 1,
+                    links: [],
+                    name: `活死人墓穴`,
+                    size: 4,
+                    type: 2,
+
+                    cellList: [{ // 单元格数组
+                        id: 1,
+                        show: false,
+                        flag: true,
+                        core: false,
+                        marked: false, // 是否显示路标或核心标识
+                        enemy: 0, // 0无敌人 1+敌人数量
+                    },...],
+                    guard: 19, // 警戒值 0-100
+                }
+            */
+
+            // 生成 cellList
+            let cellCount = size*size, cellList = [];
+            for(let i=0;i<cellCount;i++){
+                let newCell = {
+                    id: i+1,
+                    show: false,
+                }
+                let flagIndex = arrContains(flagIndexes,i);
+                if(flagIndex!=-1){ // 路标
+                    newCell.flag = true;
+                    if(flagMarks[flagIndex]){
+                        newCell.marked = true;
+                    }
+                }
+                if(coreIndex==i){ // 核心
+                    newCell.core = true;
+                    if(coreMark){
+                        newCell.marked = true;
+                    }
+                }
+                if(r(0,1)){ // 敌人
+                    newCell.enemy = r(1,navi.level==1?3:4);
+                }
+                cellList.push(newCell);
+            }
+
+            map.cellList = cellList;
+            map.guard = 0;
+            this.map = map;
             this.state = 2;
         },
 
         onTapTransferMoney(){ // 点击【转移金币】
+            if(this.banReactive) return;
             if(this.selectingUnit.g<1||this.team.length<2){
                 this._alert(`无法转移`);
             }
@@ -839,9 +939,11 @@ export default {
             }
         },
         onTapArrowPop(){ // 点击【弹窗-箭头】
+            if(this.banReactive) return;
             this.popUnitTab = [2,3,1,][this.popUnitTab-1];
         },
         onTapViewingBodyEquip(equipIndex){ // 点击【弹窗-单位-已着装备】
+            if(this.banReactive) return;
             let equip = this.selectingUnit.btd.equipList[equipIndex];
             if(equip&&equip.id){
                 this.selectingUnitBodyEquipIndex = (this.selectingUnitBodyEquipIndex!=-1)?-1:equipIndex;
@@ -859,16 +961,19 @@ export default {
             }
         },
         onTapAllMoneyTransfer(){ // 点击【弹窗-金币转移-全部】
+            if(this.banReactive) return;
             this.transferringMoney = this.selectingUnit.g;
         },
 
         onTapEquipOff(equip,unit){ // 点击【卸下装备】
+            if(this.banReactive) return;
             if(this.selectingUnitBodyEquipIndex>=0){
                 this.selectingUnitBodyEquipIndex = -1;
             }
             this.equipOff(equip,unit);
         },
         onTapAllEquipOff(unit){ // 点击【全卸下】
+            if(this.banReactive) return;
             let equipList = unit.es;
             if(this.selectingUnitBodyEquipIndex>=0){
                 this.selectingUnitBodyEquipIndex = -1;
@@ -881,17 +986,21 @@ export default {
             }
         },
         onTapEquipOn(equip,unit,seq){ // 点击【装上装备】
+            if(this.banReactive) return;
             this.equipOn(equip,unit,seq);
         },
         onTapMoveEquip(equip){ // 点击【转移装备】
+            if(this.banReactive) return;
             this.movingEquipList = [equip];
             this.coverTip = `请选择转移目标：`;
         },
         onTapMoveBag(equipList){ // 点击【全转移】
+            if(this.banReactive) return;
             this.movingEquipList = equipList;
             this.coverTip = `共 ${equipList.length} 件装备，请选择转移目标：`;
         },
         onTapSellEquip(equip,seller){ // 点击【售卖装备】
+            if(this.banReactive) return;
             let oSeller = getMatchList(this.game.allUnits,[['id',seller.id]])[0];
             let buyer = this.bartender;
             let price = common.getSellPrice(equip);
@@ -903,6 +1012,7 @@ export default {
             this._alert(`已售卖 ${equip.n}`);
         },
         onTapSellBag(equipList,seller){ // 点击【全售卖】
+            if(this.banReactive) return;
             this._confirm(`确定要售卖全部（共 ${equipList.length} 个）装备吗？`,_=>{
                 let oSeller = getMatchList(this.game.allUnits,[['id',seller.id]])[0];
                 let buyer = this.bartender;
@@ -916,6 +1026,7 @@ export default {
             });
         },
         onTapBuyEquip(equip,price,seller,buyer){ // 点击【购买装备】
+            if(this.banReactive) return;
             let money = buyer.g;
             if(money>=price){
                 let oBuyer = getMatchList(this.game.allUnits,[['id',buyer.id]])[0];
@@ -934,16 +1045,19 @@ export default {
             // console.log(`点击【购买装备】`,equip,price,seller,buyer);
         },
         onTapLogout(){ // 点击【销号】
+            if(this.banReactive) return;
             this._confirm(`确定删除本次游戏所有存档吗？`,_=>{
                 this.logout();
             });
         },
         onTapChallenge(unit){ // 点击【单挑】
+            if(this.banReactive) return;
             let playerTeamIds = [this.me.id];
             let enemyTeamIds = [unit.id];
             this.goBattle({mode:3,playerTeamIds,enemyTeamIds,});
         },
         onTapHire(unit){ // 点击【雇佣】
+            if(this.banReactive) return;
             let employer = getMatchList(this.game.allUnits,[['id',this.viewingUnit.id]])[0];
             let oUnit = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
             let price = unit.btd.price;
@@ -959,6 +1073,7 @@ export default {
             }
         },
         onTapJoinTeam(unit){ // 点击【入队】
+            if(this.banReactive) return;
             let oUnit = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
             if(this.team.length<4){
                 oUnit.rel = 3;
@@ -972,6 +1087,7 @@ export default {
             }
         },
         onTapLeavTeam(unit){ // 点击【离队】
+            if(this.banReactive) return;
             let oUnit = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
             oUnit.rel = 2;
             if(this.viewingUnit.id==unit.id){
@@ -983,9 +1099,11 @@ export default {
             this.asynInmates();
         },
         onTapChatButton(){ // 点击【聊天】
+            if(this.banReactive) return;
             this.coverTip = `酒保：`+CONFIG.bartenderChats[r(0,CONFIG.bartenderChats.length-1)];
         },
         onTapRestButton(){ // 点击【住宿】
+            if(this.banReactive) return;
             this._confirm(`是否消耗 1 天的时间休息，完全恢复生命和精力？`,_=>{
                 this.dayPass();
                 for(let unit of this.game.allUnits){
@@ -998,6 +1116,7 @@ export default {
             });
         },
         onTapSellButton(){ // 点击【当卖】
+            if(this.banReactive) return;
             this.showUnitPop = true;
             let viewingUnit = this.viewingUnit||this.me;
             this.setViewingUnit(viewingUnit,true,_=>{
@@ -1005,6 +1124,7 @@ export default {
             });
         },
         onTapCheckWanted(wanted){ // 点击【领取赏金】
+            if(this.banReactive) return;
             let oWanted = getMatchList(this.game.wantedList,[['id',wanted.id]])[0];
             if(oWanted&&oWanted.s==3){
                 let award = oWanted.g;
@@ -1015,6 +1135,7 @@ export default {
             }
         },
         onTapXPointBar(){ // 点击【灵感进度条】
+            if(this.banReactive) return;
             if(this.game.xp<=0){
                 this._alert(`每次战斗后积累，槽满后可复制队友的一个技能`,5);
             }
@@ -1023,6 +1144,7 @@ export default {
             }
         },
         onTapXPoint(){ // 点击【灵感进度数字】
+            if(this.banReactive) return;
             let skillCopyList = [];
             if(this.team.length<2){
                 this._alert(`没有队友`);
@@ -1047,6 +1169,7 @@ export default {
             }
         },
         onTapCopySkill({flag,data,}){ // 点击【复制技能】
+            if(this.banReactive) return;
             let skill = data;
             if(flag!=1){
                 return;
@@ -1075,26 +1198,32 @@ export default {
             });
         },
         onTapBonfire(){ // 点击【营地】
+            if(this.banReactive) return;
             let playerTeamIds = Array.from(this.team,unit=>{
                 return unit.id;
             });
             this.goBattle({mode:4,playerTeamIds,});
         },
         onTapClosePop(){ // 点击【弹窗-关闭】
+            if(this.banReactive) return;
             this.resetViewingUnitPopData();
             this.showGuide = false;
         },
 
         onTapGear(){ // 点击【齿轮】
+            if(this.banReactive) return;
             this.showGearPop = !this.showGearPop;
         },
         onTapSave(){ // 点击【齿轮-存档】
+            if(this.banReactive) return;
             this.save(1);
         },
         onTapGuide(){ // 点击【齿轮-指引】
+            if(this.banReactive) return;
             this.showGuide = !this.showGuide;
         },
         onTapExit(){ // 点击【齿轮-回到主界面】
+            if(this.banReactive) return;
             if(this.state==2){
                 this._confirm(`游戏数据将回到上一次存档，确定退出吗？`,_=>{
                     this.$router.push('/');
@@ -1105,11 +1234,74 @@ export default {
             }
         },
         onTapCover(){ // 点击【遮罩层】
+            if(this.banReactive) return;
             this.coverTip = ``;
             this.movingEquipList = [];
             this.transferringMoney = 0;
             this.showMoneyTrasferCover = false;
         },
+
+        /* 地牢 */
+        onTapGuard(){ // 点击【警戒栏位】
+            if(this.banReactive) return;
+            this._alert(`警戒值越高，敌人越强大，装备掉落率也越高`,5);
+        },
+        onTapCell(cell){ // 点击【单元格】
+            if(this.banReactive) return;
+            cell.show = true;
+            if(cell.enemy){
+                let playerTeamIds = Array.from(this.team,unit=>{
+                    return unit.id;
+                });
+                // 生成随机敌人数据（unit, equips, skills），并保存至 battle.tempGame 中
+                let enemyTeamIds = [];
+                let { guard, floors, } = this.map;
+                let tempGame = cloneObj(this.game);
+                let guardLevel = common.calcGuardLevel(this.map);
+                let enemyList = [];
+                for(let i=0;i<cell.enemy;i++){
+                    let enemy = common.genUnit({
+                        id: tempGame.unitIndex++,
+                        game: tempGame,
+                        level: this.map.level,
+                        inten: r(0,guardLevel),
+                        equipList: tempGame.allEquips,
+                        skillList: tempGame.allSkills,
+                    });
+                    enemyList.push(enemy);
+                }
+                for(let enemy of enemyList){
+                    let newEnemy = common.registerUnit({
+                        unit: enemy,
+                        game: tempGame,
+                        equipList: tempGame.allEquips,
+                        skillList: tempGame.allSkills,
+                    });
+                    common.recoverUnit(newEnemy,tempGame);
+                    enemyTeamIds.push(newEnemy.id);
+                }
+                console.log(`tempGame=`,tempGame);
+
+                this.banReactive = true;
+                setTimeout(_=>{
+                    this.banReactive = false;
+                    this.goBattle({playerTeamIds,enemyTeamIds,game:tempGame});
+                },400);
+            }
+        },
+        onTapLeaveDungeon(){ // 点击【离开地牢】
+            if(this.banReactive) return;
+
+        },
+        onTapDungeonCore(){ // 点击【进入核心】
+            if(this.banReactive) return;
+
+        },
+        onTapResident(){ // 点击【解救居民】
+            if(this.banReactive) return;
+
+        },
+
 
         _alert(text,time){ // 显示提示
             this.$refs['toast-alert'].trigger(text,time);
@@ -1146,6 +1338,7 @@ export default {
         Avatar,
         draggable,
         Pop,
+        Dungeon,
         Cover,
     },
 }

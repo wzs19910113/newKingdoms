@@ -1453,6 +1453,16 @@ export function calcDodgeRate(dodge){ // 计算躲避因素
 export function isCrumble(unit){ // 判断是否已心理崩溃
     return unit.btd.mdef<=0;
 }
+export function calcGuardLevel(map){ // 计算警戒等级
+    let res = 0;
+    let guard = map.guard;
+    for(let i=0;i<map.floors.length;i++){
+        if(guard>=map.floors[i].thresGuard){
+            res += 1;
+        }
+    }
+    return res;
+}
 
 /* ---------------------------- 战斗相关 ---------------------------- */
 export function calcConsume({type,unit,data,}){ // 计算体力消耗 type 1攻击 2技能 3防御 4躲避 5追踪 6调息 7集气 8爆气 9话术 10撤离

@@ -1,7 +1,7 @@
 <template>
     <a class="bar-wrap" @click.stop="_onTap">
-        <div class="bar" :class="{'bar-x-wrap':type==4,}">
-            <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2,'bar-flee':type==3,'bar-x':type==4,}" :style="{width:`${calcBarLength()}%`}">
+        <div class="bar" :class="{'bar-x-wrap':type==4,'bar-guard-wrap':type==5,}">
+            <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2,'bar-flee':type==3,'bar-x':type==4,'bar-guard':type==5,}" :style="{width:`${calcBarLength()}%`}">
                 <div class="bar-full-bg" v-if="type==4"></div>
             </div>
             <div class="bar-label">
@@ -26,7 +26,7 @@ export default {
     props:{
         title: String,
         suffix: String,
-        type: Number, // [1：生命值|2：精力|3：逃跑|4：技能经验]
+        type: Number, // [1：生命值|2：精力|3：逃跑|4：技能经验|5：警戒值]
         mode: { // 模式 1简约 2详细 3不显示数字
             type: Number,
             default: 1,
@@ -107,6 +107,9 @@ export default {
     .bar-x{
         background-image: radial-gradient(closest-corner, #816CBD 0%, #614C8D 100%);
     }
+    .bar-guard{
+        background-image: radial-gradient(closest-corner, #CD812C 0%, #A25108 100%);
+    }
     .bar-label{
         position: absolute;
         display: flex;
@@ -163,6 +166,12 @@ export default {
         margin: auto;
         justify-content: center;
         align-items: center;
+    }
+    .bar-guard-wrap .bar-label{
+        left: .2rem;
+        bottom: 0;
+        top: 0;
+        margin: auto;
     }
     /* bg floating */
     .bar-full-bg{
