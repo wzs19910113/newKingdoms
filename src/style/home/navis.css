@@ -1,7 +1,7 @@
 .nav-wrap{
     position: absolute;
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     align-items: center;
     flex-direction: column;
     top: 1.2rem;
@@ -24,6 +24,7 @@
     border-bottom: .06rem solid #aaa;
     box-shadow: 0 0 .4rem .1rem #000;
     overflow: hidden;
+    margin-bottom: .22rem;
     /* margin-bottom: .25rem; */
 }
 

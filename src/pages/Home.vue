@@ -138,6 +138,28 @@
                 <div class="skill-empty" v-else>没有技能</div>
             </div>
         </Pop>
+        <!-- 结算弹窗 -->
+        <div class="pop-checkout" v-if="award.show" @click="onTapClosePop">
+            <div class="checkout-shadow">
+                <div class="light"></div>
+            </div>
+            <div class="row row-title">
+                ◆◆◆◆ 战斗结算 ◆◆◆◆
+            </div>
+            <div class="row row-money">
+                <label class="title">获得金币：</label>
+                <span class="value money" v-html="`${common.moneyFormat(award.gold)} $`"></span>
+            </div>
+            <div class="row row-equips" v-if="award.equipList.length>0">
+                <label class="title">获得装备（{{award.equipList.length}}）：</label>
+                <div class="row-equips-wrap">
+                    <div class="equip" :class="`${equip.t==1?'weapon':''}`" v-for="equip of award.equipList">
+                        <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
+                        <span class="name">{{equip.n}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- 酒馆 -->
         <div class="pop-tarven" :class="showTarven?'pop-tarven-expand':''" v-if="!loadingResources">
             <SwipeTabs class="tarven-tabs-wrap" ref="tarven-wrap" :tabs="[{label:`商人酒保·${(bartender||{}).nm}`,},{label:`大厅（${inmateList.length}）`},{label:`悬赏榜`,}]">
@@ -281,6 +303,24 @@ export default {
             bartender: null, // 商人酒保单位
             inmateList: [], // 酒馆大厅单位数组
 
+            award: { // 战斗结算奖励数据
+                show: false,
+                gold: 0,
+                guard: 0,
+                equipList: [],
+                // show: true,
+                // gold: 47864,
+                // guard: 0,
+                // equipList: [
+                //     {t:1,n:'隆力奇'},
+                //     {t:2,n:'蛇油膏帽子'},
+                //     {t:3,n:'蛇油膏衣服'},
+                //     {t:1,n:'超级隆力奇'},
+                //     {t:4,n:'高温戒指'},
+                //     {t:5,n:'愚蠢鞋子'},
+                // ],
+            },
+
             popUnitTab: 1,
             viewingUnit: null, // 浏览者，只能是团队中的人
             selectingUnit: null, // 被浏览者，可以是团队中的人，也可以是NPC
@@ -359,29 +399,29 @@ export default {
         }
     },
     methods: {
-        init(){ // 初始化
+        init(ignoreBattleResult){ // 初始化
             // 如果从战斗场景回来，则先处理战斗结果数据
-            if(window.GLOBAL.battleResult){
+            if(!ignoreBattleResult&&window.GLOBAL.battleResult){
                 this.battleResultProcess(window.GLOBAL.battleResult);
                 window.GLOBAL.battleResult = null;
             }
+            // 根据战斗结果数据决定地图
+            if(!(this.map&&this.map.id)){
+                this.map = getMatchList(CONFIG.mapConfigs,[['id',101]])[0]; // 龙虾村
+            }
             // 初始化本地数据
-            this.$nextTick(_=>{
-                if(!(this.map&&this.map.id)){
-                    this.map = getMatchList(CONFIG.mapConfigs,[['id',101]])[0]; // 龙虾村
-                }
-                this.asynTeam();
-                if(this.map.type==1){ // 如果当前位于村落
-                    this.asynBartender();
-                    this.asynInmates();
-                    this.initNavis();
-                    this.asynWanted();
-                }
-                this.viewingUnit = this.me;
-                this.state = this.map.type;
-                this.loadingResources = false;
-                console.log(this.game);
-            });
+            this.asynTeam();
+            if(this.map.type==1){ // 如果当前位于村落
+                this.asynBartender();
+                this.asynInmates();
+                this.initNavis();
+                this.asynWanted();
+            }
+            this.state = this.map.type;
+            this.viewingUnit = this.me;
+            this.loadingResources = false;
+
+            console.log(this.game);
         },
         save(showAlert){ // 保存数据到 local
             let storage = this.game;
@@ -453,6 +493,10 @@ export default {
             // for(let i=0;i<this.navis.length;i++){
             //     console.log(this.navis[i].name,this.navis[i].id,this.navis[i].conquered);
             // }
+        },
+        backToShrimp(){ // 回到龙虾村
+            this.map = getMatchList(CONFIG.mapConfigs,[['id',101]])[0];
+            this.init(true);
         },
         asynTeam(){ // 同步 team 数据到 home，并重新计算每个单位的 btd
             let team = [];
@@ -660,9 +704,45 @@ export default {
                         let oUnit = getMatchList(this.game.allUnits,[['id',player.id]])[0];
                         oUnit.g = 0;
                     }
+                    // 惩罚：回到龙虾村
+                    this.backToShrimp();
                 }
                 else if(result==1){ // 获胜
-                    // 奖励金币和随机装备 @todo
+                    let oMe = getMatchList(this.game.allUnits,[['id',101]])[0];
+                    // 改变地图数据
+                    let cell = this.map.cellList[this.map.curCellIndex];
+                    cell.enemy = 0;
+                    // 奖励金币、随机装备和警戒值
+                    let award = {
+                        show: true,
+                        gold: 0,
+                        guard: 0,
+                        equipList: [],
+                    }
+                    for(let enemyUnit of enemyTeam){
+                        // 金币
+                        award.gold += Math.ceil(enemyUnit.btd.score*.075);
+                        // 警戒值
+                        let floor = this.map.floors[enemyUnit.it];
+                        award.guard += floor.guard;
+                        // 服饰装备
+                        if(enemyUnit.it<=0&&r(1,100)<this.map.guard){
+                            let newEquip = common.genEquipData({game:this.game,level:enemyUnit.level,inten:enemyUnit.inten,type:r(2,5),});
+                            common.registerEquip({equip:newEquip,game:this.game,});
+                            award.equipList.push(newEquip);
+                        }
+                        // 武器
+                        if(enemyUnit.it>0){
+                            let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.level,inten:enemyUnit.inten,type:1,});
+                            common.registerEquip({equip:newWeapon,game:this.game,});
+                            award.equipList.push(newWeapon);
+                        }
+                    }
+                    this.map.guard += award.guard;
+                    oMe.g += award.gold;
+                    for(let equip of award.equipList){
+                        oMe.b.push(equip.id);
+                    }
                     // BOSS战
                     if(mode==2){
                         // 改变 wanted
@@ -673,6 +753,7 @@ export default {
                             }
                         }
                     }
+                    this.award = award;
                     // 屈服的敌人加入酒馆 @todo
                 }
                 else if(result==0){ // 离开营地
@@ -919,11 +1000,12 @@ export default {
                 if(r(0,1)){ // 敌人
                     newCell.enemy = r(1,navi.level==1?3:4);
                 }
+                // newCell.enemy = 4; //  @test
                 cellList.push(newCell);
             }
 
             map.cellList = cellList;
-            map.guard = 0;
+            map.guard = CONFIG.initGuard;
             this.map = map;
             this.state = 2;
         },
@@ -1208,6 +1290,12 @@ export default {
             if(this.banReactive) return;
             this.resetViewingUnitPopData();
             this.showGuide = false;
+            this.award = {
+                show: false,
+                gold: 0,
+                guard: 0,
+                equipList: [],
+            }
         },
 
         onTapGear(){ // 点击【齿轮】
@@ -1246,27 +1334,45 @@ export default {
             if(this.banReactive) return;
             this._alert(`警戒值越高，敌人越强大，装备掉落率也越高`,5);
         },
-        onTapCell(cell){ // 点击【单元格】
+        onTapCell(cell,index){ // 点击【单元格】
             if(this.banReactive) return;
             cell.show = true;
+            // 同步这张地图的路标与核心数据的标记状态
+            let gameMap = getMatchList(this.game.mapList,[['id',this.map.id]])[0];
+            for(let cellIndex=0;cellIndex<this.map.cellList.length;cellIndex++){
+                let tCell = this.map.cellList[cellIndex];
+                if(tCell.show){
+                    let flagMarkIndex = arrContains(gameMap.flagIndexes,cellIndex); //
+                    if(flagMarkIndex>-1){
+                        gameMap.flagMarks[flagMarkIndex] = 1;
+                    }
+                    if(gameMap.coreIndex==cellIndex){
+                        gameMap.coreMark = 1;
+                    }
+                }
+            }
+            // 如果有敌人
             if(cell.enemy){
                 let playerTeamIds = Array.from(this.team,unit=>{
                     return unit.id;
                 });
                 // 生成随机敌人数据（unit, equips, skills），并保存至 battle.tempGame 中
                 let enemyTeamIds = [];
-                let { guard, floors, } = this.map;
+                let { guard, level, floors, } = this.map;
                 let tempGame = cloneObj(this.game);
                 let guardLevel = common.calcGuardLevel(this.map);
                 let enemyList = [];
                 for(let i=0;i<cell.enemy;i++){
+                    let inten = r(0,guardLevel);
                     let enemy = common.genUnit({
                         id: tempGame.unitIndex++,
                         game: tempGame,
-                        level: this.map.level,
-                        inten: r(0,guardLevel),
+                        level,
+                        nickname: floors[inten].title,
+                        inten,
                         equipList: tempGame.allEquips,
                         skillList: tempGame.allSkills,
+                        isVagrant: this.map.id==102&&inten==0, // 流浪者没有装备
                     });
                     enemyList.push(enemy);
                 }
@@ -1280,7 +1386,7 @@ export default {
                     common.recoverUnit(newEnemy,tempGame);
                     enemyTeamIds.push(newEnemy.id);
                 }
-                console.log(`tempGame=`,tempGame);
+                this.map.curCellIndex = index;
 
                 this.banReactive = true;
                 setTimeout(_=>{
@@ -1291,7 +1397,9 @@ export default {
         },
         onTapLeaveDungeon(){ // 点击【离开地牢】
             if(this.banReactive) return;
-
+            this._confirm(`确定返回龙虾村吗？`,_=>{
+                this.backToShrimp();
+            });
         },
         onTapDungeonCore(){ // 点击【进入核心】
             if(this.banReactive) return;
@@ -1356,4 +1464,5 @@ export default {
     @import '../style/home/pop-board.css';
     @import '../style/home/pop-equip.css';
     @import '../style/home/pop-skill.css';
+    @import '../style/home/pop-checkout.css';
 </style>

@@ -2,7 +2,7 @@
     <a class="bar-wrap" @click.stop="_onTap">
         <div class="bar" :class="{'bar-x-wrap':type==4,'bar-guard-wrap':type==5,}">
             <div class="bar-full" :class="{'bar-hp':type==1,'bar-eng':type==2,'bar-flee':type==3,'bar-x':type==4,'bar-guard':type==5,}" :style="{width:`${calcBarLength()}%`}">
-                <div class="bar-full-bg" v-if="type==4"></div>
+                <div class="bar-full-bg" v-if="type==4||type==5"></div>
             </div>
             <div class="bar-label">
                 <span class="txt" v-if="title">{{title}}</span>

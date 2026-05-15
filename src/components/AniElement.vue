@@ -1161,7 +1161,7 @@ export default {
       const upwardDistance = -15 - 70 * easeIn;
 
       // 第一层：下坠光尘（白色/淡蓝色）
-      const dustCount = 60;
+      const dustCount = 10;
       for (let i = 0; i < dustCount; i++) {
         // 粒子水平位置（月牙下方区域）
         const x = (Math.random() - 0.5) * 70 * easeIn;
@@ -1182,7 +1182,7 @@ export default {
       }
 
       // 第二层：下坠拖尾粒子（带尾巴）
-      const tailCount = 45;
+      const tailCount = 5;
       for (let i = 0; i < tailCount; i++) {
         const x = (Math.random() - 0.5) * 65 * easeIn;
         const y = 10 + 60 * easeIn * Math.random();

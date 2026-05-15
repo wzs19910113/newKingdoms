@@ -430,6 +430,9 @@ export default {
                 this.$emit('onAnimationEnd');
             }
         },
+        resetResponseTrigger(){ // 重置responseTrigger
+            this.responseTriggerred = false;
+        },
     }
 }
 </script>

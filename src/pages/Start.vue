@@ -163,7 +163,7 @@ export default {
             let unit = common.genUnitData({
                 id: this.game.unitIndex++,
                 game: this.game,
-                level: 1,
+                level: 4,
                 gender: this.gender,
                 name: this.name,
                 age: this.age,
@@ -175,6 +175,8 @@ export default {
             let skill2Consume = 10+r(0,6);
             let melee = unit.as[4]>unit.as[5];
             let skill2Attack;
+            // unit.as[0] = 100000; // @test
+            // unit.st[0] = 100000; // @test
             if(melee){
                 skill2Attack = {
         			n: '挥砍',

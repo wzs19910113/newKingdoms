@@ -26,6 +26,8 @@
                             <i class="flashing flashing-right">{{boardSkill.n}}</i>
                         </div>
                         <a class="btn btn-start" v-if="pageState==1" @click="onTapStartBattle">开 始 战 斗</a>
+                        <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊2</a>
+                        <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊1</a>
                     </div>
                     <!-- 我方区域 -->
                     <div class="team-pan team-pan-bottom">
@@ -176,6 +178,7 @@ window.GLOBAL.battle = { // 输入：战斗参数
             marked: false, // 是否显示路标或核心标识
             enemy: 0, // 0无敌人 1+敌人数量
         },...],
+        curCellIndex: 4, // 当前所在单元格下标
         tempGame: {...}, 游戏数据样本
     },
     playerTeamIds: [],
@@ -698,7 +701,7 @@ export default {
                 this.menuData.extip = ``;
             }
             else{ // 人机
-                let unitAction = ai.genAction({unit,meTeam:this.enemyTeam,youTeam:this.playerTeam,isFleeing:this.isFleeing});
+                let unitAction = ai.genAction({unit,meTeam:this.enemyTeam,youTeam:this.playerTeam,isFleeing:this.isFleeing,mode:this.mode,});
                 // console.log(unitAction);
                 this.timerList.push(setTimeout(_=>{
                     this.unitAction(unitAction);
@@ -858,6 +861,8 @@ export default {
                 let curUnit = this.curUnitList[this.curUnitListIndex];
                 let oCurUnit = this.getUnit(curUnit.id);
                 // console.log(`单位回合结束`,curUnit.btd.name);
+                // 清除画布的 response trigger
+                this.$refs.ani&&this.$refs.ani.resetResponseTrigger();
                 // 清除当前行动者标识
                 oCurUnit.btd.cur = 0;
                 // 清除当前行动者冗余数据
@@ -885,7 +890,7 @@ export default {
                 }
             }
         },
-        battleEnd(result=0){ // 战斗结束 @todo
+        battleEnd(result=0){ // 战斗结束
             if(result==1){ // 获胜
                 this._alert(`获胜！`);
             }
@@ -905,7 +910,9 @@ export default {
                 roundCount: this.roundCount,
             };
             window.GLOBAL.battleResult = resultData;
-            this.$router.push('home');
+            this.timerList.push(setTimeout(_=>{
+                this.$router.push('home');
+            },1000));
         },
 
         /* 快捷功能 */
@@ -1531,6 +1538,8 @@ export default {
 
             caster.btd.changes.domAni = "cast";
 
+            console.log(skill.n,skill);
+
             // 施放者体力消耗
             let consume = common.calcConsume({type:1,unit:caster,data:skill,});
             this.consumeAction({consume,unit:caster,});
@@ -1965,8 +1974,9 @@ export default {
             this.playerTeam = oPlayerTeam;
             this.enemyTeam = oEnemyTeam;
         },
-        onTapCheat(){ // 点击【作弊】按钮
-            this.roundEnd();
+        onTapCheat(flag){ // 点击【作弊】按钮
+            this.battleEnd(flag);
+            // this.battleEnd(1);
         },
         onTapCanvas1(){
             let cUnit = this.playerTeam[3],tUnit = this.enemyTeam[2],t2Unit = this.enemyTeam[3];
@@ -2147,6 +2157,10 @@ export default {
         width: 24%;
         margin: 0 1%;
     }
+    .unit-info-pop .unit{
+        width: 100%;
+        margin: 0;
+    }
 
     /* 战场-board */
     .board-container{
@@ -2164,7 +2178,8 @@ export default {
         font-size: .24rem;
         color: #fff;
     }
-    .board-container .btn-start{
+    .board-container .btn-start,
+    .board-container .btn-cheat{
         position: relative;
         display: block;
         margin: 0 auto;
@@ -2183,6 +2198,19 @@ export default {
         to{
             transform: scale(1.05);
         }
+    }
+    .board-container .btn-cheat{
+        position: absolute;
+        right: .25rem;
+        width: 1rem;
+        height: .5rem;
+        line-height: .5rem;
+    }
+    .btn-cheat-1{
+        top: 0;
+    }
+    .btn-cheat-2{
+        top: .6rem;
     }
 
     /* time */

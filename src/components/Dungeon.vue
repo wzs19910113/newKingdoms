@@ -14,7 +14,7 @@
                     marked: false, // 是否显示路标或核心标识
                     enemy: 0, // 0无敌人 1+敌人数量
                 -->
-                <a class="btn-cell" :class="`${cell.show?'':'btn-cell-hide'}`" :style="calcCellPosition(cell,index)" v-for="(cell,index) of map.cellList" @click.stop="onTapCell(cell)">
+                <a class="btn-cell" :class="`${cell.show?'':'btn-cell-hide'}`" :style="calcCellPosition(cell,index)" v-for="(cell,index) of map.cellList" @click.stop="onTapCell(cell,index)">
                     <span class="ele flag" v-if="cell.flag&&(cell.show||cell.marked)">
                         <img :src="require(`../assets/icon-flag.png`)" />
                     </span>
@@ -23,6 +23,7 @@
                     </span>
                     <span class="ele enemy" v-if="cell.enemy&&cell.show"></span>
                     <div class="brick" :class="`${cell.show?`brick-flip`:``}`"></div>
+                    <!-- <div :style="{position:'absolute',zIndex:'100',color:'#fff'}">{{cell.enemy}}</div> -->
                 </a>
             </div>
         </div>

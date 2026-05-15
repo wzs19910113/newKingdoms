@@ -13,10 +13,10 @@ const BUFF_LIST = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
 const BENI_SKILL_EFFECT_LIST = [2,5,7,8,9,];
 const HARM_SKILL_EFFECT_LIST = [1,2,7,8,9,];
 const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添加状态 3减弱增益状态 4减弱减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感 】
-    3, // 攻击
+    993, // 攻击 @test
     1, // 添加状态
-    1, // 减弱增益状态 @test
-    1, // 减弱减益状态 @test
+    1, // 减弱增益状态
+    1, // 减弱减益状态
     2, // 治疗
     0, // 改变护甲
     1, // 改变潜能
@@ -219,12 +219,12 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
     let minAtk, maxAtk;
     let name,aniType;
     let spRange = []; // 特殊攻击效果范围
-    if(skillId){ // 用于技能
+    if(!isNaN(skillId)){ // 用于技能
         minAtk = CONFIG.skillAtkRangeMap[level-1][0];
         maxAtk = CONFIG.skillAtkRangeMap[level-1][1];
         rAllRatio = 1;
     }
-    else if(equipId){ // 用于武器
+    else if(!isNaN(equipId)){ // 用于武器
         minAtk = CONFIG.weaponAtkRangeMap[level-1][0];
         maxAtk = CONFIG.weaponAtkRangeMap[level-1][1];
         atkAll = !r(0,4);
@@ -350,12 +350,12 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     ];
 
     // 外在属性强化
-    hp = hp+cl(hp*pow(2.1,inten));
-    eng = eng+cl(eng*pow(1.5,inten));
-    phy = phy+cl(phy*pow(1.5,inten));
+    hp = cl(hp*pow(2.1,inten));
+    eng = cl(eng*pow(1.5,inten));
+    phy = cl(phy*pow(1.5,inten));
     if(isBoss){
-        ba[0] = hp+cl(hp*pow(1.7,inten));
-        ba[1] = eng+cl(eng*pow(1.6,inten));
+        ba[0] = cl(hp*pow(1.7,inten));
+        ba[1] = cl(eng*pow(1.6,inten));
     }
 
     // 内在属性强化
@@ -779,62 +779,64 @@ export function genRegisterTime({id,game,}){ // 根据单位ID生成注册时间
     return res;
 }
 
-export function genUnit({id,level=1,inten=0,rel,game,nickname='',equipList,skillList,isBoss=false,}){ // 生成一个完整的单位数据（带装备、背包和技能）
+export function genUnit({id,level=1,inten=0,rel,game,nickname='',equipList,skillList,isBoss=false,isVagrant=false}){ // 生成一个完整的单位数据（带装备、背包和技能）
     let unit = genUnitData({ id, level, inten, rel, nickname, isBoss, game, });
     let melee = unit.as[4]>unit.as[5];
-    // 配备装备·武器
-    let weaponCount = exptr(1,2,2);
-    for(let i=0;i<weaponCount;i++){
-        let newWeapon = genEquipData({ id:id*10000+i, type:1, level, inten, melee, game, });
-        unit.es[i] = newWeapon.id;
-        equipList.push(newWeapon);
-    }
-    // 配备装备·配饰
-    let accessoryCount = isBoss?2:exptr(0,2,1);
-    for(let i=0;i<accessoryCount;i++){
-        let newAccessroy = genEquipData({ id:id*10000+1000+i, type:4, level, inten, melee, game, });
-        unit.es[i+2] = newAccessroy.id;
-        equipList.push(newAccessroy);
-    }
-    // 配备装备·衣服
-    let newArmor = genEquipData({ id:id*10000+2000, type:3, level, melee, game, });
-    unit.es[4] = newArmor.id;
-    equipList.push(newArmor);
-    // 配备装备·头饰
-    let newHelmet;
-    if(r(1,100)<=70){
-        newHelmet = genEquipData({ id:id*10000+3000, type:2, level, melee, game, });
-        unit.es[5] = newHelmet.id;
-        equipList.push(newHelmet);
-    }
-    // 配备装备·鞋子
-    let newShoes;
-    if(r(1,100)<=95){
-        newShoes = genEquipData({ id:id*10000+4000, type:5, level, melee, game, });
-        unit.es[6] = newShoes.id;
-        equipList.push(newShoes);
-    }
-    // 配备背包
-    let itemCount = r(0,6)+exptr(0,3,3);
-    for(let i=0;i<itemCount;i++){
-        let newEquip = genEquipData({ id:id*10000+5000+i, type:r(1,5), level, melee, game, });
-        unit.b.push(newEquip.id);
-        equipList.push(newEquip);
-    }
-    // 配备技能
-    let skillCount = 4+exptr(0,2,2);
-    let lastSkillId;
-    for(let i=0;i<skillCount;i++){
-        let newSkill = genSkillData({ id:id*10000+i, level, melee, isBoss, game, });
-        unit.ss.push(newSkill.id);
-        skillList.push(newSkill);
-        lastSkillId = newSkill.id;
-    }
-    // 如果是boss，且等级>4，则添加追踪型技能
-    if(isBoss&&level>4){
-        let newSkill = genSkillData({ id:lastSkillId+1, level, melee, isBoss, game, isTrace:true, });
-        unit.ss.push(newSkill.id);
-        skillList.push(newSkill);
+    if(!isVagrant){ // 非游民
+        // 配备装备·武器
+        let weaponCount = exptr(1,2,2);
+        for(let i=0;i<weaponCount;i++){
+            let newWeapon = genEquipData({ id:id*10000+i, type:1, level, inten, melee, game, });
+            unit.es[i] = newWeapon.id;
+            equipList.push(newWeapon);
+        }
+        // 配备装备·配饰
+        let accessoryCount = isBoss?2:exptr(0,2,1);
+        for(let i=0;i<accessoryCount;i++){
+            let newAccessroy = genEquipData({ id:id*10000+1000+i, type:4, level, inten, melee, game, });
+            unit.es[i+2] = newAccessroy.id;
+            equipList.push(newAccessroy);
+        }
+        // 配备装备·衣服
+        let newArmor = genEquipData({ id:id*10000+2000, type:3, level, melee, game, });
+        unit.es[4] = newArmor.id;
+        equipList.push(newArmor);
+        // 配备装备·头饰
+        let newHelmet;
+        if(r(1,100)<=70){
+            newHelmet = genEquipData({ id:id*10000+3000, type:2, level, melee, game, });
+            unit.es[5] = newHelmet.id;
+            equipList.push(newHelmet);
+        }
+        // 配备装备·鞋子
+        let newShoes;
+        if(r(1,100)<=95){
+            newShoes = genEquipData({ id:id*10000+4000, type:5, level, melee, game, });
+            unit.es[6] = newShoes.id;
+            equipList.push(newShoes);
+        }
+        // 配备背包
+        let itemCount = r(0,6)+exptr(0,3,3);
+        for(let i=0;i<itemCount;i++){
+            let newEquip = genEquipData({ id:id*10000+5000+i, type:r(1,5), level, melee, game, });
+            unit.b.push(newEquip.id);
+            equipList.push(newEquip);
+        }
+        // 配备技能
+        let skillCount = 4+exptr(0,2,2);
+        let lastSkillId;
+        for(let i=0;i<skillCount;i++){
+            let newSkill = genSkillData({ id:id*10000+i, level, melee, isBoss, game, });
+            unit.ss.push(newSkill.id);
+            skillList.push(newSkill);
+            lastSkillId = newSkill.id;
+        }
+        // 如果是boss，且等级>4，则添加追踪型技能
+        if(isBoss&&level>4){
+            let newSkill = genSkillData({ id:lastSkillId+1, level, melee, isBoss, game, isTrace:true, });
+            unit.ss.push(newSkill.id);
+            skillList.push(newSkill);
+        }
     }
     return unit;
 }
@@ -873,6 +875,10 @@ export function registerUnit({unit,equipList,skillList,goTarven=false,game,}){ /
     }
     game.allUnits.push(unit);
     return unit;
+}
+export function registerEquip({equip,game,}){ // 注册一个装备
+    equip.id = game.equipIndex++;
+    game.allEquips.push(equip);
 }
 export function unregisterUnits({unitIdList,game,}){ // 根据ID注销单位数组
     let newAllUnits = [];
@@ -1461,7 +1467,7 @@ export function calcGuardLevel(map){ // 计算警戒等级
             res += 1;
         }
     }
-    return res;
+    return res-1;
 }
 
 /* ---------------------------- 战斗相关 ---------------------------- */
@@ -1508,7 +1514,7 @@ export function calcHit({caster,target,}){ // 计算是否命中
     else{ // 同阵营直接命中
         res = 1;
     }
-    res = 1;
+    // res = 1;  // @test
     return res;
 }
 export function calcAttackDmg({caster,attack,}){ // 计算攻击的伤害
