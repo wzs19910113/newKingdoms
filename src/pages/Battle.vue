@@ -1175,7 +1175,7 @@ export default {
                 this.registerAniEffect(attack.et+(skill?10:0),target);
 
                  // 计算伤害
-                let dmg = common.calcAttackDmg({caster,attack,});
+                let dmg = common.calcAttackDmg({caster,attack,isSkill:skill,});
 
                 // 破盾sppp
                 if(attack.s&&attack.s==2&&r(1,100)<CONFIG.spAttackRate){

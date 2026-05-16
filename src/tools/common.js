@@ -13,7 +13,7 @@ const BUFF_LIST = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
 const BENI_SKILL_EFFECT_LIST = [2,5,7,8,9,];
 const HARM_SKILL_EFFECT_LIST = [1,2,7,8,9,];
 const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添加状态 3减弱增益状态 4减弱减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感 】
-    993, // 攻击 @test
+    3, // 攻击
     1, // 添加状态
     1, // 减弱增益状态
     1, // 减弱减益状态
@@ -218,13 +218,13 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
     let r1Ratio = 0, r2Ratio = 0, rAllRatio = 0;
     let minAtk, maxAtk;
     let name,aniType;
-    let spRange = []; // 特殊攻击效果范围
-    if(!isNaN(skillId)){ // 用于技能
+    let spRange = []; // 特殊攻击效果可选范围
+    if(skillId){ // 用于技能
         minAtk = CONFIG.skillAtkRangeMap[level-1][0];
         maxAtk = CONFIG.skillAtkRangeMap[level-1][1];
         rAllRatio = 1;
     }
-    else if(!isNaN(equipId)){ // 用于武器
+    else if(equipId){ // 用于武器
         minAtk = CONFIG.weaponAtkRangeMap[level-1][0];
         maxAtk = CONFIG.weaponAtkRangeMap[level-1][1];
         atkAll = !r(0,4);
@@ -240,7 +240,7 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
             r2Ratio = .7;
         }
         aniType = [1,2,][r(0,1)];
-        spRange = [1,2,7,];
+        spRange = [1,2,3,4,];
     }
     else{ // 远程
         if(r(1,10)<=8){ // 纯远程
@@ -252,7 +252,7 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
             r2Ratio = .9;
         }
         aniType = [3,4,5,6,][r(0,3)];
-        spRange = [3,4,5,6,];
+        spRange = [5,6,7,];
     }
     // 生成名字
     let availableNames = []; // 可选的名字数组
@@ -412,11 +412,12 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     // }
     return res;
 }
-export function genEquipData({id,game,level=1,inten=0,type=1,melee,}){ // 生成一个装备数据 level（1-15）
+export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生成一个装备数据 level（1-15）
     let res = {
         id,
         n: '',
         l: level,
+        it: inten,
         t: type,
         a: [],
         d: 25,
@@ -1517,7 +1518,7 @@ export function calcHit({caster,target,}){ // 计算是否命中
     // res = 1;  // @test
     return res;
 }
-export function calcAttackDmg({caster,attack,}){ // 计算攻击的伤害
+export function calcAttackDmg({caster,attack,isSkill=false}){ // 计算攻击的伤害
     let res = 0, buff;
     let strRx = caster.btd.attrs[4], acrRx = caster.btd.attrs[5];
 

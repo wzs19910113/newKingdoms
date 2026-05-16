@@ -1,7 +1,7 @@
 <template>
     <div class="equip-list" ref="list">
-        <a class="unit-bag-equip-wrap" :ref="`eqp${equip.id}`" :class="selectingEquip.id==equip.id?'unit-bag-equip-wrap-sel':''" v-for="equip of unit.btd.bagList" :key="equip.id"  @click.stop="onTapEquip(equip)">
-            <Equip class="unit-bag-equip" :equip="equip" />
+        <a class="unit-bag-equip-wrap" :ref="`eqp${equip.id}`" :class="selectingEquip.id==equip.id?'unit-bag-equip-wrap-sel':''" v-for="equip of unit.btd.bagList" :key="equip.id" @click.stop="_onTapEquip(equip)">
+            <Equip class="unit-bag-equip" :equip="equip" @onTap="onTapEquip"/>
             <div class="unit-bag-op-wrap" v-show="selectingEquip.id==equip.id">
                 <!-- 在队或同道单位 -->
                 <div class="unit-bag-op" v-if="unit.rel==3">
@@ -61,6 +61,10 @@ export default {
             default: {},
             required: true,
         },
+        onTapEquip: { // 点击【装备】
+            type: Function,
+            default: function(){},
+        },
         onTapSellEquip: { // 点击【贩卖】
             type: Function,
             default: function(){},
@@ -118,7 +122,7 @@ export default {
         calcPrice(value){ // 计算装备的购入价格
             return Math.ceil(value*this.discount/10);
         },
-        onTapEquip(equip){ // 点击【背包中的装备】
+        _onTapEquip(equip){ // 点击【背包中的装备】
             if(equip.id==this.selectingEquip.id){ // 点击同一个装备
                 this.selectingEquip = { id:0, };
                 this.compare1 = {};

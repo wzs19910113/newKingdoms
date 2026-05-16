@@ -116,7 +116,7 @@
                             <a class="btn btn-bag-title-moveAll" v-if="selectingUnit.btd.bagList.length>1" @click="onTapMoveBag(selectingUnit.btd.bagList)">全转移</a>
                         </div>
                     </div>
-                    <EquipList ref="bag" :unit="selectingUnit" :viewingUnit="viewingUnit" :showSell="selling" :onTapSellEquip="onTapSellEquip" :onTapEquipOn="onTapEquipOn" :onTapMoveEquip="onTapMoveEquip" />
+                    <EquipList ref="bag" :unit="selectingUnit" :viewingUnit="viewingUnit" :showSell="selling" :onTapSellEquip="onTapSellEquip" :onTapEquip="onTapEquip" :onTapEquipOn="onTapEquipOn" :onTapMoveEquip="onTapMoveEquip" />
                 </div>
             </div>
             <!-- 角色技能表 -->
@@ -144,7 +144,7 @@
                 <div class="light"></div>
             </div>
             <div class="row row-title">
-                ◆◆◆◆ 战斗结算 ◆◆◆◆
+                ◆ 战斗结算 ◆
             </div>
             <div class="row row-money">
                 <label class="title">获得金币：</label>
@@ -739,7 +739,9 @@ export default {
                         }
                     }
                     this.map.guard += award.guard;
+                    this.map.guard = setInRange(this.map.guard,0,100);
                     oMe.g += award.gold;
+                    oMe.g = setInRange(oMe.g,0,Infinity);
                     for(let equip of award.equipList){
                         oMe.b.push(equip.id);
                     }
@@ -906,6 +908,7 @@ export default {
         onTapEquip(data){ // 点击【装备】
             if(this.banReactive) return;
             let { flag, equip, buffId, buffLevel, sp, spLevel, } = data;
+            console.log(data);
             if(flag==1){ //
                 // console.log(equip);
             }
@@ -997,11 +1000,18 @@ export default {
                         newCell.marked = true;
                     }
                 }
-                if(r(0,1)){ // 敌人
-                    newCell.enemy = r(1,navi.level==1?3:4);
-                }
                 // newCell.enemy = 4; //  @test
                 cellList.push(newCell);
+            }
+            // 生成敌人配置
+            let enemyCount = cellCount/2+r(0,size);
+            let enemyDistributionList = [];
+            for(let i=0;i<cellCount;i++){
+                enemyDistributionList.push(i);
+            }
+            enemyDistributionList = shuffle(enemyDistributionList);
+            for(let i=0;i<enemyCount;i++){
+                cellList[enemyDistributionList[i]].enemy = r(1,navi.level==1?3:4);
             }
 
             map.cellList = cellList;
