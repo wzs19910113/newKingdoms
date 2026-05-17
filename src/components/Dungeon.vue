@@ -124,10 +124,20 @@ export default {
         calcResidentShow(){ // 判断居民是否可见
             let res = true;
             for(let cell of this.map.cellList){
-                if(cell.enemy){
+                if(!cell.show){
                     res = false;
                     break;
                 }
+            }
+            if(res){
+                let hasNoCore = true;
+                for(let cell of this.map.cellList){
+                    if(cell.core){
+                        hasNoCore = false;
+                        break;
+                    }
+                }
+                res = !hasNoCore;
             }
             return res;
         },

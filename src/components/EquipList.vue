@@ -8,7 +8,7 @@
                     <a class="btn" v-if="showSell" @click.stop="onTapSellEquip(equip,unit)">
                         售卖 <b class="money" v-html="`${common.moneyFormat(common.getSellPrice(equip))} $`"></b>
                     </a>
-                    <a class="btn" @click.stop="onTapMoveEquip(equip,unit)">转移</a>
+                    <a class="btn" v-if="(team&&team.length>1)||!team" @click.stop="onTapMoveEquip(equip,unit)">转移</a>
                     <a class="btn" v-if="selectingEquip.t!=1&&selectingEquip.t!=4" @click.stop="onTapEquipOn(equip,unit,0)">装上</a>
                     <a class="btn" v-if="selectingEquip.t==1||selectingEquip.t==4" @click.stop="onTapEquipOn(equip,unit,1)">装上1</a>
                     <a class="btn" v-if="selectingEquip.t==1||selectingEquip.t==4" @click.stop="onTapEquipOn(equip,unit,2)">装上2</a>
@@ -16,7 +16,10 @@
                 <!-- 购买栏 -->
                 <div class="unit-bag-op" v-if="showBuy">
                     <a class="btn btn-switch" v-if="onTapSwitchViewingUnit" @click.stop="onTapSwitchViewingUnit(equip)">切换</a>
-                    <a class="btn" :class="viewingUnit.g<calcPrice(equip.v)?'btn-ban':''" @click.stop="onTapBuyEquip(equip,calcPrice(equip.v),unit,viewingUnit)">
+                    <!-- <a class="btn" :class="viewingUnit.g<calcPrice(equip.v)?'btn-ban':''" @click.stop="onTapBuyEquip(equip,calcPrice(equip.v),unit,viewingUnit)">
+                        由 {{viewingUnit.nm}} 购买 <b class="money" v-html="` ${common.moneyFormat(calcPrice(equip.v))} $ `"></b>
+                    </a> -->
+                    <a class="btn" @click.stop="onTapBuyEquip(equip,calcPrice(equip.v),unit,viewingUnit)">
                         由 {{viewingUnit.nm}} 购买 <b class="money" v-html="` ${common.moneyFormat(calcPrice(equip.v))} $ `"></b>
                     </a>
                 </div>
@@ -55,6 +58,9 @@ export default {
             type: Object,
             default: {},
             required: true,
+        },
+        team: {
+            type: Array,
         },
         viewingUnit: { // 浏览背包的人
             type: Object,

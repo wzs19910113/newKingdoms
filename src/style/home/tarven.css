@@ -93,8 +93,8 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    height: 1rem;
-    padding-left: .25rem;
+    height: 1.6rem;
+    padding-left: .7rem;
     padding-right: .5rem;
     width: 100%;
     color: #000;
@@ -161,8 +161,12 @@
     align-items: center;
     width: 50%;
     height: 100%;
+    line-height: .4rem;
     color: #fff;
     background-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,.8) 11%, rgba(0,0,0,.8) 90%, rgba(0,0,0,0) 100%);
+}
+.wanted .gold .money{
+    font-size: .3rem;
 }
 .wanted .gold .btn-check-wanted{
     height: .6rem;

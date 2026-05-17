@@ -536,7 +536,7 @@ module.exports = {
 				}],
 			},
 		],
-		initGuard: 30, // @test
+		initGuard: 10,
 
 		// 商人聊天
 		bartenderChats: [
@@ -600,6 +600,7 @@ map = {
 	flagMarks: [0,0,1,0,], // 所有标旗的标记状态 [0未标记 1已标记]
 	coreIndex: 6, // 核心所在index
 	coreMark: 1, // 核心的标记状态
+	coreDefeat: false, // 核心是否已被打败
 }
 
 wanted = {

@@ -30,7 +30,10 @@
                 <div class="nav-wrap">
                     <a class="btn-nav" v-for="navi of navis" @click="onTapNavi(navi)">
                         <img class="btn-nav-bg" :src="require(`../assets/bg-battle-${navi.id-101}.png`)" />
-                        <label class="btn-nav-title">{{navi.name}}</label>
+                        <label class="btn-nav-title" :class="`${navi.coreDefeat?'btn-nav-title-defeat':''}`">
+                            {{navi.name}}
+                            {{navi.coreDefeat?'（核心已击败）':''}}
+                        </label>
                     </a>
                 </div>
             </div>
@@ -93,7 +96,7 @@
                 <div class="unit-body">
                     <img class="unit-body-bg" :src="require(`../assets/outline-${selectingUnit.gd==1?'male':'female'}.png`)" />
                     <a class="unit-body-equip-wrap" :class="`${selectingUnitBodyEquipIndex==(index-1)?'unit-body-equip-wrap-expand':''} unit-body-${[`weapon1`,`weapon2`,`accessory1`,`accessory2`,`armor`,`helmet`,`shoes`,][index-1]}`" v-for="index in 7" :key="index" @click.stop="onTapViewingBodyEquip(index-1)">
-                        <Equip class="unit-body-equip" :class="" v-if="selectingUnit.btd.equipList[index-1]" :equip="selectingUnit.btd.equipList[index-1]" :mode="selectingUnitBodyEquipIndex==(index-1)?1:2" />
+                        <Equip class="unit-body-equip" :class="" v-if="selectingUnit.btd.equipList[index-1]" :equip="selectingUnit.btd.equipList[index-1]" @onTap="onTapEquip" :mode="selectingUnitBodyEquipIndex==(index-1)?1:2" />
                         <!-- 选中的已着装备操作栏，只有在队或同道才能显示 -->
                         <div class="unit-body-op" v-if="selectingUnitBodyEquipIndex==(index-1)&&selectingUnit.rel==3">
                             <a class="btn" @click.stop="onTapAllEquipOff(selectingUnit)">全卸下</a>
@@ -113,10 +116,10 @@
                             <a class="btn btn-bag-title-sellAll" v-if="selling&&selectingUnit.btd.bagList.length>0" @click="onTapSellBag(selectingUnit.btd.bagList,selectingUnit)">
                                 全售卖 <b class="money" v-html="`${common.moneyFormat(common.getSellAllPrice(selectingUnit))} $`"></b>
                             </a>
-                            <a class="btn btn-bag-title-moveAll" v-if="selectingUnit.btd.bagList.length>1" @click="onTapMoveBag(selectingUnit.btd.bagList)">全转移</a>
+                            <a class="btn btn-bag-title-moveAll" v-if="selectingUnit.btd.bagList.length>1&&team.length>1" @click="onTapMoveBag(selectingUnit.btd.bagList)">全转移</a>
                         </div>
                     </div>
-                    <EquipList ref="bag" :unit="selectingUnit" :viewingUnit="viewingUnit" :showSell="selling" :onTapSellEquip="onTapSellEquip" :onTapEquip="onTapEquip" :onTapEquipOn="onTapEquipOn" :onTapMoveEquip="onTapMoveEquip" />
+                    <EquipList ref="bag" :unit="selectingUnit" :team="team" :viewingUnit="viewingUnit" :showSell="selling" :onTapSellEquip="onTapSellEquip" :onTapEquip="onTapEquip" :onTapEquipOn="onTapEquipOn" :onTapMoveEquip="onTapMoveEquip" />
                 </div>
             </div>
             <!-- 角色技能表 -->
@@ -144,9 +147,9 @@
                 <div class="light"></div>
             </div>
             <div class="row row-title">
-                ◆ 战斗结算 ◆
+                ◆ {{award.title||'战斗结算'}} ◆
             </div>
-            <div class="row row-money">
+            <div class="row row-money" v-if="award.gold">
                 <label class="title">获得金币：</label>
                 <span class="value money" v-html="`${common.moneyFormat(award.gold)} $`"></span>
             </div>
@@ -172,7 +175,7 @@
                             <a class="btn" @click="onTapRestButton">住宿</a>
                         </div>
                         <van-divider class="bartender-divider">装备交易（{{calcShopRefreshRemainDays()}}天后更新）</van-divider>
-                        <EquipList v-if="bartender.btd.bagList&&bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :viewingUnit="viewingUnit" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="3" />
+                        <EquipList v-if="bartender.btd.bagList&&bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :viewingUnit="viewingUnit" :onTapEquip="onTapEquip" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="3" />
                         <div class="tarven-shop-empty" v-if="bartender.btd.bagList.length<=0">暂无商品</div>
                     </div>
                 </template>
@@ -191,7 +194,10 @@
                                 <p class="expire" v-if="wanted.s!=2&&wanted.s!=4">截止日：第 <b>{{wanted.e}}</b> 天</p>
                             </div>
                             <div class="gold" v-if="wanted.s!=2">
-                                <p v-if="wanted.s==1">赏金：<b class="money" v-html="common.moneyFormat(wanted.g)+' $'"></b></p>
+                                <p v-if="wanted.s==1">
+                                    赏金<br/>
+                                    <b class="money" v-html="common.moneyFormat(wanted.g)+' $'"></b>
+                                </p>
                                 <a class="btn btn-check-wanted" v-if="wanted.s==3" @click="onTapCheckWanted(wanted)">领取赏金<b class="money" v-html="common.moneyFormat(wanted.g)+' $'"></b></a>
                                 <p v-if="wanted.s==4">已领取 <b v-html="common.moneyFormat(wanted.g)+' $'"></b></p>
                             </div>
@@ -307,10 +313,12 @@ export default {
                 show: false,
                 gold: 0,
                 guard: 0,
+                x: 0, // 技能经验
                 equipList: [],
                 // show: true,
                 // gold: 47864,
                 // guard: 0,
+                // x: 0,
                 // equipList: [
                 //     {t:1,n:'隆力奇'},
                 //     {t:2,n:'蛇油膏帽子'},
@@ -488,6 +496,11 @@ export default {
                         navis.push(newNav);
                     }
                 }
+            }
+            // 为每个 navi 赋值 coreDefeat
+            for(let navi of navis){
+                let oMap = getMatchList(this.game.mapList,[['id',navi.id]])[0];
+                navi.coreDefeat = oMap.coreDefeat;
             }
             this.navis = navis;
             // for(let i=0;i<this.navis.length;i++){
@@ -696,7 +709,8 @@ export default {
             else{
                 setAllUnits();
                 if(result==3){ // 撤离成功
-
+                    this.map.guard -= 10;
+                    this.map.guard = setInRange(this.map.guard,0,100);
                 }
                 else if(result==2){ // 战败
                     // 惩罚：所有人金币归零
@@ -709,54 +723,102 @@ export default {
                 }
                 else if(result==1){ // 获胜
                     let oMe = getMatchList(this.game.allUnits,[['id',101]])[0];
-                    // 改变地图数据
-                    let cell = this.map.cellList[this.map.curCellIndex];
-                    cell.enemy = 0;
-                    // 奖励金币、随机装备和警戒值
+                    // 奖励金币、随机装备、灵感指数和警戒值
                     let award = {
                         show: true,
                         gold: 0,
                         guard: 0,
+                        x: 0,
                         equipList: [],
                     }
-                    for(let enemyUnit of enemyTeam){
-                        // 金币
-                        award.gold += Math.ceil(enemyUnit.btd.score*.075);
-                        // 警戒值
-                        let floor = this.map.floors[enemyUnit.it];
-                        award.guard += floor.guard;
-                        // 服饰装备
-                        if(enemyUnit.it<=0&&r(1,100)<this.map.guard){
-                            let newEquip = common.genEquipData({game:this.game,level:enemyUnit.level,inten:enemyUnit.inten,type:r(2,5),});
-                            common.registerEquip({equip:newEquip,game:this.game,});
-                            award.equipList.push(newEquip);
-                        }
-                        // 武器
-                        if(enemyUnit.it>0){
-                            let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.level,inten:enemyUnit.inten,type:1,});
-                            common.registerEquip({equip:newWeapon,game:this.game,});
-                            award.equipList.push(newWeapon);
+
+                    // 普通对战
+                    if(mode==1){
+                        // 改变地图数据
+                        let cell = this.map.cellList[this.map.curCellIndex];
+                        cell.enemy = 0;
+                        for(let enemyUnit of enemyTeam){
+                            // 金币
+                            award.gold += Math.ceil(enemyUnit.btd.score*.075);
+                            // 警戒值
+                            let floor = this.map.floors[enemyUnit.it];
+                            award.guard += floor.guard;
+                            // 灵感指数
+                            award.x += Math.ceil(award.gold*.5);
+                            // 服饰装备
+                            if(enemyUnit.it<=0&&r(1,100)<this.map.guard){
+                                let newEquip = common.genEquipData({game:this.game,level:enemyUnit.l,inten:enemyUnit.it,type:r(2,5),});
+                                common.registerEquip({equip:newEquip,game:this.game,});
+                                award.equipList.push(newEquip);
+                            }
+                            // 武器
+                            if(enemyUnit.it>0){
+                                let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.l,inten:enemyUnit.it,type:1,});
+                                common.registerEquip({equip:newWeapon,game:this.game,});
+                                award.equipList.push(newWeapon);
+                            }
                         }
                     }
-                    this.map.guard += award.guard;
-                    this.map.guard = setInRange(this.map.guard,0,100);
-                    oMe.g += award.gold;
-                    oMe.g = setInRange(oMe.g,0,Infinity);
-                    for(let equip of award.equipList){
-                        oMe.b.push(equip.id);
-                    }
+
                     // BOSS战
                     if(mode==2){
-                        // 改变 wanted
+                        // 改变地图
+                        let oMap = getMatchList(this.game.mapList,[['id',this.map.id]])[0];
+                        oMap.coreDefeat = true;
+                        oMap.coreIndex = -1;
+                        for(let cell of this.map.cellList){
+                            cell.show = 1;
+                            cell.enemy = 0;
+                            delete cell.core;
+                        }
                         for(let enemyUnit of enemyTeam){
+                            // 改变 wanted
                             let wanted = getMatchList(this.game.wantedList,[['id',enemyUnit.id]])[0];
                             if(wanted&&(wanted.s==1||wanted.s==0)){ // 若悬赏中，则设置为已领取
                                 wanted.s = 3;
                             }
+                            // 警戒值
+                            award.guard = -this.map.guard;
+                            // 灵感指数
+                            award.x += Math.ceil(enemyUnit.btd.score*.05);
+                            // 服饰装备
+                            for(let i=0;i<3;i++){
+                                let newEquip = common.genEquipData({game:this.game,level:enemyUnit.l+1,inten:enemyUnit.it,type:r(2,5),});
+                                common.registerEquip({equip:newEquip,game:this.game,});
+                                award.equipList.push(newEquip);
+                            }
+                            // 武器
+                            let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.l+1,inten:enemyUnit.it,type:1,});
+                            common.registerEquip({equip:newWeapon,game:this.game,});
+                            award.equipList.push(newWeapon);
+                        }
+                        award.title = `击败核心`;
+                    }
+
+                    // 屈服的敌人加入酒馆
+                    for(let enemyUnit of enemyTeam){
+                        if(common.isCrumble(enemyUnit)){
+                            common.registerUnit({
+                                unit:enemyUnit,
+                                equipList: map.tempGame.allEquips,
+                                skillList: map.tempGame.allSkills,
+                                goTarven: true,
+                                game: this.game,
+                            });
                         }
                     }
+
+                    // award 赋值
+                    this.map.guard += award.guard;
+                    this.map.guard = setInRange(this.map.guard,0,100);
+                    oMe.g += award.gold;
+                    oMe.g = setInRange(oMe.g,0,Infinity);
+                    common.skillXIncrease(award.x,this.game);
+                    for(let equip of award.equipList){
+                        oMe.b.push(equip.id);
+                    }
+
                     this.award = award;
-                    // 屈服的敌人加入酒馆 @todo
                 }
                 else if(result==0){ // 离开营地
 
@@ -908,7 +970,6 @@ export default {
         onTapEquip(data){ // 点击【装备】
             if(this.banReactive) return;
             let { flag, equip, buffId, buffLevel, sp, spLevel, } = data;
-            console.log(data);
             if(flag==1){ //
                 // console.log(equip);
             }
@@ -1000,7 +1061,6 @@ export default {
                         newCell.marked = true;
                     }
                 }
-                // newCell.enemy = 4; //  @test
                 cellList.push(newCell);
             }
             // 生成敌人配置
@@ -1011,7 +1071,9 @@ export default {
             }
             enemyDistributionList = shuffle(enemyDistributionList);
             for(let i=0;i<enemyCount;i++){
-                cellList[enemyDistributionList[i]].enemy = r(1,navi.level==1?3:4);
+                if(!cellList[enemyDistributionList[i]].core){
+                    cellList[enemyDistributionList[i]].enemy = r(1,navi.level==1?3:4);
+                }
             }
 
             map.cellList = cellList;
@@ -1413,7 +1475,32 @@ export default {
         },
         onTapDungeonCore(){ // 点击【进入核心】
             if(this.banReactive) return;
-
+            this._confirm(`确定迎战本地牢的BOSS吗？`,_=>{
+                let playerTeamIds = Array.from(this.team,unit=>{
+                    return unit.id;
+                });
+                // 生成BOSS数据
+                let enemyTeamIds = [];
+                let { guard, level, floors, bosses, } = this.map;
+                let tempGame = cloneObj(this.game);
+                let enemyList = [];
+                for(let i=0;i<bosses.length;i++){
+                    let oBoss = getMatchList(this.game.allUnits,[['id',bosses[i].id]])[0];
+                    let boss = cloneObj(oBoss);
+                    enemyList.push(boss);
+                }
+                for(let enemy of enemyList){
+                    let newEnemy = common.registerUnit({
+                        unit: enemy,
+                        game: tempGame,
+                        equipList: tempGame.allEquips,
+                        skillList: tempGame.allSkills,
+                    });
+                    common.recoverUnit(newEnemy,tempGame);
+                    enemyTeamIds.push(newEnemy.id);
+                }
+                this.goBattle({playerTeamIds,enemyTeamIds,game:tempGame,mode:2});
+            });
         },
         onTapResident(){ // 点击【解救居民】
             if(this.banReactive) return;

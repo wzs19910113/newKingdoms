@@ -1975,6 +1975,11 @@ export default {
             this.enemyTeam = oEnemyTeam;
         },
         onTapCheat(flag){ // 点击【作弊】按钮
+            if(flag==1){
+                for(let unit of this.enemyTeam){
+                    unit.btd.mdef = -1;
+                }
+            }
             this.battleEnd(flag);
             // this.battleEnd(1);
         },

@@ -756,6 +756,7 @@ export function genMapData(mapConfig){ // 根据 mapConfig 生成随机的地图
     	flagMarks: [], // 所有标旗的标记状态 [0未标记 1已标记]
     	coreIndex: 0, // 核心所在index
     	coreMark: 0, // 核心的标记状态
+    	coreDefeat: false, // 核心是否已被打败
     }
 
     for(let i=0;i<cellCount;i++){
@@ -846,24 +847,27 @@ export function registerUnit({unit,equipList,skillList,goTarven=false,game,}){ /
     for(let i=0;i<unit.es.length;i++){
         let equip = getMatchList(equipList,[['id',unit.es[i]]])[0];
         if(equip){
-            equip.id = game.equipIndex++;
-            unit.es[i] = equip.id;
-            game.allEquips.push(equip);
+            let newEquip = cloneObj(equip);
+            newEquip.id = game.equipIndex++;
+            unit.es[i] = newEquip.id;
+            game.allEquips.push(newEquip);
         }
     }
     // 逐一注册背包里的装备
     for(let i=0;i<unit.b.length;i++){
         let equip = getMatchList(equipList,[['id',unit.b[i]]])[0];
-        equip.id = game.equipIndex++;
-        unit.b[i] = equip.id;
-        game.allEquips.push(equip);
+        let newEquip = cloneObj(equip);
+        newEquip.id = game.equipIndex++;
+        unit.b[i] = newEquip.id;
+        game.allEquips.push(newEquip);
     }
     // 逐一注册技能
     for(let i=0;i<unit.ss.length;i++){
         let skill = getMatchList(skillList,[['id',unit.ss[i]]])[0];
-        skill.id = game.skillIndex++;
-        unit.ss[i] = skill.id;
-        game.allSkills.push(skill);
+        let newSkill = cloneObj(skill);
+        newSkill.id = game.skillIndex++;
+        unit.ss[i] = newSkill.id;
+        game.allSkills.push(newSkill);
     }
     // 注册单位
     if(goTarven){
@@ -874,6 +878,8 @@ export function registerUnit({unit,equipList,skillList,goTarven=false,game,}){ /
     if(goTarven&&unit.rel<1){
         unit.rel = 1;
     }
+    // 删除btd
+    delete unit.btd;
     game.allUnits.push(unit);
     return unit;
 }
