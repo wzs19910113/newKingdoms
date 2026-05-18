@@ -22,19 +22,77 @@
                 <!-- 齿轮 -->
                 <a class="btn btn-gear" @click.stop="onTapGear">系统</a>
             </div>
+            <!-- 右上角系统菜单弹窗 -->
+            <div class="pop-gear" v-show="showGearPop">
+                <div class="pop-gear-bg"></div>
+                <a class="btn btn-save" v-if="map.type==1" @click="onTapSave">存档</a>
+                <a class="btn btn-guide" @click="onTapGuide">指引</a>
+                <a class="btn btn-restart" @click="onTapExit">退出</a>
+                <a class="btn btn-cheat" v-if="DEBUG" @click="onTapCheat">作弊</a>
+            </div>
             <!-- 吊牌 -->
-            <a class="brand" @click="onTapBrand()">{{map.name}}</a>
+            <a class="brand" @click="onTapBrand()">
+                <van-divider class="brand-title bartender-divider">当前位置</van-divider>
+                <b class="brand-map">{{map.name}}</b>
+            </a>
             <!-- 村落页面 -->
             <div class="page" v-if="state==1">
                 <!-- 导航板块 -->
-                <div class="nav-wrap">
+                <div class="nav-wrap" v-show="!showTarven">
+                    <div class="nav-title">点击进入地牢：</div>
                     <a class="btn-nav" v-for="navi of navis" @click="onTapNavi(navi)">
-                        <img class="btn-nav-bg" :src="require(`../assets/bg-battle-${navi.id-101}.png`)" />
+                        <!-- <img class="btn-nav-bg" :src="require(`../assets/bg-battle-${navi.id-101}.png`)" /> -->
                         <label class="btn-nav-title" :class="`${navi.coreDefeat?'btn-nav-title-defeat':''}`">
                             {{navi.name}}
                             {{navi.coreDefeat?'（核心已击败）':''}}
                         </label>
                     </a>
+                </div>
+                <!-- 酒馆 -->
+                <div class="pop-tarven" v-show="showTarven">
+                    <SwipeTabs class="tarven-tabs-wrap" ref="tarven-wrap" :tabs="[{label:`商人酒保·${(bartender||{}).nm}`,},{label:`大厅（${inmateList.length}）`},{label:`悬赏榜`,}]">
+                        <!-- 商人酒保 -->
+                        <template #tab-0>
+                            <div class="tarven-cot tarven-shop" v-if="viewingUnit&&bartender">
+                                <div class="bartender">
+                                    <a class="btn" @click="onTapChatButton">聊天</a>
+                                    <a class="btn" v-if="game.day>1" @click="onTapSellButton">当卖</a>
+                                    <a class="btn" @click="onTapRestButton">住宿</a>
+                                </div>
+                                <van-divider class="bartender-divider">装备交易（{{calcShopRefreshRemainDays()}}天后更新）</van-divider>
+                                <EquipList v-if="bartender.btd.bagList&&bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :viewingUnit="viewingUnit" :onTapEquip="onTapEquip" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="3" />
+                                <div class="tarven-shop-empty" v-if="bartender.btd.bagList.length<=0">暂无商品</div>
+                            </div>
+                        </template>
+                        <!-- 大厅 -->
+                        <template #tab-1>
+                            <div class="tarven-cot tarven-inmate" v-if="inmateList&&inmateList.length>0">
+                                <UnitList :unitList="inmateList" :onTapUnit="onTapInmate" />
+                            </div>
+                        </template>
+                        <!-- 悬赏榜 -->
+                        <template #tab-2>
+                            <div class="tarven-cot tarven-wanted" v-if="game.wantedList&&game.wantedList.length>0">
+                                <div class="wanted" :class="`wanted-${wanted.s}`" v-if="wanted.s>0" v-for="(wanted,index) of game.wantedList">
+                                    <div class="title">
+                                        <p class="name">“{{wanted.n}}”·<b>{{wanted.t}}</b></p>
+                                        <p class="expire" v-if="wanted.s!=2&&wanted.s!=4">截止日：第 <b>{{wanted.e}}</b> 天</p>
+                                    </div>
+                                    <div class="gold" v-if="wanted.s!=2">
+                                        <p v-if="wanted.s==1">
+                                            赏金<br/>
+                                            <b class="money" v-html="common.moneyFormat(wanted.g)+' $'"></b>
+                                        </p>
+                                        <a class="btn btn-check-wanted" v-if="wanted.s==3" @click="onTapCheckWanted(wanted)">领取赏金<b class="money" v-html="common.moneyFormat(wanted.g)+' $'"></b></a>
+                                        <p v-if="wanted.s==4">已领取 <b v-html="common.moneyFormat(wanted.g)+' $'"></b></p>
+                                    </div>
+                                    <div class="stamp" v-if="wanted.s==2">逾期</div>
+                                    <div class="stamp" v-if="wanted.s==4">已领取</div>
+                                </div>
+                            </div>
+                        </template>
+                    </SwipeTabs>
+                    <div class="tarven-bg"></div>
                 </div>
             </div>
             <!-- 地牢页面 -->
@@ -50,10 +108,11 @@
             <!-- 啤酒按钮 -->
             <a class="beer" v-if="state==1" @click="onTapBeer()">
                 <div class="beer-title">以太酒馆</div>
-                <img class="beer-icon" :src="require('../assets/icon-beer.png')" />
+                <div class="beer-icon">酒</div>
+                <!-- <img class="beer-icon" :src="require('../assets/icon-beer.png')" /> -->
             </a>
             <!-- 营地按钮 -->
-            <a class="btn btn-bonfire" v-if="state==2" @click.stop="onTapBonfire"></a>
+            <a class="btn btn-bonfire" v-if="state==2" @click.stop="onTapBonfire">营</a>
             <!-- 队形板块 -->
             <div class="menu-wrap">
                 <draggable class="unit-list-group" handle=".mover" :disabled="false" v-model="team" @end="onUnitDragEnd" animation="100">
@@ -71,14 +130,14 @@
             </div>
             <!-- 背景 -->
             <div class="bg" v-if="!loadingResources">
-                <img class="bg-pic" :class="state==2?'bg-pic-fade':''" :src="require(`../assets/${calcBgName()}.png`)" />
+                <!-- <img class="bg-pic" :class="state==2?'bg-pic-fade':''" :src="require(`../assets/${calcBgName()}.png`)" /> -->
             </div>
         </div>
         <!-- 单位浏览弹窗 -->
         <Pop class="pop-unit" v-if="showUnitPop&&selectingUnit" ref="pop-content" :title="`${selectingUnit.btd.name}的${[`面板`,`装备`,`技能`,][popUnitTab-1]}${popUnitTab==3?`（${selectingUnit.btd.skillList.length}）`:``}`" :arrowTitle="`${[`装备`,`技能`,`面板`,][popUnitTab-1]}`" :showCloseButton="true" @onTapClose="onTapClosePop" @onTapArrow="onTapArrowPop">
             <!-- 角色面板 -->
             <div class="unit-info-pop unit-board" v-if="popUnitTab==1">
-                <Unit1 :unit="selectingUnit" :showTransferButton="team.length>1&&selectingUnit.rel==3" @onTapTransferMoney="onTapTransferMoney" :mode="1" />
+                <Unit1 :unit="selectingUnit" :showTransferButton="team.length>1&&selectingUnit.rel==3" @onTapTransferMoney="onTapTransferMoney" @onTapAvatar="onTapAvatar" :mode="1" />
                 <!-- 角色隶属操作栏 -->
                 <div class="unit-board option-wrap">
                     <a class="btn" v-if="selectingUnit.id==me.id" @click="onTapLogout()">销号</a>
@@ -94,9 +153,10 @@
             <div class="unit-info-pop unit-equip-board" v-if="popUnitTab==2">
                 <!-- 已着装备 -->
                 <div class="unit-body">
-                    <img class="unit-body-bg" :src="require(`../assets/outline-${selectingUnit.gd==1?'male':'female'}.png`)" />
+                    <!-- <img class="unit-body-bg" :src="require(`../assets/outline-${selectingUnit.gd==1?'male':'female'}.png`)" /> -->
                     <a class="unit-body-equip-wrap" :class="`${selectingUnitBodyEquipIndex==(index-1)?'unit-body-equip-wrap-expand':''} unit-body-${[`weapon1`,`weapon2`,`accessory1`,`accessory2`,`armor`,`helmet`,`shoes`,][index-1]}`" v-for="index in 7" :key="index" @click.stop="onTapViewingBodyEquip(index-1)">
                         <Equip class="unit-body-equip" :class="" v-if="selectingUnit.btd.equipList[index-1]" :equip="selectingUnit.btd.equipList[index-1]" @onTap="onTapEquip" :mode="selectingUnitBodyEquipIndex==(index-1)?1:2" />
+                        <div class="unit-body-equip-empty" v-else>{{[`武器`,`武器`,`配饰`,`配饰`,`衣着`,`头饰`,`鞋子`,][index-1]}}（空）</div>
                         <!-- 选中的已着装备操作栏，只有在队或同道才能显示 -->
                         <div class="unit-body-op" v-if="selectingUnitBodyEquipIndex==(index-1)&&selectingUnit.rel==3">
                             <a class="btn" @click.stop="onTapAllEquipOff(selectingUnit)">全卸下</a>
@@ -163,52 +223,6 @@
                 </div>
             </div>
         </div>
-        <!-- 酒馆 -->
-        <div class="pop-tarven" :class="showTarven?'pop-tarven-expand':''" v-if="!loadingResources">
-            <SwipeTabs class="tarven-tabs-wrap" ref="tarven-wrap" :tabs="[{label:`商人酒保·${(bartender||{}).nm}`,},{label:`大厅（${inmateList.length}）`},{label:`悬赏榜`,}]">
-                <!-- 商人酒保 -->
-                <template #tab-0>
-                    <div class="tarven-cot tarven-shop" v-if="viewingUnit&&bartender">
-                        <div class="bartender">
-                            <a class="btn" @click="onTapChatButton">聊天</a>
-                            <a class="btn" v-if="game.day>1" @click="onTapSellButton">当卖</a>
-                            <a class="btn" @click="onTapRestButton">住宿</a>
-                        </div>
-                        <van-divider class="bartender-divider">装备交易（{{calcShopRefreshRemainDays()}}天后更新）</van-divider>
-                        <EquipList v-if="bartender.btd.bagList&&bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :viewingUnit="viewingUnit" :onTapEquip="onTapEquip" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="3" />
-                        <div class="tarven-shop-empty" v-if="bartender.btd.bagList.length<=0">暂无商品</div>
-                    </div>
-                </template>
-                <!-- 大厅 -->
-                <template #tab-1>
-                    <div class="tarven-cot tarven-inmate" v-if="inmateList&&inmateList.length>0">
-                        <UnitList :unitList="inmateList" :onTapUnit="onTapInmate" />
-                    </div>
-                </template>
-                <!-- 悬赏榜 -->
-                <template #tab-2>
-                    <div class="tarven-cot tarven-wanted" v-if="game.wantedList&&game.wantedList.length>0">
-                        <div class="wanted" :class="`wanted-${wanted.s}`" v-if="wanted.s>0" v-for="(wanted,index) of game.wantedList">
-                            <div class="title">
-                                <p class="name">“{{wanted.n}}”·<b>{{wanted.t}}</b></p>
-                                <p class="expire" v-if="wanted.s!=2&&wanted.s!=4">截止日：第 <b>{{wanted.e}}</b> 天</p>
-                            </div>
-                            <div class="gold" v-if="wanted.s!=2">
-                                <p v-if="wanted.s==1">
-                                    赏金<br/>
-                                    <b class="money" v-html="common.moneyFormat(wanted.g)+' $'"></b>
-                                </p>
-                                <a class="btn btn-check-wanted" v-if="wanted.s==3" @click="onTapCheckWanted(wanted)">领取赏金<b class="money" v-html="common.moneyFormat(wanted.g)+' $'"></b></a>
-                                <p v-if="wanted.s==4">已领取 <b v-html="common.moneyFormat(wanted.g)+' $'"></b></p>
-                            </div>
-                            <div class="stamp" v-if="wanted.s==2">逾期</div>
-                            <div class="stamp" v-if="wanted.s==4">已领取</div>
-                        </div>
-                    </div>
-                </template>
-            </SwipeTabs>
-            <div class="tarven-bg"></div>
-        </div>
         <!-- 金币转移遮罩 -->
         <Cover v-if="showMoneyTrasferCover" @onTap="onTapCover" tip="选取并转移金币给目标：">
             <div class="pop-money-transfer-wrap">
@@ -219,14 +233,13 @@
         </Cover>
         <!-- 普通提示遮罩 -->
         <Cover v-if="coverTip" @onTap="onTapCover" :tip="coverTip"></Cover>
-        <!-- 右上角系统菜单弹窗 -->
-        <div class="pop-gear" v-show="showGearPop">
-            <div class="pop-gear-bg"></div>
-            <a class="btn btn-save" v-if="map.type==1" @click="onTapSave">存档</a>
-            <a class="btn btn-guide" @click="onTapGuide">指引</a>
-            <a class="btn btn-restart" @click="onTapExit">退出</a>
-            <a class="btn btn-cheat" v-if="DEBUG" @click="onTapCheat">作弊</a>
-        </div>
+        <!-- 头像数据遮罩 -->
+        <Cover v-if="viewingAvatar" @onTap="onTapCover">
+            <div class="avatar-wrap">
+                <canvas class="avatar" :width="CVSLEN" :height="CVSLEN" ref="avatar_cvs" />
+            </div>
+        </Cover>
+        <!-- 新手指引弹窗 -->
         <Pop class="pop-guide" v-if="showGuide" title="新手指引" :showCloseButton="true" @onTapClose="onTapClosePop">
             <div class="guide">
                 <div class="guide-row">
@@ -280,6 +293,7 @@ import UnitList from '../components/UnitList';
 import Avatar from '../components/Avatar';
 import draggable from 'vuedraggable';
 import { cl, query, r, exptr, setInRange, loadImages, shuffle, bulbsort, bulbsort2, getParentNode, cloneObj, numFormat, avg, percent, calcDistance, getMatchList, getSubMatchList, removeFromList, removeFromNumberList, arrContains, } from '../tools/utils';
+import { genRandomAvatar, paintAvatar, genForeHairData, genBangsData, genBackHairData, } from '../tools/avatar';
 import * as common from '../tools/common';
 import * as ai from '../tools/ai';
 import Vue from 'vue';
@@ -291,6 +305,7 @@ Vue.use(Slider).use(Divider);
 import { DEBUG, CONFIG, CACHE, ASSETS, } from '../config/config';
 
 const BUFF_LIST = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
+const CVSLEN = (window.GLOBAL||{fontSize:7.5}).fontSize*14;
 
 export default {
     name: 'Home',
@@ -346,11 +361,13 @@ export default {
             showSkillCopy: false, // 显示技能复制弹窗
             showGuide: false, // 显示指引弹窗
             skillCopyList: [], // 可复制的技能数组
+            viewingAvatar: null, // 正在浏览的头像数据
 
             coverTip: '', // 阴影遮罩文本
             confirmTip: '', // 确认弹窗的文本
 
             unitDraggable: false,
+            ctx: null,
 
             /*  地图数据
                 map = {
@@ -379,6 +396,7 @@ export default {
             tempGame: null,
 
             common,
+            CVSLEN,
             ASSETS,
             CONFIG,
             DEBUG,
@@ -396,10 +414,13 @@ export default {
                 let storage = JSON.parse(_storage);
                 this.game = storage;
                 window.GLOBAL.game = this.game;
-                loadImages(ASSETS.image_urls).then(images=>{
-                    this._alert(`成功加载 ${images.length} 张图片`);
-                    this.init();
-                });
+                // let urls = Array.from(ASSETS.image_urls,url=>{
+                //     return require(url);
+                // });
+                // loadImages(ASSETS.image_urls).then(images=>{
+                //     // this._alert(`成功加载 ${images.length} 张图片`);
+                // });
+                this.init();
             }
             else{
                 this.$router.push('/');
@@ -590,10 +611,13 @@ export default {
                 oldSelectingEquip = shopDom.selectingEquip;
             }
             // 记录 tab-content 原有的滚动条位置
-            let domList = this.$refs[`tarven-wrap`].$refs[`contentRef`];
+            let tarvenDom = this.$refs[`tarven-wrap`];
             let targetY = 0;
-            if(domList){
-                targetY = domList.scrollTop;
+            if(tarvenDom){
+                let domList = tarvenDom.$refs[`contentRef`];
+                if(domList){
+                    targetY = domList.scrollTop;
+                }
             }
 
             this.viewingUnit = null;
@@ -616,9 +640,12 @@ export default {
                         }
                         // 设置 tab-content 的滚动条到原有位置
                         this.$nextTick(_=>{
-                            domList = this.$refs[`tarven-wrap`].$refs[`contentRef`];
-                            if(domList){
-                                domList.scrollTop = targetY;
+                            let tarvenDom = this.$refs[`tarven-wrap`];
+                            if(tarvenDom){
+                                let domList = tarvenDom.$refs[`contentRef`];
+                                if(domList){
+                                    domList.scrollTop = targetY;
+                                }
                             }
                         });
                     });
@@ -658,6 +685,7 @@ export default {
                 this.asynTeam();
                 this.asynBartender();
             }
+            this._alert(`一天过去了...`);
         },
         goBattle({mode=1,playerTeamIds=[],enemyTeamIds=[],game=cloneObj(this.game)}){ // 进入战斗
             let field;
@@ -1080,6 +1108,7 @@ export default {
             map.guard = CONFIG.initGuard;
             this.map = map;
             this.state = 2;
+            this.dayPass();
         },
 
         onTapTransferMoney(){ // 点击【转移金币】
@@ -1204,6 +1233,19 @@ export default {
                 this.logout();
             });
         },
+        onTapAvatar(unit){ // 点击【头像】
+            let avatarTemplate = common.calcAvatarData(unit);
+            this.viewingAvatar = JSON.parse(avatarTemplate);
+            this.$nextTick(_=>{
+                let cvs = this.$refs.avatar_cvs;
+                if(cvs){
+                    this.ctx = cvs.getContext(`2d`);
+                    if(this.ctx&&this.viewingAvatar){
+                        paintAvatar(this.ctx,this.viewingAvatar,CVSLEN,CVSLEN);
+                    }
+                }
+            });
+        },
         onTapChallenge(unit){ // 点击【单挑】
             if(this.banReactive) return;
             let playerTeamIds = [this.me.id];
@@ -1254,7 +1296,7 @@ export default {
         },
         onTapChatButton(){ // 点击【聊天】
             if(this.banReactive) return;
-            this.coverTip = `酒保：`+CONFIG.bartenderChats[r(0,CONFIG.bartenderChats.length-1)];
+            this.coverTip = `酒保·${this.bartender.nm}：`+CONFIG.bartenderChats[r(0,CONFIG.bartenderChats.length-1)];
         },
         onTapRestButton(){ // 点击【住宿】
             if(this.banReactive) return;
@@ -1396,6 +1438,7 @@ export default {
         onTapCover(){ // 点击【遮罩层】
             if(this.banReactive) return;
             this.coverTip = ``;
+            this.viewingAvatar = null;
             this.movingEquipList = [];
             this.transferringMoney = 0;
             this.showMoneyTrasferCover = false;

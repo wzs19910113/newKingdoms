@@ -114,7 +114,9 @@ export default {
     }
     .pop-content{
         overflow-y: auto;
-        max-height: 11.5rem;
+        height: 8rem;
+        padding-bottom: 2rem;
+        /* height: calc( 100% - 10rem ); */
     }
     .btn-close,.btn-arrow{
         position: absolute;

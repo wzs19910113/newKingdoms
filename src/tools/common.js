@@ -144,11 +144,10 @@ export function genSkillName({level=1,beni=0}){ // 生成技能名 level（1-15�
 export function genNickName(){ // 生成称谓
     return `高手`;
 }
-export function calcIconSrc(unit){ // 计算单位的icon地址
-    let res = `icon-`;
-    res += unit.gd==1?`male-`:`female-`;
-    res += unit.i;
-    res += '.png';
+export function calcAvatarData(unit){ // 计算单位的 avatarData
+    let res;
+    let templateList = unit.gd==1?CONFIG.defaultMaleAvatarTemplates:CONFIG.defaultFemaleAvatarTemplates;
+    res = templateList[unit.i-1];
     return res;
 }
 
@@ -391,7 +390,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
         es: [0,0,0,0,0,0,0,],
         b: [],
         rt: 999999,
-        i: icon||r(1,7),
+        i: icon||r(1,gender==1?CONFIG.defaultMaleAvatarTemplates.length:CONFIG.defaultFemaleAvatarTemplates.length),
     };
     // 设置定力最小值
     if(level>5){

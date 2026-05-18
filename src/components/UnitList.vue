@@ -6,9 +6,9 @@
             </div>
             <div class="list" v-if="localUnitList.length>0">
                 <a class="btn btn-unit" :class="`rel-${unit.rel}`" @click.stop="onTapUnit(unit)" v-for="(unit,index) in localUnitList">
-                    <span class="avatar">
+                    <!-- <span class="avatar">
                         <img :src="require(`../assets/${common.calcIconSrc(unit)}`)" />
-                    </span>
+                    </span> -->
                     <span><b>{{unit.nm}}</b> {{['女','男'][unit.gd]}} {{unit.age}}</span>
                 </a>
             </div>

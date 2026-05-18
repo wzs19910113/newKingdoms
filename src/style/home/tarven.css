@@ -6,14 +6,9 @@
     bottom: 0;
     width: 100%;
     height: 100%;
-    transform-origin: 93% 76%;
-    transform: scale(0);
     transition: .2s all;
     z-index: 300;
     background-color: #001;
-}
-.pop-tarven-expand{
-    transform: scale(1);
 }
 .pop-tarven .tarven-bg{
     position: absolute;
@@ -24,14 +19,13 @@
     margin: 0;
     width: 100%;
     height: 100%;
-    background-image: url('./../../assets/bg-tarven.png');
+    /* background-image: url('./../../assets/bg-tarven.png'); */
+    background-image: linear-gradient(to right, rgba(205,155,55,1) 0%,rgba(210,135,15,1) 20%,rgba(210,135,15,1) 80%, rgba(210,135,55,1) 100%);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    z-index: 0;
-}
-.pop-tarven-expand .tarven-bg{
     animation: tarven-bg-fade .3s .3s ease-in-out forwards;
+    z-index: 0;
 }
 @keyframes tarven-bg-fade{
     to{
@@ -94,12 +88,13 @@
     justify-content: flex-start;
     align-items: center;
     height: 1.6rem;
-    padding-left: .7rem;
-    padding-right: .5rem;
+    padding-left: .1rem;
+    padding-right: .1rem;
     width: 100%;
     color: #000;
     margin-bottom: .2rem;
-    background-image: url('./../../assets/bg-roll.png');
+    /* background-image: url('./../../assets/bg-roll.png'); */
+    background-image: linear-gradient(to right, rgba(245,185,55,1) 0%,rgba(210,135,15,1) 20%,rgba(210,135,15,1) 80%, rgba(240,135,55,1) 100%);
     background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;
@@ -160,10 +155,10 @@
     justify-content: center;
     align-items: center;
     width: 50%;
-    height: 100%;
+    height: 70%;
     line-height: .4rem;
     color: #fff;
-    background-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,.8) 11%, rgba(0,0,0,.8) 90%, rgba(0,0,0,0) 100%);
+    background-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,.8) 5%, rgba(0,0,0,.8) 95%, rgba(0,0,0,0) 100%);
 }
 .wanted .gold .money{
     font-size: .3rem;

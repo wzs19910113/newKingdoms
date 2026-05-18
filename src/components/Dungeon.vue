@@ -1,7 +1,10 @@
 <template>
     <div class="dungeon">
         <a class="dungeon-guard" @click.stop="onTapGuard">
-            <div class="guard-level">警戒等级：{{common.calcGuardLevel(map)}} 级</div>
+            <div class="guard-level">
+                <span>警戒等级：{{common.calcGuardLevel(map)}} 级</span>
+                <span>{{calcNextGuard()}}</span>
+            </div>
             <Bar1 class="guard-bar" @onTap="onTapGuard" :class="`guard-${common.calcGuardLevel(map)}`" :type="5" :title="`警戒值`" :mode="2" :crt="map.guard" :max="100" />
         </a>
         <div class="dungeon-main">
@@ -16,10 +19,12 @@
                 -->
                 <a class="btn-cell" :class="`${cell.show?'':'btn-cell-hide'}`" :style="calcCellPosition(cell,index)" v-for="(cell,index) of map.cellList" @click.stop="onTapCell(cell,index)">
                     <span class="ele flag" v-if="cell.flag&&(cell.show||cell.marked)">
-                        <img :src="require(`../assets/icon-flag.png`)" />
+                        <b>标</b>
+                        <!-- <img :src="require(`../assets/icon-flag.png`)" /> -->
                     </span>
                     <span class="ele core" v-if="cell.core&&(cell.show||cell.marked)">
-                        <img :src="require(`../assets/icon-core.png`)" />
+                        <b>核</b>
+                        <!-- <img :src="require(`../assets/icon-core.png`)" /> -->
                     </span>
                     <span class="ele enemy" v-if="cell.enemy&&cell.show"></span>
                     <div class="brick" :class="`${cell.show?`brick-flip`:``}`"></div>
@@ -28,13 +33,15 @@
             </div>
         </div>
         <div class="dungeon-ops">
-            <span class="btn btn-leave-tip" v-if="calcFlagCount()<(map.size-1)">找齐 {{map.size-1}}（{{calcFlagCount()}}） 个路标方可离开</span>
+            <span class="btn btn-leave-tip" v-if="calcFlagCount()<(map.size-1)">找齐 {{map.size-1}}（{{calcFlagCount()}}） 个<b>路标</b>方可离开</span>
             <a class="btn btn-leave" v-else @click.stop="onTapLeave">返回龙虾村</a>
             <a class="btn btn-core" v-if="calcCoreShow()" @click.stop="onTapCore">
-                <img :src="require(`../assets/icon-core.png`)" />&nbsp;进入核心
+                <!-- <img :src="require(`../assets/icon-core.png`)" /> -->
+                进入核心
             </a>
-            <a class="btn btn-resident" v-if="calcResidentShow()" @click.stop="onTapCore">
-                <img :src="require(`../assets/icon-resident.png`)" />&nbsp;解救居民
+            <a class="btn btn-resident" v-if="calcResidentShow()" @click.stop="onTapResident">
+                <!-- <img :src="require(`../assets/icon-resident.png`)" /> -->
+                解救居民
             </a>
         </div>
     </div>
@@ -141,6 +148,18 @@ export default {
             }
             return res;
         },
+        calcNextGuard(){ // 计算下一个等级警戒值需求
+            let res = `升级需求警戒值：`;
+            let curLevel = common.calcGuardLevel(this.map);
+            let nextFloor = this.map.floors[curLevel+1];
+            if(nextFloor){
+                res += `${nextFloor.thresGuard}`;
+            }
+            else{
+                res = `警戒等级已满`;
+            }
+            return res;
+        },
     },
     components:{
         Bar1,
@@ -176,16 +195,19 @@ export default {
     }
     .guard-bar{
         height: .4rem;
-        width: 5rem;
+        width: 6.5rem;
     }
     .guard-level{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         height: .42rem;
         line-height: .42rem;
         color: #CD812C;
         font-weight: bold;
         text-align: left;
-        width: 5rem;
-        padding-left: .2rem;
+        width: 6.5rem;
+        padding: .14rem;
         font-size: .27rem;
         background-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
     }
@@ -216,7 +238,7 @@ export default {
         padding: .2rem;
         max-width: 329px;
         max-height: 329px;
-        background-color: rgba(0,0,0,.5);
+        /* background-color: rgba(0,0,0,.5); */
     }
     /* @media (min-width: 360px){
         .dungeon-main{
@@ -254,7 +276,7 @@ export default {
         transform-style: preserve-3d;
         perspective: 100px;
         background-color: transparent;
-        background-image: url('./../assets/icon-brick-off.png');
+        /* background-image: url('./../assets/icon-brick-off.png'); */
         background-size: 100% 100%;
         background-position: right;
         background-repeat: no-repeat;
@@ -274,19 +296,21 @@ export default {
     @keyframes frontFlip {
         0% {
             transform: rotateZ(45deg) rotateY(0deg);
-            background-image: url('./../assets/icon-brick-off.png');
+            /* background-image: url('./../assets/icon-brick-off.png'); */
         }
         50% {
             transform: rotateZ(45deg) rotateY(90deg);
-            background-image: url('./../assets/icon-brick-off.png');
+            /* background-image: url('./../assets/icon-brick-off.png'); */
         }
         51% {
             transform: rotateZ(45deg) rotateY(90deg);
-            background-image: url('./../assets/icon-brick-on.png');
+            /* background-image: url('./../assets/icon-brick-on.png'); */
+            background-image: linear-gradient(to right, rgba(205,205,205,.5) 0%,rgba(255,255,255,1) 50%,rgba(205,205,205,.5) 100%);
         }
         100% {
             transform: rotateZ(45deg) rotateY(180deg);
-            background-image: url('./../assets/icon-brick-on.png');
+            /* background-image: url('./../assets/icon-brick-on.png'); */
+            background-image: linear-gradient(to right, rgba(205,205,205,.5) 0%,rgba(255,255,255,1) 50%,rgba(205,205,205,.5) 100%);
             box-shadow: none;
         }
     }
@@ -295,18 +319,29 @@ export default {
         z-index: 1;
         width: .5rem;
         height: .5rem;
+        line-height: .5rem;
+        font-size: .4rem;
         overflow: hidden;
+    }
+    .btn-cell .ele >b{
+        display: block;
+        width: .5rem;
+        height: .5rem;
+        overflow: hidden;
+        border-radius: 50%;
     }
     .btn-cell .ele >img{
         display: block;
         width: 100%;
         height: 100%;
     }
-    .btn-cell .flag{
-
+    .btn-cell .flag >b{
+        color: #184;
+        border: .03rem solid #184;
     }
-    .btn-cell .core{
-
+    .btn-cell .core >b{
+        color: #D23;
+        border: .03rem solid #D23;
     }
     .btn-cell .enemy{
         position: absolute;
@@ -362,6 +397,10 @@ export default {
     }
     .dungeon-ops .btn-leave-tip{
         border-bottom: .02rem solid orangeRed;
+    }
+    .dungeon-ops .btn-leave-tip >b{
+        color: #184;
+        font-size: .28rem;
     }
     .dungeon-ops .btn-leave{
         border: .02rem solid #32FD32;

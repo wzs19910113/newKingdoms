@@ -6,20 +6,28 @@
         <span class="name">
             {{unit.nm}}
         </span>
-        <img class="bg-src" :src="require(`../assets/${common.calcIconSrc(unit)}`)" />
+        <!-- <img class="bg-src" :src="require(`../assets/${common.calcIconSrc(unit)}`)" /> -->
+        <canvas v-if="unit.i" class="bg-src" :class="`bg-size-${size}`" :width="CVSLEN" :height="CVSLEN" ref="cvs" />
     </a>
 </template>
 <script>
 import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
 import * as common from '../tools/common';
+import { genRandomAvatar, paintAvatar, genForeHairData, genBangsData, genBackHairData, } from '../tools/avatar';
 import { DEBUG, CONFIG } from '../config/config';
+const CVSLEN = (window.GLOBAL||{fontSize:7.5}).fontSize*5;
 export default {
     props:{
         unit: {
             type: Object,
             default: function(){},
+            required: true,
         },
         showNickName: Boolean,
+        size:{
+            type: Number,
+            default: 1, // 1小 2中 3大
+        },
         onTap: { // 点击事件
             type: Function,
             default: function(){},
@@ -28,7 +36,10 @@ export default {
     data() {
         return {
 
+            ctx: null,
+
             common,
+            CVSLEN,
             DEBUG,
             CONFIG,
         };
@@ -36,8 +47,20 @@ export default {
     computed: {
     },
     mounted(){
+        this.init();
     },
     methods: {
+        init(){
+            let cvs = this.$refs.cvs;
+            if(cvs){
+                this.ctx = cvs.getContext(`2d`);
+                if(this.ctx&&this.unit.i){
+                    let avatarTemplate = common.calcAvatarData(this.unit);
+                    let avatarData = JSON.parse(avatarTemplate);
+                    paintAvatar(this.ctx,avatarData,CVSLEN,CVSLEN);
+                }
+            }
+        },
         _onTap(){
             this.$emit('onTap');
         },
@@ -81,14 +104,20 @@ export default {
         position: absolute;
         display: block;
         z-index: 5;
+        margin: 0;
+        bottom: 0;
+        border-radius: 50%;
+        transform: scale(1.25);
+    }
+    .avatar .bg-size-1{
         width: 100%;
         height: 100%;
         top: -15%;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        margin: 0;
-        border-radius: 50%;
-        transform: scale(1.25);
+    }
+    .avatar .bg-size-2{
+        width: 150%;
+        height: 150%;
+        top: -50%;
+        right: -25%;
     }
 </style>

@@ -1,12 +1,12 @@
 <template>
     <a class="unit">
         <div class="block block-stat">
-            <div class="avatar-wrap">
+            <a class="avatar-wrap">
                 <!-- <a class="avatar" :class="">{{unit.nk+`\r`+unit.btd.name}}</a> -->
-                <Avatar class="unit-avatar" :unit="unit" :showNickName="true" />
+                <Avatar class="unit-avatar" :unit="unit" :showNickName="true" @onTap="_onTapAvatar" />
                 <div class="weapon" v-if="unit.btd.weaponName1">🗡️{{unit.btd.weaponName1}}</div>
                 <div class="weapon" v-if="unit.btd.weaponName2">🗡️{{unit.btd.weaponName2}}</div>
-            </div>
+            </a>
             <div class="stat-block-bars">
                 <div class="stat-block-bars-row">
                     <Bar1 class="bar" title="生命：" :mode="2" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" />
@@ -65,6 +65,10 @@ export default {
             type: Function,
             defalut: function(){},
         },
+        onTapAvatar: { // 点击头像事件
+            type: Function,
+            defalut: function(){},
+        },
         mode: { // 模式 1平时 2战斗
             type: Number,
             default: 1,
@@ -100,6 +104,9 @@ export default {
         },
         _onTapTransferMoney(){
             this.$emit('onTapTransferMoney');
+        },
+        _onTapAvatar(){
+            this.$emit('onTapAvatar',this.unit);
         },
     },
     components:{
@@ -167,10 +174,14 @@ export default {
         box-shadow: 0 0 .06rem .02rem #aaa;
     }
     .weapon{
+        position: relative;
+        z-index: 110;
         width: 100%;
         height: .24rem;
         line-height: .24rem;
         color: #fff;
+        background-color: #000;
+        padding-right: .04rem;
         font-size: .18rem;
         white-space: nowrap;
         word-break: keep-all;
@@ -178,7 +189,7 @@ export default {
         text-align: right;
     }
     .stat-block-bars{
-        width: 100%;
+        width: calc( 100% - 2rem );
     }
     .stat-block-bars-row{
         position: relative;

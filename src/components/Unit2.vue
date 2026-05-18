@@ -4,8 +4,8 @@
 
             <div class="cur" v-if="unit.btd.cur&&!unit.btd.out"></div>
 
-            <Avatar class="unit-avatar" v-if="!aniStyle" ref="unit-icon" :unit="unit" @onTap="_onTapAvatar" />
-            <Avatar class="unit-avatar" v-else ref="unit-icon" :unit="unit" @onTap="_onTapAvatar" />
+            <Avatar class="unit-avatar" v-if="!aniStyle" ref="unit-icon" :unit="unit" :size="2" @onTap="_onTapAvatar" />
+            <Avatar class="unit-avatar" v-else ref="unit-icon" :unit="unit" :size="2" @onTap="_onTapAvatar" />
 
             <Bar2 class="cir1" :current="unit.btd.mov" :type="1" @onTap="_onTapFlag(103)" />
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" @onTap="_onTapFlag(104)" />
@@ -221,6 +221,8 @@ export default {
     }
     /* 武器 */
     .weapon-row{
+        position: relative;
+        z-index: 120;
         width: 100%;
         max-height: .48rem;
     }

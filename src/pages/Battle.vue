@@ -92,7 +92,8 @@
             </div>
         </div>
         <!-- 背景 -->
-        <div class="bg" :style="`background-image:url(${require('../assets/bg-battle-'+field+'.png')})`"></div>
+        <!-- <div class="bg" :style="`background-image:url(${require('../assets/bg-battle-'+field+'.png')})`"></div> -->
+        <div class="bg" :class="mode==2?'bg-boss':''"></div>
         <div class="purdah purdah-left" v-if="pageState==0"></div>
         <div class="purdah purdah-right" v-if="pageState==0"></div>
         <!-- 弹窗 -->
@@ -891,13 +892,17 @@ export default {
             }
         },
         battleEnd(result=0){ // 战斗结束
+            let lag = 1;
             if(result==1){ // 获胜
+                lag = 1000;
                 this._alert(`获胜！`);
             }
             else if(result==2){ // 战败
+                lag = 1000;
                 this._alert(`战败...`);
             }
             else if(result==3){ // 撤离
+                lag = 1000;
                 this.boardTip(`撤离成功！`);
             }
             this.goPageState(99);
@@ -912,7 +917,7 @@ export default {
             window.GLOBAL.battleResult = resultData;
             this.timerList.push(setTimeout(_=>{
                 this.$router.push('home');
-            },1000));
+            },lag));
         },
 
         /* 快捷功能 */
@@ -1341,17 +1346,17 @@ export default {
                 case 201: // 通用浮动数字，涉及到数值
                     aniName = `number-common`;
                     if(number.eng){
-                        textList.push({val:number.eng,colorType:3});
+                        textList.push({val:number.eng,colorType:3,fontSize:1,});
                     }
                     if(number.mdef){
-                        textList.push({val:number.mdef,colorType:4});
+                        textList.push({val:number.mdef,colorType:4,fontSize:1,});
                     }
                     if(number.money){
-                        textList.push({val:number.money,colorType:8});
+                        textList.push({val:number.money,colorType:8,fontSize:1,});
                     }
                     if(number.hp){
                         let colorType = number.hp>0?1:2;
-                        textList.push({val:number.hp,colorType});
+                        textList.push({val:number.hp,colorType,fontSize:1,});
                     }
                 break;
                 case 102: // 压制，涉及到数值
@@ -1368,11 +1373,11 @@ export default {
                 break;
                 case 105: // 破盾，涉及到数值
                     aniName = `text`;
-                    textList.push({val:'破',colorType:9,fontSize:.6,});
+                    textList.push({val:'破',colorType:9,fontSize:1,});
                 break;
                 case 106: // miss
                     aniName = `text`;
-                    textList.push({val:'miss',colorType:8,fontSize:.66});
+                    textList.push({val:'miss',colorType:8,fontSize:1,});
                 break;
             };
             params = {
@@ -2063,6 +2068,7 @@ export default {
         margin: 0;
         width: 100%;
         height: 100%;
+        background-color: #147485;
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -2070,6 +2076,9 @@ export default {
         z-index: 1;
         box-shadow: 0 0 4rem 1rem #000 inset;
         animation: bg_fadein .2s .3s ease-in forwards;
+    }
+    .bg-boss{
+        background-color: #8c332a;
     }
     @keyframes bg_fadein {
         to{
@@ -2094,12 +2103,10 @@ export default {
     }
     .purdah-left{
         animation: fadeleft .3s ease-in-out forwards;
-        /* background-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%); */
         background-image: linear-gradient(to left, rgba(15,15,15,1) 0%, rgba(15,15,15,1) 70%, rgba(15,15,15,0) 100%);
     }
     .purdah-right{
         animation: faderight .3s ease-in-out forwards;
-        /* background-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%); */
         background-image: linear-gradient(to right, rgba(15,15,15,1) 0%, rgba(15,15,15,1) 70%, rgba(15,15,15,0) 100%);
     }
     @keyframes fadeleft {
@@ -2116,7 +2123,7 @@ export default {
         position: relative;
         width: 100%;
         height: 100%;
-        min-height: 13.75rem;
+        min-height: 11.75rem;
     }
 
     .panel-shadow{

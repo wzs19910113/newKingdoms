@@ -125,7 +125,7 @@ export default {
                             toY2 = fromY2 + 2*sizeScale;
                         };
                         text = `${val>0?'+':''}${common.awaFormat(val)}%`;
-                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[4], fontSize:.22, delay: .5+.3*i+delay});
+                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[4], fontSize:.56, delay: .5+.3*i+delay});
                     }
                 break;
                 case 'number-potency-damage': // 潜能增减
@@ -142,7 +142,7 @@ export default {
                             toY2 = fromY2 + 2*sizeScale;
                         };
                         text = `${val>0?'+':''}${common.awaFormat(val)}%`;
-                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[5], fontSize:.22, delay:.5+.3*i+delay});
+                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[5], fontSize:.56, delay:.5+.3*i+delay});
                     }
                 break;
                 case 'number-lock-on': // 存在感增减
@@ -159,7 +159,7 @@ export default {
                             toY2 = fromY2 + 3*sizeScale;
                         };
                         text = `${val>0?'+':''}${common.awaFormat(val)}%`;
-                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[6], fontSize:.22, delay:.5+.3*i+delay});
+                        this.triggerElement({type:1, fromX:fromX2,fromY:fromY2, toX:toX2,toY:toY2, text,color:textColorMap[6], fontSize:.56, delay:.5+.3*i+delay});
                     }
                 break;
 

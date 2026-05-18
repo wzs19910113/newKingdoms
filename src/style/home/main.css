@@ -25,10 +25,12 @@
     color: gold;
 }
 .panel{
+    position: relative;
     width: 100%;
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
+    z-index: 100;
 }
 .panel-loading{
     width: 100%;
@@ -68,6 +70,7 @@
     height: 100%;
     z-index: 0;
     animation: fadein .3s ease-in-out forwards;
+    background-image: linear-gradient(to right bottom, rgba(58,59,59,1)  0%, rgba(0,0,0,1) 50%, rgba(55,57,58,1) 100%);
 }
 .bg-pic{
     display: block;
@@ -96,9 +99,12 @@
     left: auto;
     right: auto;
     display: block;
-    width: 1.1rem;
-    height: 1.1rem;
+    width: 100%;
+    height: 1rem;
+    line-height: 1rem;
     border-radius: 50%;
+    font-size: .6rem;
+    color: orangeRed;
     z-index: 5;
     animation: shake-beer 3s ease-in-out infinite alternate;
 }
@@ -189,15 +195,16 @@
     width: .78rem;
     height: .78rem;
     line-height: .72rem;
-    font-size: .24rem;
+    font-size: .3rem;
+    color: rgba(194,175,76,1);
     border-radius: 50%;
     font-weight: bold;
     text-shadow: 0 0 .4rem #000;
     bottom: 3rem;
     right: .08rem;
     z-index: 500;
-    background-color: rgba(144,75,76,.8);
-    background-image: url('./../../assets/icon-bonfire.png');
+    background-image: linear-gradient(to right bottom, rgba(28,29,29,1)  0%, rgba(0,0,0,.5) 100%);
+    /* background-image: url('./../../assets/icon-bonfire.png'); */
     background-size: 100% 100%;
     background-position: right;
     background-repeat: no-repeat;
@@ -205,4 +212,14 @@
     border-bottom: .06rem solid orangeRed;
     border-right: .06rem solid orangeRed;
     border-top: .06rem solid #fa7;
+}
+.avatar-wrap{
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(closest-corner, rgba(145,145,145,.8) 0%, rgba(5,5,5,1) 100%);
+}
+.avatar{
+    width: 10.5rem;
+    height: 10.5rem;
+    margin: 0 auto;
 }
