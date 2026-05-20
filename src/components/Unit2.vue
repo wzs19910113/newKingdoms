@@ -16,12 +16,12 @@
             <div class="weapon" v-if="unit.btd.weaponName2">{{unit.btd.weaponName2}}</div>
         </div>
         <div class="stat-row" :class="`${unit.btd.out?'out':''}`">
-            <Bar1 class="bar" title="" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" @onTap="_onTapFlag(101)" />
-            <Bar3 class="bar" v-if="unit.btd.def[1]" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
+            <Bar1 class="bar bar-1" title="" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" @onTap="_onTapFlag(101)" />
+            <Bar3 class="bar bar-3" v-if="unit.btd.def[1]" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
         </div>
         <div class="stat-row" :class="`${unit.btd.out?'out':''}`">
-            <Bar1 class="bar" title="" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" @onTap="_onTapFlag(102)" />
-            <Bar3 class="bar" v-if="unit.btd.phy[1]" :type="2" :crt="unit.btd.phy[0]" :max="unit.btd.phy[1]" />
+            <Bar1 class="bar bar-1" title="" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" @onTap="_onTapFlag(102)" />
+            <Bar3 class="bar bar-3" v-if="unit.btd.phy[1]" :type="2" :crt="unit.btd.phy[0]" :max="unit.btd.phy[1]" />
         </div>
         <div class="buff-wrap" :class="`${unit.btd.out?'out':''}`">
             <Buff class="buff" v-for="buff in unit.btd.buffList" :key="buff.id" :buff="buff" @onTap="_onTapBuff(buff)" />
@@ -242,8 +242,17 @@ export default {
         position: relative;
         height: .66rem;
         width: 100%;
-        margin-bottom: .2rem;
+        margin-bottom: .1rem;
         z-index: 120;
+    }
+    .bar-1{
+        height: .4rem;
+    }
+    .bar-3{
+        top: .26rem;
+        right: -.05rem;
+        height: .24rem;
+        line-height: .22rem;
     }
     /* .stat-row .sub-mark{
         position: absolute;

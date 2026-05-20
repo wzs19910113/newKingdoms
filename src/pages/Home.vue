@@ -685,6 +685,32 @@ export default {
                 this.asynTeam();
                 this.asynBartender();
             }
+            // 第二天
+            if(this.game.day==2){
+                // 注册 3 个客人
+                let tempUnitList = [], tempEquipList = [], tempSkillList = [];
+                for(let i=2;i<5;i++){
+                    let unit = common.genUnit({
+                        id: i,
+                        game: this.game,
+                        level: 2,
+                        nickname: `酒馆客人`,
+                        equipList: tempEquipList,
+                        skillList: tempSkillList,
+                        rel: 1,
+                    });
+                    tempUnitList.push(unit);
+                }
+                for(let unit of tempUnitList){
+                    let newUnit = common.registerUnit({
+                        unit,
+                        game: this.game,
+                        equipList: tempEquipList,
+                        skillList: tempSkillList,
+                    });
+                    common.recoverUnit(newUnit,this.game);
+                }
+            }
             this._alert(`一天过去了...`);
         },
         goBattle({mode=1,playerTeamIds=[],enemyTeamIds=[],game=cloneObj(this.game)}){ // 进入战斗
@@ -1487,8 +1513,18 @@ export default {
                         inten,
                         equipList: tempGame.allEquips,
                         skillList: tempGame.allSkills,
-                        isVagrant: this.map.id==102&&inten==0, // 流浪者没有装备
                     });
+                    // 属性调整
+                    if(this.map.level==1){ // 1级地图
+                        if(inten==0){ // 流浪者没有装备和技能
+                            enemy.b = [];
+                            enemy.es = [];
+                            enemy.ss = [];
+                        }
+                        else if(inten==1){ // 盗墓贼没有技能
+                            enemy.ss = [];
+                        }
+                    }
                     enemyList.push(enemy);
                 }
                 for(let enemy of enemyList){

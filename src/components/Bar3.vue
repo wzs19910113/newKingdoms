@@ -58,11 +58,7 @@ export default {
     .bar-wrap{
         position: absolute;
         max-width: 90%;
-        height: .35rem;
-        line-height: .35rem;
         padding: 0 .2rem;
-        top: .26rem;
-        right: -.05rem;
         font-size: .26rem;
         background-image: radial-gradient(closest-corner, #AAA 50%, #CCC 100%);
         border: .01rem solid #CCC;

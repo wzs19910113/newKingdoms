@@ -38,20 +38,23 @@ const REJUST_LEVELS_MAP = [ // 补正等级描述表
 const INTEN_LEVEL_MAP = [ // 强度等级-等级映射表
     0, // 0级
     1, // 1级
-    2, // 2级
+    1, // 2级
     2, // 3级
-    3, // 4级
-    4, // 5级
-    4, // 6级
-    5, // 7级
-    5, // 8级
-    6, // 9级
-    6, // 10级
-    7, // 11级
-    7, // 12级
-    8, // 13级
-    8, // 14级
-    9, // 15级
+    2, // 4级
+    3, // 5级
+    3, // 6级
+    4, // 7级
+    4, // 8级
+    5, // 9级
+    5, // 10级
+    6, // 11级
+    6, // 12级
+    7, // 13级
+    7, // 14级
+    8, // 15级
+    8, // 16级
+    9, // 17级
+    9, // 18级
 ];
 
 function pow(n,p=2){
@@ -97,7 +100,7 @@ export function genRoleName(gender=1){ // 生成角色名
     let givennames = gender==1?NAMES.MALE_NAME_LIST:NAMES.FEMALE_NAME_LIST;
     return `${randIn(SURNAMES)}${r(0,1)?randIn(givennames):''}${randIn(givennames)}`;
 };
-export function genSkillName({level=1,beni=0}){ // 生成技能名 level（1-15）
+export function genSkillName({level=1,beni=0}){ // 生成技能名 level（1-18）
     let res = ``;
     let prefix1List, prefix2List, suffixList;
     if(beni){ // 保护和强化
@@ -151,7 +154,7 @@ export function calcAvatarData(unit){ // 计算单位的 avatarData
     return res;
 }
 
-export function genRx(level,exponent=1){ // 随机生成补正数值 level（1-15）
+export function genRx(level,exponent=1){ // 随机生成补正数值 level（1-18）
     let minRx = CONFIG.rxRangeMap[level-1][0]||1, maxRx = CONFIG.rxRangeMap[level-1][1]||1;
     let res = cl(exptr(minRx,maxRx,exponent));
     res = setInRange(res,1,Infinity);
@@ -211,7 +214,7 @@ export function genRandomAge(){ // 随机生成年龄
     }
     return age;
 };
-export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ // 生成一个攻击方式数据 level（1-15）
+export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ // 生成一个攻击方式数据 level（1-18）
     let newAtk = {};
     let atkAll = 0; // 是否为全体攻击
     let r1Ratio = 0, r2Ratio = 0, rAllRatio = 0;
@@ -311,7 +314,7 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
     return newAtk;
 }
 
-export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRandomAge(),tms=0,level=1,inten=0,rel=0,icon,isBoss,}){ // 生成一个角色数据 level（1-15） inten强度（0-4）
+export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRandomAge(),tms=0,level=1,inten=0,rel=0,icon,isBoss,}){ // 生成一个角色数据 level（1-18） inten强度（0-4）
     let genAttr = (stable=0) =>{ // 生成一个内在属性
         let res = 1;
         let min=CONFIG.attrRangeMap[level-1][0], max=CONFIG.attrRangeMap[level-1][1];
@@ -375,7 +378,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
         nm: name,
         nk: nickname,
         gd: gender,
-        g: cl(((level*5+inten)*3+r(1,level*(level+inten))*4)*100),
+        g: cl(((level*5+inten)*3+r(0,level*(level+inten))*50)),
         age,
         tms,
         rel,
@@ -409,9 +412,10 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     // if(!res.nk&&score>5000){
     //     res.nk = genNickName();
     // }
+    console.log(name,level,inten);
     return res;
 }
-export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生成一个装备数据 level（1-15）
+export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生成一个装备数据 level（1-18）
     let res = {
         id,
         n: '',
@@ -424,7 +428,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
     };
     let aRange = []; // 必加成的属性范围 [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
     let rRange = []; // 可加成的属性范围
-    let dRange = [0,0,]; // 存在感范围 0-500
+    let dRange = [0,0,]; // 存在感范围
     let name;
     if(melee){
         melee = r(1,2); // 武器类型 1近战 2远程
@@ -477,27 +481,27 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
             aRange = [5,];
             rRange = [3,4,6,7,8,10,];
         }
-        dRange = [10,150];
+        dRange = [75,150];
     }
     else if(type==2){ // 头
         aRange = [0,3,8,];
         rRange = [1,2,4,5,6,7,9,10,];
-        dRange = [2,35];
+        dRange = [15,30];
     }
     else if(type==3){ // 身体
         aRange = [0,3,8,9,];
         rRange = [1,2,6,7,10,];
-        dRange = [5,120];
+        dRange = [60,120];
     }
     else if(type==4){ // 配饰
         aRange = [2,];
         rRange = [3,4,5,6,7,8,9,10,];
-        dRange = [1,12];
+        dRange = [6,12];
     }
     else if(type==5){ // 脚
         aRange = [0,3,8,];
         rRange = [1,2,4,5,6,7,9,10,];
-        dRange = [1,30];
+        dRange = [15,30];
     }
     name = genEquipName(type,melee);
     // 设置必有属性
@@ -552,7 +556,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
     }
 
     // 设置存在感
-    res.d = cl(r(dRange[0],dRange[1])*25);
+    res.d = cl(r(dRange[0],dRange[1])*(level*10+inten*5));
     res.d = setInRange(res.d,0,10000);
 
     // 根据已有数据计算价值
@@ -563,7 +567,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
 
     return res;
 }
-export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // 生成一个技能数据 level（1-15） melee力准倾向（0|1）isTrace为追踪型技能
+export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // 生成一个技能数据 level（1-18） melee力准倾向（0|1）isTrace为追踪型技能
 	/*id: 11,
 	l: 1,
 	n: '治愈术',
@@ -780,64 +784,62 @@ export function genRegisterTime({id,game,}){ // 根据单位ID生成注册时间
     return res;
 }
 
-export function genUnit({id,level=1,inten=0,rel,game,nickname='',equipList,skillList,isBoss=false,isVagrant=false}){ // 生成一个完整的单位数据（带装备、背包和技能）
+export function genUnit({id,level=1,inten=0,rel,game,nickname='',equipList,skillList,isBoss=false,}){ // 生成一个完整的单位数据（带装备、背包和技能）
     let unit = genUnitData({ id, level, inten, rel, nickname, isBoss, game, });
     let melee = unit.as[4]>unit.as[5];
-    if(!isVagrant){ // 非游民
-        // 配备装备·武器
-        let weaponCount = exptr(1,2,2);
-        for(let i=0;i<weaponCount;i++){
-            let newWeapon = genEquipData({ id:id*10000+i, type:1, level, inten, melee, game, });
-            unit.es[i] = newWeapon.id;
-            equipList.push(newWeapon);
-        }
-        // 配备装备·配饰
-        let accessoryCount = isBoss?2:exptr(0,2,1);
-        for(let i=0;i<accessoryCount;i++){
-            let newAccessroy = genEquipData({ id:id*10000+1000+i, type:4, level, inten, melee, game, });
-            unit.es[i+2] = newAccessroy.id;
-            equipList.push(newAccessroy);
-        }
-        // 配备装备·衣服
-        let newArmor = genEquipData({ id:id*10000+2000, type:3, level, melee, game, });
-        unit.es[4] = newArmor.id;
-        equipList.push(newArmor);
-        // 配备装备·头饰
-        let newHelmet;
-        if(r(1,100)<=70){
-            newHelmet = genEquipData({ id:id*10000+3000, type:2, level, melee, game, });
-            unit.es[5] = newHelmet.id;
-            equipList.push(newHelmet);
-        }
-        // 配备装备·鞋子
-        let newShoes;
-        if(r(1,100)<=95){
-            newShoes = genEquipData({ id:id*10000+4000, type:5, level, melee, game, });
-            unit.es[6] = newShoes.id;
-            equipList.push(newShoes);
-        }
-        // 配备背包
-        let itemCount = r(0,6)+exptr(0,3,3);
-        for(let i=0;i<itemCount;i++){
-            let newEquip = genEquipData({ id:id*10000+5000+i, type:r(1,5), level, melee, game, });
-            unit.b.push(newEquip.id);
-            equipList.push(newEquip);
-        }
-        // 配备技能
-        let skillCount = 4+exptr(0,2,2);
-        let lastSkillId;
-        for(let i=0;i<skillCount;i++){
-            let newSkill = genSkillData({ id:id*10000+i, level, melee, isBoss, game, });
-            unit.ss.push(newSkill.id);
-            skillList.push(newSkill);
-            lastSkillId = newSkill.id;
-        }
-        // 如果是boss，且等级>4，则添加追踪型技能
-        if(isBoss&&level>4){
-            let newSkill = genSkillData({ id:lastSkillId+1, level, melee, isBoss, game, isTrace:true, });
-            unit.ss.push(newSkill.id);
-            skillList.push(newSkill);
-        }
+    // 配备装备·武器
+    let weaponCount = exptr(1,2,2);
+    for(let i=0;i<weaponCount;i++){
+        let newWeapon = genEquipData({ id:id*10000+i, type:1, level, inten, melee, game, });
+        unit.es[i] = newWeapon.id;
+        equipList.push(newWeapon);
+    }
+    // 配备装备·配饰
+    let accessoryCount = isBoss?2:exptr(0,2,1);
+    for(let i=0;i<accessoryCount;i++){
+        let newAccessroy = genEquipData({ id:id*10000+1000+i, type:4, level, inten, melee, game, });
+        unit.es[i+2] = newAccessroy.id;
+        equipList.push(newAccessroy);
+    }
+    // 配备装备·衣服
+    let newArmor = genEquipData({ id:id*10000+2000, type:3, level, melee, game, });
+    unit.es[4] = newArmor.id;
+    equipList.push(newArmor);
+    // 配备装备·头饰
+    let newHelmet;
+    if(r(1,100)<=70){
+        newHelmet = genEquipData({ id:id*10000+3000, type:2, level, melee, game, });
+        unit.es[5] = newHelmet.id;
+        equipList.push(newHelmet);
+    }
+    // 配备装备·鞋子
+    let newShoes;
+    if(r(1,100)<=95){
+        newShoes = genEquipData({ id:id*10000+4000, type:5, level, melee, game, });
+        unit.es[6] = newShoes.id;
+        equipList.push(newShoes);
+    }
+    // 配备背包
+    let itemCount = r(0,6)+exptr(0,3,3);
+    for(let i=0;i<itemCount;i++){
+        let newEquip = genEquipData({ id:id*10000+5000+i, type:r(1,5), level, melee, game, });
+        unit.b.push(newEquip.id);
+        equipList.push(newEquip);
+    }
+    // 配备技能
+    let skillCount = 4+exptr(0,2,2);
+    let lastSkillId;
+    for(let i=0;i<skillCount;i++){
+        let newSkill = genSkillData({ id:id*10000+i, level, melee, isBoss, game, });
+        unit.ss.push(newSkill.id);
+        skillList.push(newSkill);
+        lastSkillId = newSkill.id;
+    }
+    // 如果是boss，且等级>4，则添加追踪型技能
+    if(isBoss&&level>4){
+        let newSkill = genSkillData({ id:lastSkillId+1, level, melee, isBoss, game, isTrace:true, });
+        unit.ss.push(newSkill.id);
+        skillList.push(newSkill);
     }
     return unit;
 }
@@ -1034,7 +1036,8 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.eng = [curEng,maxEng,], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
 
-    btd.dge = cl(awa+7500*(1-calcDodgeRate(btd.attrs[9]))); // 隐蔽
+    btd.fixAwa = 10000+awa;
+    btd.dge = cl(btd.fixAwa-btd.attrs[9]*100); // 隐蔽
 
     btd.mov = 0; // 行动
     btd.mdef = btd.attrs[8]*25+250; // 心理防御
@@ -1457,8 +1460,9 @@ export function calcSkillXDemand(level){ // 计算技能经验的升级需求
     return res;
 }
 
-export function calcDodgeRate(dodge){ // 计算躲避因素
+export function calcDodgeRate(unit){ // 计算躲避因素
     let res;
+    let dodge = unit.btd.attrs[9];
     res = dodge/CONFIG.dodgeDeno;
     return res;
 }
@@ -1627,9 +1631,8 @@ export function calcMentalAlteration({caster,target,data,}){ // 计算心理伤�
     let res = 0,buff;
     res += data.d;
     if(data.d<0){ // 削减心理防御
-        let mdmg = calcIntDeno(caster)*data.rx2/100*1000; // 计算 caster 的智力补正攻击力
-        let mdef = target.btd.attrs[8]/CONFIG.intDeno; // 计算 target 的定力补正防御力
-        res -= cl(mdmg*(1-mdef));
+        let mdmg = calcIntDeno(caster)*data.rx2*10; // 计算 caster 的智力补正攻击力
+        res -= cl(mdmg);
 
         // 迷惑bufff
         if(buff=getBuff(target,120)){
@@ -1638,17 +1641,23 @@ export function calcMentalAlteration({caster,target,data,}){ // 计算心理伤�
 
     }
     else{ // 提升心理防御
-        res += cl(target.btd.attrs[8]/CONFIG.intDeno*data.rx1/100*20); //  计算 target 的定力补正
+        res += cl(target.btd.attrs[8]/CONFIG.intDeno*data.rx1*5); //  计算 target 的定力补正
     }
     return res;
 }
-export function calcDodgeAlteration({target,data,}){ // 计算存在感伤害增减值 data={d:100,rx:35}
+export function calcDodgeAlteration({target,data,}){ // 计算存在感增减值 data={d:100,rx:35}
     let res = 0,buff;
     if(data.d>0){ // 减益
         res = data.d;
     }
     else{ // 增益
-        res = -cl(1000+calcDodgeRate(target.btd.attrs[9])*data.rx/100*2.5*10000);
+        let attrRate = target.btd.attrs[9]*100/target.btd.fixAwa;
+        let skillRate = data.rx/100;
+        if(attrRate>1){
+            attrRate = 1;
+        }
+        res -= cl(1000+9000*skillRate*attrRate);
+
         // 暴露bufff
         if(buff=getBuff(target,107)){
             res = 0;
@@ -1705,28 +1714,29 @@ export function calcConcentrate({caster,}){ // 计算集气值
 }
 export function calcPersuade({caster,target,}){ // 计算话术值
     let res = 0,buff;
-    let mdmg = calcIntDeno(caster)*250;
-    let mdef = target.btd.attrs[8]/CONFIG.intDeno;
+    // let mdmg = calcIntDeno(caster)*250;
+    // let mdef = target.btd.attrs[8]/CONFIG.intDeno;
     let attrDiff = caster.btd.attrs[7]-target.btd.attrs[8];
-    res += mdmg*(1-mdef);
 
-    // 若 caster 的智力大于 target 的定力，则增加额外伤害
-    if(attrDiff>0){
-        res += attrDiff/2;
-    }
-
-    // 迷惑bufff
-    if(buff=getBuff(target,120)){
-        res = res*buff.construction[buff.level-1];
+    if(attrDiff>0){ // 我的智力>他的定力，则可以造成心理伤害
+        res = attrDiff;
+        // 迷惑bufff
+        if(buff=getBuff(target,120)){
+            res = res*buff.construction[buff.level-1];
+        }
     }
 
     res = cl(res);
-    res = setInRange(res,1,Infinity);
+    res = setInRange(res,0,Infinity);
     return res;
 }
 export function calcDodge({caster,}){ // 计算躲避值
     let res = 0,buff;
-    res += cl(1000+calcDodgeRate(caster.btd.attrs[9])*2.5*2000);
+    let attrRate = caster.btd.attrs[9]*100/caster.btd.fixAwa;
+    if(attrRate>1){
+        attrRate = 1;
+    }
+    res += cl(1000+2500*attrRate);
 
     // 暴露bufff
     if(buff=getBuff(caster,107)){
@@ -1977,7 +1987,7 @@ export function weakenBuffFrom({buffId,buffLevel,unit,}){ // 削减单位的buff
 
 export function calcAttackDodgeup({unit,}){ // 计算攻击时的存在感上升值
     let res = 0;
-    let rate = 1-calcDodgeRate(unit.btd.attrs[9]);
+    let rate = 1-calcDodgeRate(unit);
 
     // 潜行bufff
     if(getBuff(unit,6)){
@@ -1994,7 +2004,7 @@ export function calcAttackDodgeup({unit,}){ // 计算攻击时的存在感上升
 }
 export function calcSkillDodgeup({unit,skill,}){ // 计算发动技能时的存在感上升值
     let res = 0;
-    let rate = 1-calcDodgeRate(unit.btd.attrs[9]);
+    let rate = 1-calcDodgeRate(unit);
 
     // 潜行bufff
     if(getBuff(unit,6)){
@@ -2008,7 +2018,7 @@ export function calcSkillDodgeup({unit,skill,}){ // 计算发动技能时的存�
 }
 export function calcPersuadeDodgeup({unit,}){ // 计算攻心时的存在感上升值
     let res = 0;
-    let rate = 1-calcDodgeRate(unit.btd.attrs[9]);
+    let rate = 1-calcDodgeRate(unit);
 
     // 潜行bufff
     if(getBuff(unit,6)){

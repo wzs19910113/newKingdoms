@@ -9,12 +9,12 @@
             </a>
             <div class="stat-block-bars">
                 <div class="stat-block-bars-row">
-                    <Bar1 class="bar" title="生命：" :mode="2" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" />
-                    <Bar3 class="bar" v-if="unit.btd.def[1]" title="防御：" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
+                    <Bar1 class="bar bar-1" title="生命：" :mode="2" :type="1" :crt="unit.btd.hp[0]" :max="unit.btd.hp[1]" />
+                    <Bar3 class="bar bar-3" v-if="unit.btd.def[1]" title="防御：" :type="1" :crt="unit.btd.def[0]" :max="unit.btd.def[1]" />
                 </div>
                 <div class="stat-block-bars-row">
-                    <Bar1 class="bar" title="精力：" :mode="2" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" />
-                    <Bar3 class="bar" title="体力：" :type="2" :crt="unit.btd.phy[0]" :max="unit.btd.phy[1]" />
+                    <Bar1 class="bar bar-1" title="精力：" :mode="2" :type="2" :crt="unit.btd.eng[0]" :max="unit.btd.eng[1]" />
+                    <Bar3 class="bar bar-3" title="体力：" :type="2" :crt="unit.btd.phy[0]" :max="unit.btd.phy[1]" />
                 </div>
             </div>
         </div>
@@ -206,6 +206,15 @@ export default {
         line-height: .46rem;
         text-align: left;
         font-size: .26rem;
+    }
+    .bar-1{
+        height: .46rem;
+    }
+    .bar-3{
+        top: .26rem;
+        right: -.05rem;
+        height: .35rem;
+        line-height: .35rem;
     }
     .stat-attr{
         display: flex;

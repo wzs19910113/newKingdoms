@@ -249,10 +249,10 @@ module.exports = {
 			[2,5], // 1
 			[4,8], // 2
 			[10,20], // 3
-			[15,40], // 4
-			[20,65], // 5
-			[37,95], // 6
-			[75,175], // 7
+			[20,40], // 4
+			[35,65], // 5
+			[50,95], // 6
+			[90,175], // 7
 			[150,250], // 8
 			[250,400], // 9
 			[400,650], // 10
@@ -268,42 +268,42 @@ module.exports = {
 		engRangeMap: [ // 等级和精力范围表
 			[5,15], // 1
 			[8,20], // 2
-			[10,30], // 3
-			[20,50], // 4
-			[30,75], // 5
-			[40,100], // 6
-			[60,150], // 7
-			[80,220], // 8
-			[100,320], // 9
-			[125,440], // 10
-			[150,600], // 11
-			[200,800], // 12
-			[300,1000], // 13
-			[400,1200], // 14
-			[500,1400], // 15
-			[600,1600], // 16
-			[700,1800], // 17
-			[800,2000], // 18
+			[15,30], // 3
+			[25,50], // 4
+			[40,75], // 5
+			[60,100], // 6
+			[80,150], // 7
+			[120,220], // 8
+			[175,320], // 9
+			[240,440], // 10
+			[350,600], // 11
+			[450,800], // 12
+			[600,1000], // 13
+			[750,1200], // 14
+			[900,1400], // 15
+			[1000,1600], // 16
+			[1200,1800], // 17
+			[1500,2000], // 18
 		],
 		defRangeMap: [ // 等级和防御力范围表
 			[1,2], // 1
 			[1,3], // 2
-			[1,4], // 3
-			[1,5], // 4
-			[2,10], // 5
-			[3,20], // 6
-			[5,40], // 7
-			[8,60], // 8
-			[12,100], // 9
-			[18,160], // 10
-			[25,250], // 11
-			[35,400], // 12
-			[50,600], // 13
-			[75,900], // 14
-			[110,1350], // 15
-			[160,1800], // 16
-			[300,2400], // 17
-			[450,3200], // 18
+			[2,4], // 3
+			[3,5], // 4
+			[5,10], // 5
+			[10,20], // 6
+			[20,40], // 7
+			[30,60], // 8
+			[50,100], // 9
+			[80,160], // 10
+			[125,250], // 11
+			[200,400], // 12
+			[300,600], // 13
+			[450,900], // 14
+			[675,1350], // 15
+			[900,1800], // 16
+			[1200,2400], // 17
+			[1600,3200], // 18
 		],
 		attrRangeMap: [ // 等级和属性值范围表
 			[2,12], // 1
@@ -407,7 +407,7 @@ module.exports = {
 		leakDmgRatio: 2, // 破绽状态增伤倍数
 
 		defAutoRecoverFactor: .5, // 防御值自动回升系数
-		baseConsumeList: [1,3,1,0,1,1,2,5,], // 基础操作的体力消耗 0防御 1躲避 2追踪 3调息 4集气 5爆气 6劝降 7撤离
+		baseConsumeList: [1,2,1,0,1,1,2,5,], // 基础操作的体力消耗 0防御 1躲避 2追踪 3调息 4集气 5爆气 6劝降 7撤离
 		spAttackRate: 25, // 武器的 SP 效果触发概率
 		enviorDamageInterval: 30, // 战意流失触发频率（回合数）
 		enviorDamageBase: 100, // 战意流失基础伤害
@@ -441,10 +441,10 @@ module.exports = {
 				}],
 			},
 			{
-				id:103, level:1, type:2, name:'非法山林', links: [102,], size:5,
+				id:103, level:2, type:2, name:'非法山林', links: [102,], size:5,
 				floors:[
-					{title:`混混`,thresGuard:0,guard:1,},
-					{title:`悍匪`,thresGuard:25,guard:2,},
+					{title:`混混`,thresGuard:0,guard:3,},
+					{title:`悍匪`,thresGuard:25,guard:5,},
 					{title:`头目`,thresGuard:50,guard:3,},
 				],
 				bosses:[{
@@ -452,7 +452,7 @@ module.exports = {
 				}],
 			},
 			{
-				id:104, level:2, type:2, name:'熔铁洞窟', links: [103,], size:5,
+				id:104, level:3, type:2, name:'熔铁洞窟', links: [103,], size:5,
 				floors:[
 					{title:`学徒`,thresGuard:0,guard:1,},
 					{title:`匠人`,thresGuard:20,guard:2,},
@@ -464,7 +464,7 @@ module.exports = {
 				],
 			},
 			{
-				id:105, level:3, type:2, name:'雪海', links: [103,], size:5,
+				id:105, level:4, type:2, name:'雪海', links: [103,], size:5,
 				floors:[
 					{title:`水手`,thresGuard:0,guard:1,},
 					{title:`海盗`,thresGuard:15,guard:2,},
@@ -475,7 +475,7 @@ module.exports = {
 				}],
 			},
 			{
-				id:106, level:4, type:2, name:'落叶城', links: [105,], size:6,
+				id:106, level:5, type:2, name:'落叶城', links: [105,], size:6,
 				floors:[
 					{title:`佣兵`,thresGuard:0,guard:1,},
 					{title:`佩剑士`,thresGuard:15,guard:2,},
@@ -487,7 +487,7 @@ module.exports = {
 				}],
 			},
 			{
-				id:107, level:5, type:2, name:'愚困密道', links: [106,], size:6,
+				id:107, level:6, type:2, name:'愚困密道', links: [106,], size:6,
 				floors:[
 					{title:`密探`,thresGuard:0,guard:1,},
 					{title:`信徒`,thresGuard:15,guard:2,},
@@ -500,7 +500,7 @@ module.exports = {
 				],
 			},
 			{
-				id:108, level:6, type:2, name:'云观', links: [106,], size:5,
+				id:108, level:7, type:2, name:'云观', links: [106,], size:5,
 				floors:[
 					{title:`道士`,thresGuard:0,guard:1,},
 					{title:`散仙`,thresGuard:15,guard:3,},
@@ -511,7 +511,7 @@ module.exports = {
 				}],
 			},
 			{
-				id:109, level:7, type:2, name:'终神宫', links: [107,108,], size:7,
+				id:109, level:8, type:2, name:'终神宫', links: [107,108,], size:7,
 				floors:[
 					{title:`士族`,thresGuard:0,guard:1,},
 					{title:`亲卫兵`,thresGuard:15,guard:2,},
@@ -526,7 +526,7 @@ module.exports = {
 				],
 			},
 			{
-				id:110, level:8, type:2, name:'漩涡', links: [109,], size:4,
+				id:110, level:9, type:2, name:'漩涡', links: [109,], size:4,
 				floors:[
 					{title:`天选`,thresGuard:0,guard:5,},
 					{title:`神话`,thresGuard:30,guard:10,},
@@ -725,6 +725,8 @@ unit = {
 		ptc: 0, // 潜能
 		mdef: 150, // 心理防御
 		money: 0, // 金币
+
+		fixAwa: 24000, // 固定存在感（装备加人体）
 
 		attrs: [50,35,2,0, 20,14,16,17,14,25,17,], // 4维面板+7维属性 [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
 		oattrs: [50,35,2,0, 20,14,16,17,14,25,17,], // 固有11维身体数值

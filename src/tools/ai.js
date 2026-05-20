@@ -99,10 +99,10 @@ export function genAction({unit,meTeam,youTeam,isFleeing,mode,}){ // 生成 AI �
     // console.log(res,attackActionList);
     // let actionDesc = getActionDesc(res);
     // if(unit.id==14){
-    //     for(let action of actionList){
-    //         console.log(getActionDesc(action));
-    //     }
-    //     console.log(`============================================================================`);
+        // for(let action of actionList){
+        //     console.log(getActionDesc(action));
+        // }
+        // console.log(`============================================================================`);
     // }
     // console.log(unit.nm,res);
     return res;
@@ -306,8 +306,8 @@ function calcActionScore({action,isFleeing,copyAliveYouTeam,}){ // 计算一个 
             score = 1;
         }
     }
-    else if(action.type==7&&!isFleeing){ // 集气
-        score = btd.attrs[10]/20;
+    else if(action.type==7&&!isFleeing){ // 集气 @AI禁止
+        // score = btd.attrs[10]/20;
     }
     else if(action.type==8&&!isFleeing){ // 爆气
         let ptcRatio = btd.ptc/10000;
@@ -322,18 +322,18 @@ function calcActionScore({action,isFleeing,copyAliveYouTeam,}){ // 计算一个 
             score = ((ptcRatio+1)*ptcRatio)*scoreFactor(caster)*attrVal*.01;
         }
     }
-    else if(action.type==9){ // 话术
-        let target = targetUnitList[0];
-        let hr = hitRate(target);
-        if(hr>.5){
-            let mentalDmg = common.calcPersuade({caster,target,});
-            let mentalDmgRatio = mentalDmg/target.btd.mdef;
-            let attrDiff = caster.btd.attrs[7]-target.btd.attrs[8];
-            let mentalScore = (mentalDmg*1.1*hr+Math.sqrt(attrDiff)*.16)*mentalDmgRatio;
-            if(mentalScore>0){
-                score = mentalScore;
-            }
-        }
+    else if(action.type==9){ // 话术 @AI禁止
+        // let target = targetUnitList[0];
+        // let hr = hitRate(target);
+        // if(hr>.5){
+        //     let mentalDmg = common.calcPersuade({caster,target,});
+        //     let mentalDmgRatio = mentalDmg/target.btd.mdef;
+        //     let attrDiff = caster.btd.attrs[7]-target.btd.attrs[8];
+        //     let mentalScore = (mentalDmg*1.1*hr+Math.sqrt(attrDiff)*.16)*mentalDmgRatio;
+        //     if(mentalScore>0){
+        //         score = mentalScore;
+        //     }
+        // }
     }
     return cl(score);
 }
@@ -419,16 +419,20 @@ function calcAttackScore(action,isFleeing,){ // 计算攻击行动的分数
                 }
             }
             let painRatio = hpPain/target.btd.hp[0];
+            let fatal = painRatio>=1;
             painRatio = setInRange(.2,1);
             buffFactor = 1+buffFactor/5;
-            targetAttackScore += defPain*.5;
+            targetAttackScore += defPain*4;
             targetAttackScore += hpPain*5*buffFactor*painRatio;
             targetAttackScore *= Math.sqrt(dodgeRatio);
+            if(fatal){ // 如果此伤害致命
+                targetAttackScore *= 5;
+            }
             totalDmgScore += targetAttackScore;
         }
     }
 
-    res = totalDmgScore;
+    res = 3+totalDmgScore;
 
     res = checkOverflow(caster,consume,res);
 
@@ -455,13 +459,17 @@ function calcSkillScore(action,isFleeing,){ // 计算技能行动的分数
             let { defPain, hpPain,} = common.calcPain({unit:target,dmg:singleDmg,});
             if(dodgeRatio>.4){
                 let painRatio = hpPain/target.btd.hp[0];
+                let fatal = painRatio>=1;
                 painRatio = setInRange(.2,1);
-                targetAttackScore += defPain*.5;
+                targetAttackScore += defPain*4;
                 targetAttackScore += hpPain*5*painRatio;
                 targetAttackScore *= Math.sqrt(dodgeRatio);
                 targetAttackScore *= consumeFactor;
-                if(isFleeing){ // 敌人正在逃跑
+                if(isFleeing){ // 如果敌人正在逃跑
                     targetAttackScore *= 2;
+                }
+                if(fatal){ // 如果此伤害致命
+                    targetAttackScore *= 5;
                 }
                 score += targetAttackScore;
             }

@@ -117,7 +117,10 @@
                 </p>
             </div>
         </Pop>
-        <Toast ref="toast" />
+        <!-- alert -->
+        <Toast ref="toast-alert" />
+        <!-- confirm -->
+        <Toast ref="toast-confirm" />
     </div>
 </template>
 
@@ -921,9 +924,6 @@ export default {
         },
 
         /* 快捷功能 */
-        _alert(text,time){ // 弹出提示
-            this.$refs.toast.trigger(text,time);
-        },
         boardTip(text){ // 公共信息提示
             this.boardText = text;
         },
@@ -1785,18 +1785,20 @@ export default {
                 this.battleEnd();
             }
             else{ // 非营地模式
-                let allEnemyUnits = [...this.enemyTeam];
-                let allAliveEnemyUnits = getSubMatchList(allEnemyUnits,[['out',0]],'btd');
-                let fleeMoveIncresement = 0; // 所有存活敌方单位的速度总和
-                for(let unit of allAliveEnemyUnits){
-                    fleeMoveIncresement += common.getSpeed(unit);
-                }
-                this.isFleeing = 1;
-                this.totalFleeMove = fleeMoveIncresement*CONFIG.fleeTotalMoveFactor;
-                if(this.consumeAction({consume:CONFIG.baseConsumeList[7],unit:caster,})){ // 结算消耗
-                    this.registerAniEffect(201,caster);
-                }
-                this.unitRoundEpilog(caster);
+                this._confirm(`确定要从本场战斗撤离吗？`,_=>{
+                    let allEnemyUnits = [...this.enemyTeam];
+                    let allAliveEnemyUnits = getSubMatchList(allEnemyUnits,[['out',0]],'btd');
+                    let fleeMoveIncresement = 0; // 所有存活敌方单位的速度总和
+                    for(let unit of allAliveEnemyUnits){
+                        fleeMoveIncresement += common.getSpeed(unit);
+                    }
+                    this.isFleeing = 1;
+                    this.totalFleeMove = fleeMoveIncresement*CONFIG.fleeTotalMoveFactor;
+                    if(this.consumeAction({consume:CONFIG.baseConsumeList[7],unit:caster,})){ // 结算消耗
+                        this.registerAniEffect(201,caster);
+                    }
+                    this.unitRoundEpilog(caster);
+                });
             }
         },
 
@@ -1971,7 +1973,15 @@ export default {
             }
         },
 
+
+
         /* 其他 */
+        _alert(text,time){ // 显示提示
+            this.$refs['toast-alert'].trigger(text,time);
+        },
+        _confirm(confirmTip,onTapConfirm){ // 显示确认文本
+            this.$refs['toast-confirm'].showConfirm({ confirmTip, onTapConfirm, });
+        },
         forceUpdatePage(){ // 防止页面刷新停滞
             let oPlayerTeam = cloneObj(this.playerTeam), oEnemyTeam = cloneObj(this.enemyTeam);
             this.playerTeam = [];
