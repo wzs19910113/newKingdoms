@@ -537,7 +537,7 @@ module.exports = {
 				}],
 			},
 		],
-		initGuard: 100,
+		initGuard: 10,
 
 		// 商人聊天
 		bartenderChats: [

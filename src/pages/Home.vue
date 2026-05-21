@@ -28,7 +28,7 @@
                 <a class="btn btn-save" v-if="map.type==1" @click="onTapSave">存档</a>
                 <a class="btn btn-guide" @click="onTapGuide">指引</a>
                 <a class="btn btn-restart" @click="onTapExit">退出</a>
-                <a class="btn btn-cheat" v-if="DEBUG" @click="onTapCheat">作弊</a>
+                <!-- <a class="btn btn-cheat" v-if="DEBUG" @click="onTapCheat">作弊</a> -->
             </div>
             <!-- 吊牌 -->
             <a class="brand" @click="onTapBrand()">
@@ -487,8 +487,8 @@ export default {
         initNavis(){ // 初始化导航数据
             let navis = [];
             let conqueredIDList = [];
-            // let conqueres = [];
-            let conqueres = [101,102,103,104,105,106,107,108,109,110];
+            let conqueres = [];
+            // let conqueres = [101,102,103,104,105,106,107,108,109,110];
             // 获取已攻克地图的ID数组
             for(let map of this.game.mapList){
                 if(arrContains(map.flagMarks,0)==-1){
