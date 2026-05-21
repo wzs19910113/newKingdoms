@@ -22,6 +22,7 @@
                     <Buff class="buff" :buff="genBuff(buffId,skill.el[buffEffectIndex].d.bl[index])" :mode="2" :shadow="isOption?0:1" @onTap="_onTapBuff(buffId,skill.el[buffEffectIndex].d.bl[index])" />
                 </div>
             </div>
+            <a class="btn btn-copy" v-if="checkCopyBtn()" @click.stop="_onTapCopy">复制( <b class="x">{{x}}</b> )</a>
         </div>
         <div class="skill-mode" :class="`${skill.t==3?'harm':'beni'}`" v-if="mode==2">
             <div class="row">
@@ -48,6 +49,14 @@ export default {
         unit: { // 持有者
             type: Object,
             default: function(){},
+        },
+        me: { // 我
+            type: Object,
+            default: function(){},
+        },
+        x: { // 技能点
+            type: Number,
+            default: 0,
         },
         ban: { // 禁用
             type: Boolean,
@@ -160,6 +169,13 @@ export default {
             }
             return effectTip;
         },
+        checkCopyBtn(){
+            let res = false;
+            if(this.me&&(this.unit&&this.unit.id!=101&&this.unit.rel>0)&&this.x>0){
+                res = arrContains(this.me.ss,this.skill.id)==-1;
+            }
+            return res;
+        },
         _onTap(){
             this.$emit('onTap',{flag:1,data:this.skill,ban:this.ban,});
         },
@@ -171,6 +187,9 @@ export default {
         },
         _onTapBuff(buffId,buffLevel){
             this.$emit('onTap',{flag:2,buffId,buffLevel,skill:this.skill});
+        },
+        _onTapCopy(){
+            this.$emit('onTap',{flag:4,skill:this.skill,});
         },
     },
     components: {
@@ -344,5 +363,35 @@ export default {
     }
     .skill-ban .harm{
         border-color: #322;
+    }
+    /* 技能点数 */
+    .btn-copy{
+        position: absolute;
+        top: .1rem;
+        right: .1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: .4rem;
+        line-height: .4rem;
+        width: 1rem;
+        padding: 0 .06rem;
+        white-space: nowrap;
+        word-break: keep-all;
+        overflow: hidden;
+        border: .01rem solid #000;
+        border-radius: .06rem;
+        background-image: radial-gradient(closest-corner, #005 0%, #77c 100%);
+        animation: .5s copyFlash ease-in-out alternate infinite;
+    }
+    .btn-copy .x{
+        color: #fff;
+        text-shadow: 0 0 .02rem #000;
+        font-size: .28rem;
+    }
+    @keyframes copyFlash {
+        to{
+            box-shadow: 0 0 .3rem .1rem #816CBD;
+        }
     }
 </style>

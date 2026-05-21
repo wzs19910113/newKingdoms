@@ -45,6 +45,7 @@
     text-align: left;
     min-height: .4rem;
     font-size: .3rem;
+    margin-bottom: .04rem;
 }
 .pop-checkout .row-title{
     color: #f1ff74;
@@ -84,21 +85,25 @@
     }
 }
 
-.pop-checkout .row-money{
+.pop-checkout .row-money,
+.pop-checkout .row-battery{
+    padding-left: .1rem;
     height: .6rem;
     line-height: .6rem;
+    background-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100% );
 }
-.pop-checkout .row-money .title{
+.pop-checkout .row-money .title,
+.pop-checkout .row-battery .title{
     text-shadow: 0 0 .1rem #000;
 }
-.pop-checkout .row-money .value{
+.pop-checkout .row-money .value,
+.pop-checkout .row-battery .value{
     display: inline-block;
     width: 3rem;
     padding-left: .2rem;
     height: 100%;
     text-align: left;
     font-weight: bold;
-    background-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100% );
 }
 
 .pop-checkout .row-equips{
@@ -121,7 +126,7 @@
     min-width: .6rem;
     padding-left: .1rem;
     padding-right: .3rem;
-    background-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100% );
+    background-image: linear-gradient(to right, rgba(25,25,25,1) 0%, rgba(25,25,25,1) 80%, rgba(0,0,0,0) 100% );
     margin-top: .06rem;
 }
 .pop-checkout .row-equips .equip .type{

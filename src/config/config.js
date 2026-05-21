@@ -250,20 +250,20 @@ module.exports = {
 			[4,8], // 2
 			[10,20], // 3
 			[20,40], // 4
-			[35,65], // 5
-			[50,95], // 6
-			[90,175], // 7
-			[150,250], // 8
-			[250,400], // 9
-			[400,650], // 10
-			[650,950], // 11
-			[950,1750], // 12
-			[1750,2500], // 13
-			[2500,4000], // 14
-			[4000,6500], // 15
-			[6500,9500], // 16
-			[9500,17500], // 17
-			[17500,25000], // 18
+			[40,80], // 5
+			[80,150], // 6
+			[150,300], // 7
+			[300,550], // 8
+			[500,1000], // 9
+			[900,1800], // 10
+			[1600,3200], // 11
+			[2800,5600], // 12
+			[5000,10000], // 13
+			[8000,15000], // 14
+			[12000,24000], // 15
+			[20000,40000], // 16
+			[30000,60000], // 17
+			[40000,80000], // 18
 		],
 		engRangeMap: [ // 等级和精力范围表
 			[5,15], // 1
@@ -404,7 +404,8 @@ module.exports = {
 
 		persuadeDodgeup: 2500, // 攻心提升自己存在感固定值
 
-		leakDmgRatio: 2, // 破绽状态增伤倍数
+		leakDmgRatio1: 2, // 破绽状态增伤倍数1
+		leakDmgRatio2: 3, // 破绽状态增伤倍数2
 
 		defAutoRecoverFactor: .5, // 防御值自动回升系数
 		baseConsumeList: [1,2,1,0,1,1,2,5,], // 基础操作的体力消耗 0防御 1躲避 2追踪 3调息 4集气 5爆气 6劝降 7撤离
@@ -445,7 +446,7 @@ module.exports = {
 				floors:[
 					{title:`混混`,thresGuard:0,guard:3,},
 					{title:`悍匪`,thresGuard:25,guard:5,},
-					{title:`头目`,thresGuard:50,guard:3,},
+					{title:`头目`,thresGuard:50,guard:10,},
 				],
 				bosses:[{
 					title: `渡鸦`, id: 52, inten: 5, expired: 20, gold: 15000,
@@ -454,9 +455,9 @@ module.exports = {
 			{
 				id:104, level:3, type:2, name:'熔铁洞窟', links: [103,], size:5,
 				floors:[
-					{title:`学徒`,thresGuard:0,guard:1,},
-					{title:`匠人`,thresGuard:20,guard:2,},
-					{title:`铸剑师`,thresGuard:40,guard:4,},
+					{title:`学徒`,thresGuard:0,guard:3,},
+					{title:`匠人`,thresGuard:25,guard:5,},
+					{title:`铸剑师`,thresGuard:50,guard:10,},
 				],
 				bosses:[
 					{ title: `舞女剑`, id: 53, inten: 4, expired: 25, gold: 20000, },
@@ -466,9 +467,9 @@ module.exports = {
 			{
 				id:105, level:4, type:2, name:'雪海', links: [103,], size:5,
 				floors:[
-					{title:`水手`,thresGuard:0,guard:1,},
-					{title:`海盗`,thresGuard:15,guard:2,},
-					{title:`船长`,thresGuard:30,guard:4,},
+					{title:`水手`,thresGuard:0,guard:3,},
+					{title:`海盗`,thresGuard:25,guard:5,},
+					{title:`船长`,thresGuard:50,guard:10,},
 				],
 				bosses:[{
 					title: `寒冰魅影`, id: 55, inten: 5, expired: 30, gold: 50000,
@@ -477,10 +478,10 @@ module.exports = {
 			{
 				id:106, level:5, type:2, name:'落叶城', links: [105,], size:6,
 				floors:[
-					{title:`佣兵`,thresGuard:0,guard:1,},
-					{title:`佩剑士`,thresGuard:15,guard:2,},
-					{title:`副将`,thresGuard:30,guard:4,},
-					{title:`大将`,thresGuard:45,guard:8,},
+					{title:`佣兵`,thresGuard:0,guard:3,},
+					{title:`佩剑士`,thresGuard:25,guard:5,},
+					{title:`副将`,thresGuard:50,guard:10,},
+					{title:`大将`,thresGuard:75,guard:20,},
 				],
 				bosses:[{
 					title: `镇压官`, id: 56, inten: 5, expired: 35, gold: 80000,
@@ -489,10 +490,10 @@ module.exports = {
 			{
 				id:107, level:6, type:2, name:'愚困密道', links: [106,], size:6,
 				floors:[
-					{title:`密探`,thresGuard:0,guard:1,},
-					{title:`信徒`,thresGuard:15,guard:2,},
-					{title:`邪师`,thresGuard:30,guard:4,},
-					{title:`主教`,thresGuard:45,guard:8,},
+					{title:`密探`,thresGuard:0,guard:3,},
+					{title:`信徒`,thresGuard:25,guard:5,},
+					{title:`邪师`,thresGuard:50,guard:10,},
+					{title:`主教`,thresGuard:75,guard:20,},
 				],
 				bosses:[
 					{ title: `处刑人`, id: 57, inten: 5, expired: 40, gold: 100000, },
@@ -502,9 +503,9 @@ module.exports = {
 			{
 				id:108, level:7, type:2, name:'云观', links: [106,], size:5,
 				floors:[
-					{title:`道士`,thresGuard:0,guard:1,},
-					{title:`散仙`,thresGuard:15,guard:3,},
-					{title:`破道者`,thresGuard:30,guard:8,},
+					{title:`门使`,thresGuard:0,guard:3,},
+					{title:`游仙`,thresGuard:25,guard:5,},
+					{title:`破道者`,thresGuard:50,guard:10,},
 				],
 				bosses:[{
 					title: `天体轨道护卫`, id: 59, inten: 6, expired: 45, gold: 250000,
@@ -513,11 +514,11 @@ module.exports = {
 			{
 				id:109, level:8, type:2, name:'终神宫', links: [107,108,], size:7,
 				floors:[
-					{title:`士族`,thresGuard:0,guard:1,},
-					{title:`亲卫兵`,thresGuard:15,guard:2,},
-					{title:`亲卫骑士`,thresGuard:30,guard:4,},
-					{title:`副统帅`,thresGuard:45,guard:8,},
-					{title:`统帅`,thresGuard:60,guard:15,},
+					{title:`卫兵`,thresGuard:0,guard:2,},
+					{title:`骑士`,thresGuard:25,guard:4,},
+					{title:`骑兵长`,thresGuard:50,guard:8,},
+					{title:`副统帅`,thresGuard:75,guard:15,},
+					{title:`统帅`,thresGuard:100,guard:30,},
 				],
 				bosses:[
 					{ title: `恐惧之神`, id: 60, inten: 5, expired: 50, gold: 300000, },
@@ -536,7 +537,7 @@ module.exports = {
 				}],
 			},
 		],
-		initGuard: 10,
+		initGuard: 100,
 
 		// 商人聊天
 		bartenderChats: [
@@ -551,6 +552,7 @@ module.exports = {
 			`为什么叫‘以太酒馆’？因为这里是以太世界。`,
 			`这里一切都是虚拟的，唯有酒精是真实的。`,
 			`欢迎回来，赏金猎人。`,
+			`你可以拒绝他人的目光，你也可以拒绝未来只活在当下，这是你的人生我不会去改变你的想法，但你真的能拒绝一份肯德基香辣鸡腿堡吗？`,
 		],
 
  		// 胡言乱语

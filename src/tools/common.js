@@ -14,7 +14,7 @@ const BENI_SKILL_EFFECT_LIST = [2,5,7,8,9,];
 const HARM_SKILL_EFFECT_LIST = [1,2,7,8,9,];
 const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添加状态 3减弱增益状态 4减弱减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感 】
     3, // 攻击
-    1, // 添加状态
+    3, // 添加状态
     1, // 减弱增益状态
     1, // 减弱减益状态
     2, // 治疗
@@ -336,7 +336,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     if(!name){
         name = genRoleName(gender);
     }
-    let hp = exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],3); // 血量
+    let hp = exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],2); // 血量
     let eng = exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],2); // 精力
     let ba = [0,0]; // Boss附加属性[血量，精力]
     let phy = exptr(level,level*2+1,1); // 体力
@@ -346,7 +346,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
         genAttr(fixStable), // 精准
         genAttr(fixStable), // 速度
         genAttr(fixStable), // 智力
-        genAttr(.75), // 定力
+        genAttr(fixStable), // 定力
         genAttr(fixStable), // 隐蔽
         genAttr(fixStable), // 爆发
     ];
@@ -412,7 +412,6 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     // if(!res.nk&&score>5000){
     //     res.nk = genNickName();
     // }
-    console.log(name,level,inten);
     return res;
 }
 export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生成一个装备数据 level（1-18）
@@ -438,11 +437,11 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
         let intenRoot = 0;
         switch(attr){
             case 0: // 血量
-                res = cl(exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],4)/5)+3;
+                res = cl(exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],2))+3;
                 intenRoot = 3.5;
             break;
             case 1: // 精力
-                res = cl(exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],4)/5)+2;
+                res = cl(exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],2))+2;
                 intenRoot = 2;
             break;
             case 2: // 体力
@@ -450,7 +449,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
                 intenRoot = 1.5;
             break;
             case 3: // 防御
-                res = cl(exptr(CONFIG.defRangeMap[level-1][0],CONFIG.defRangeMap[level-1][1],4))+1;
+                res = cl(exptr(CONFIG.defRangeMap[level-1][0],CONFIG.defRangeMap[level-1][1],2))+1;
                 intenRoot = 2;
             break;
             case 4: // 属性
@@ -460,7 +459,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
             case 8:
             case 9:
             case 10:
-                res = cl(exptr(CONFIG.attrRangeMap[level-1][0],CONFIG.attrRangeMap[level-1][1],3)/2)+r(2,level*3);
+                res = cl(exptr(CONFIG.attrRangeMap[level-1][0],CONFIG.attrRangeMap[level-1][1],2)/2)+r(2,level*3);
                 intenRoot = 1.5;
             break;
         }
@@ -481,7 +480,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
             aRange = [5,];
             rRange = [3,4,6,7,8,10,];
         }
-        dRange = [75,150];
+        dRange = [50,100];
     }
     else if(type==2){ // 头
         aRange = [0,3,8,];
@@ -491,7 +490,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
     else if(type==3){ // 身体
         aRange = [0,3,8,9,];
         rRange = [1,2,6,7,10,];
-        dRange = [60,120];
+        dRange = [50,100];
     }
     else if(type==4){ // 配饰
         aRange = [2,];
@@ -1570,12 +1569,15 @@ export function calcPain({unit,dmg,}){ // 计算def和hp各自承受的伤害，
     // 心理奔溃状态增伤
     if(isCrumble(unit)){
         let incRatio = -unit.btd.mdef/10000;
-        dmg += cl(dmg*incRatio);
+        dmg += cl(dmg*(incRatio+1));
     }
 
     // 破绽状态增伤
-    if(unit.btd.mov>=9000){
-        dmg += cl(dmg*CONFIG.leakDmgRatio);
+    if(unit.btd.mov>=9000&&unit.btd.mov<9500){
+        dmg = cl(dmg*CONFIG.leakDmgRatio1);
+    }
+    else if(unit.btd.mov>=9500){
+        dmg = cl(dmg*CONFIG.leakDmgRatio2);
     }
 
     dmg = setInRange(dmg,1,Infinity);

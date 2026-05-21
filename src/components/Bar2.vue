@@ -7,7 +7,7 @@
             <circle class="progress-bar" cx="55" cy="55" r="45" fill="none" :stroke="pColor" :stroke-width="strokeWidth" :stroke-dasharray="circumference" :stroke-dashoffset="progressOffset" transform="rotate(-90 55 55)"/>
         </svg>
         <!-- 中心显示百分比 -->
-        <label class="progress-text" :class="checkLeak()?'progress-float':''">{{percentage}}</label>
+        <label class="progress-text" :class="checkLeak()">{{percentage}}</label>
     </a>
 </template>
 
@@ -76,7 +76,17 @@ export default{
             return Math.min(100, Math.max(0, Math.floor(percent)));
         },
         checkLeak(){ // 检查是否出现鲁莽
-            return this.type==1&&(this.getPercentage()>=90);
+            let res = '';
+            let pct = this.getPercentage();
+            if(this.type==1){
+                if(pct>=90&&pct<95){
+                    res = `progress-float-1`;
+                }
+                else if(pct>=95){
+                    res = `progress-float-2`;
+                }
+            }
+            return res;
         },
     },
 };
@@ -122,15 +132,26 @@ export default{
     line-height: 1;
     font-size: .16rem;
 }
-.progress-float{
-    color: #df8510;
+.progress-float-1,
+.progress-float-2{
     font-weight: bold;
-    /* transform-origin: 0 0; */
-    animation: float .3s ease-in-out alternate infinite;
 }
-@keyframes float {
+.progress-float-1{
+    color: #DF8510;
+    animation: float-1 .4s ease-in-out alternate infinite;
+}
+.progress-float-2{
+    color: #EC3510;
+    animation: float-2 .2s ease-in-out alternate infinite;
+}
+@keyframes float-1 {
     to{
         transform: scale(1.5);
+    }
+}
+@keyframes float-2 {
+    to{
+        transform: scale(2);
     }
 }
 

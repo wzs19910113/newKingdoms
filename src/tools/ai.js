@@ -40,12 +40,12 @@ export function genAction({unit,meTeam,youTeam,isFleeing,mode,}){ // 生成 AI �
     let copyAliveYouTeam = cloneObj(getSubMatchList(youTeam,[['out',0]],'btd'));
     let copyAliveMeTeam = cloneObj(getSubMatchList(meTeam,[['out',0]],'btd'));
 
-    let banSkill = false;
-    // if(mode!=3){ // 非单挑模式，则有1/3的概率不使用技能
-    //     banSkill = r(1,100)<30;
-    // }
+    let banAttackSkill = false;
+    if(mode!=3){ // 非单挑模式，则有1/3的概率不使用攻击技能
+        banAttackSkill = r(1,100)<30;
+    }
 
-    let actionList = getActionList({copyUnit,copyAliveYouTeam,copyAliveMeTeam,banSkill,});
+    let actionList = getActionList({copyUnit,copyAliveYouTeam,copyAliveMeTeam,banAttackSkill,});
 
     for(let action of actionList){
         action.score = calcActionScore({action,isFleeing,copyAliveYouTeam,copyAliveMeTeam,});
@@ -71,12 +71,14 @@ export function genAction({unit,meTeam,youTeam,isFleeing,mode,}){ // 生成 AI �
             }
         }
     }
-    let traceActionScore = traceAction.score;
-    if(traceSkillActionList.length>0){
-        traceAction.score = 0;
-    }
-    for(let action of traceSkillActionList){
-        action.score += traceActionScore;
+    if(traceAction){
+        let traceActionScore = traceAction.score;
+        if(traceSkillActionList.length>0){
+            traceAction.score = 0;
+        }
+        for(let action of traceSkillActionList){
+            action.score += traceActionScore;
+        }
     }
 
     // 从所有可执行的行动中选择一个
@@ -99,16 +101,16 @@ export function genAction({unit,meTeam,youTeam,isFleeing,mode,}){ // 生成 AI �
     // console.log(res,attackActionList);
     // let actionDesc = getActionDesc(res);
     // if(unit.id==14){
-        // for(let action of actionList){
-        //     console.log(getActionDesc(action));
-        // }
-        // console.log(`============================================================================`);
+        for(let action of actionList){
+            console.log(getActionDesc(action));
+        }
+        console.log(`============================================================================`);
     // }
     // console.log(unit.nm,res);
     return res;
 }
 
-function getActionList({copyUnit,copyAliveMeTeam,copyAliveYouTeam,banSkill=false}){ // 获得可执行的动作数组
+function getActionList({copyUnit,copyAliveMeTeam,copyAliveYouTeam,banAttackSkill=false}){ // 获得可执行的动作数组
     let actionList;
     let attackActionList = [], skillActionList = [], defAction, dodgeAction, traceAction, breathAction, concentrateAction, burstActionList = [], persuadeActionList = [];
     let consume;
@@ -142,23 +144,27 @@ function getActionList({copyUnit,copyAliveMeTeam,copyAliveYouTeam,banSkill=false
     }
 
     // 生成技能行动数组
-    if(!banSkill){
-        for(let skill of mySkillList){
-            consume = common.calcConsume({type:2,unit:copyUnit,data:skill}); // 本技能的消耗
-            if(common.canConsume({unit:copyUnit,consume,})){ // 如果体力足够
-                if(skill.t==1){ // 目标为自己
-                    let newSkillAction = { caster:copyUnit, type:2, targetUnitList:[copyUnit], skill, score:0, consume, };
-                    skillActionList.push(newSkillAction);
-                }
-                else if(skill.t==2){ // 目标为友方单体
-                    for(let youUnit of copyAliveMeTeam){
-                        if(youUnit.id!=copyUnit.id){
-                            let newSkillAction = { caster:copyUnit, type:2, targetUnitList:[youUnit], skill, score:0, consume, };
-                            skillActionList.push(newSkillAction);
-                        }
+    for(let skill of mySkillList){
+        consume = common.calcConsume({type:2,unit:copyUnit,data:skill}); // 本技能的消耗
+        if(common.canConsume({unit:copyUnit,consume,})){ // 如果体力足够
+            if(skill.t==1){ // 目标为自己
+                let newSkillAction = { caster:copyUnit, type:2, targetUnitList:[copyUnit], skill, score:0, consume, };
+                skillActionList.push(newSkillAction);
+            }
+            else if(skill.t==2){ // 目标为友方单体
+                for(let youUnit of copyAliveMeTeam){
+                    if(youUnit.id!=copyUnit.id){
+                        let newSkillAction = { caster:copyUnit, type:2, targetUnitList:[youUnit], skill, score:0, consume, };
+                        skillActionList.push(newSkillAction);
                     }
                 }
-                else if(skill.t==3){ // 目标为敌方单体
+            }
+            else if(skill.t==3){ // 目标为敌方单体
+                let attackEffect = getMatchList(skill.el,[['t',1]])[0];
+                if(attackEffect&&banAttackSkill){ // 禁止带有攻击性质的技能
+
+                }
+                else{
                     for(let youUnit of copyAliveYouTeam){
                         let newSkillAction = { caster:copyUnit, type:2, targetUnitList:[youUnit], skill, score:0, consume, };
                         skillActionList.push(newSkillAction);
@@ -409,6 +415,7 @@ function calcAttackScore(action,isFleeing,){ // 计算攻击行动的分数
             dodgeRatio += .01;
         }
         if(dodgeRatio>.3||attack.s==5){
+            totalDmgScore += 3;
             let buffFactor = 0;
             if(hpPain>0){ // 如果可以上buff
                 for(let i=0;i<attack.bl.length;i++){
@@ -432,7 +439,7 @@ function calcAttackScore(action,isFleeing,){ // 计算攻击行动的分数
         }
     }
 
-    res = 3+totalDmgScore;
+    res = totalDmgScore;
 
     res = checkOverflow(caster,consume,res);
 

@@ -33,7 +33,7 @@
             </div>
         </div>
         <div class="dungeon-ops">
-            <span class="btn btn-leave-tip" v-if="calcFlagCount()<(map.size-1)">找齐 {{map.size-1}}（{{calcFlagCount()}}） 个<b>路标</b>方可离开</span>
+            <a class="btn btn-leave-tip" v-if="calcFlagCount()<(map.size-1)">找齐 {{map.size-1}}（{{calcFlagCount()}}） 个<b>路标</b>方可离开</a>
             <a class="btn btn-leave" v-else @click.stop="onTapLeave">返回龙虾村</a>
             <a class="btn btn-core" v-if="calcCoreShow()" @click.stop="onTapCore">
                 <!-- <img :src="require(`../assets/icon-core.png`)" /> -->
@@ -42,6 +42,13 @@
             <a class="btn btn-resident" v-if="calcResidentShow()" @click.stop="onTapResident">
                 <!-- <img :src="require(`../assets/icon-resident.png`)" /> -->
                 解救居民
+            </a>
+            <a class="battery-wrap" @click.stop="onTapBattery">
+                <div class="battery-title">能源储备</div>
+                <div class="battery-value">
+                    <div class="battery-value-remain">{{map.battery[0]}}</div>
+                    <div class="battery-value-total">{{map.battery[1]}}</div>
+                </div>
             </a>
         </div>
     </div>
@@ -77,6 +84,10 @@ export default {
             default: function(){},
         },
         onTapResident: { // 点击解救居民按钮事件
+            type: Function,
+            default: function(){},
+        },
+        onTapBattery: { // 点击电池
             type: Function,
             default: function(){},
         },
@@ -440,5 +451,38 @@ export default {
     .btn >img{
         display: inline-block;
         height: 70%;
+    }
+    /* 电池 */
+    .battery-wrap{
+        position: absolute;
+        left: .4rem;
+        top: .2rem;
+        width: 1.2rem;
+        color: #fff;
+        border: .02rem solid #fff;
+    }
+    .battery-wrap .battery-title{
+        height: .5rem;
+        line-height: .5rem;
+        border-bottom: .02rem solid #fff;
+        background-image: radial-gradient(closest-corner, rgba(5,5,25,1) 0%, rgba(45,45,125,.8) 100%);
+    }
+    .battery-wrap .battery-value{
+        height: .72rem;
+        line-height: .72rem;
+        font-size: .3rem;
+    }
+    .battery-wrap .battery-value-remain{
+        width: 85%;
+        margin: 0 auto;
+        height: .36rem;
+        line-height: .36rem;
+        border-bottom: .02rem solid #fff;
+    }
+    .battery-wrap .battery-value-total{
+        width: 85%;
+        margin: 0 auto;
+        height: .36rem;
+        line-height: .36rem;
     }
 </style>

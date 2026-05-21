@@ -3,7 +3,7 @@
         <div class="block block-stat">
             <a class="avatar-wrap">
                 <!-- <a class="avatar" :class="">{{unit.nk+`\r`+unit.btd.name}}</a> -->
-                <Avatar class="unit-avatar" :unit="unit" :showNickName="true" @onTap="_onTapAvatar" />
+                <Avatar class="unit-avatar" :unit="unit" :nameStyle="1" @onTap="_onTapAvatar" />
                 <div class="weapon" v-if="unit.btd.weaponName1">🗡️{{unit.btd.weaponName1}}</div>
                 <div class="weapon" v-if="unit.btd.weaponName2">🗡️{{unit.btd.weaponName2}}</div>
             </a>

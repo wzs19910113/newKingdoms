@@ -4,8 +4,8 @@
 
             <div class="cur" v-if="unit.btd.cur&&!unit.btd.out"></div>
 
-            <Avatar class="unit-avatar" v-if="!aniStyle" ref="unit-icon" :unit="unit" :size="2" @onTap="_onTapAvatar" />
-            <Avatar class="unit-avatar" v-else ref="unit-icon" :unit="unit" :size="2" @onTap="_onTapAvatar" />
+            <Avatar class="unit-avatar" v-if="!aniStyle" ref="unit-icon" :nameStyle="2" :unit="unit" :size="2" @onTap="_onTapAvatar" />
+            <Avatar class="unit-avatar" v-else ref="unit-icon" :nameStyle="2" :unit="unit" :size="2" @onTap="_onTapAvatar" />
 
             <Bar2 class="cir1" :current="unit.btd.mov" :type="1" @onTap="_onTapFlag(103)" />
             <Bar2 class="cir2" :current="unit.btd.ptc" :type="2" @onTap="_onTapFlag(104)" />
@@ -162,7 +162,6 @@ export default {
         height: 1rem;
         white-space: normal;
         word-break: keep-all;
-        margin-bottom: .05rem;
         z-index: 100;
     }
     .avatar-wrap .unit-avatar{

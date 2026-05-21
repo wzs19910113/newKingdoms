@@ -28,6 +28,13 @@
                         <a class="btn btn-start" v-if="pageState==1" @click="onTapStartBattle">开 始 战 斗</a>
                         <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊2</a>
                         <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊1</a>
+                        <div class="battery-wrap" v-if="battle.map.battery">
+                            <div class="battery-title">能源储备</div>
+                            <div class="battery-value">
+                                <div class="battery-value-remain">{{battle.map.battery[0]}}</div>
+                                <div class="battery-value-total">{{battle.map.battery[1]}}</div>
+                            </div>
+                        </div>
                     </div>
                     <!-- 我方区域 -->
                     <div class="team-pan team-pan-bottom">
@@ -36,8 +43,9 @@
                 </div>
                 <!-- 操作板块 -->
                 <div class="menu-wrap" :class="`${menuData.expand?'menu-wrap-expand':''}`" v-if="menuData.state>0">
+                    <a class="btn btn-back" v-if="menuData.state>1" @click="onTapMenuBack">回退</a>
+                    <a class="btn btn-guide" @click="onTapMenuGuide">帮助</a>
                     <a class="btn btn-expand" @click="onTapMenuExpand">{{menuData.expand?`▽`:`△`}}</a>
-                    <a class="btn btn-back" v-if="menuData.state>1" @click="onTapMenuBack">返回</a>
                     <div class="menu">
                         <p class="menu-tip">{{menuData.tip}} {{menuData.extip}}：</p>
 
@@ -183,6 +191,7 @@ window.GLOBAL.battle = { // 输入：战斗参数
             enemy: 0, // 0无敌人 1+敌人数量
         },...],
         curCellIndex: 4, // 当前所在单元格下标
+        battery: [2000,2000,] // 电池
         tempGame: {...}, 游戏数据样本
     },
     playerTeamIds: [],
@@ -230,12 +239,12 @@ export default {
             showMenuGuide: 0, // 显示操作菜单指导
             menuGuids: [
                 {name:'防御',desc:'恢复防御力到满值'},
-                {name:'躲避',desc:'降低自己的存在感'},
+                {name:'躲避',desc:'降低自己的存在感（隐蔽补正）'},
                 {name:'追踪',desc:'提升敌方单位10%的存在感，该单位只能是存在感最高的敌人'},
                 {name:'调息',desc:'恢复体力到满值'},
-                {name:'集气',desc:'提升潜能'},
+                {name:'集气',desc:'提升潜能（爆发补正）'},
                 {name:'爆气',desc:'消耗自己全部潜能，选择自己的某项属性按百分比提升'},
-                {name:'话术',desc:'降低敌人的心理防御（智力vs定力）'},
+                {name:'话术',desc:'降低敌人的心理防御（智力补正）'},
                 {name:'撤离',desc:'敌人攻击命中会打断'},
             ],
 
@@ -769,7 +778,9 @@ export default {
             }
 
             // 战意流失
-            this.enviorDamage();
+            if(this.mode!=4){
+                this.enviorDamage();
+            }
 
             // 遍历每个存活单位，根据 changes 生成并推送画布动画
             for(let unit of allAliveUnits){
@@ -856,13 +867,17 @@ export default {
             }
         },
         roundEnd(){ // 回合结束（动画播放完毕，且buff编辑完毕）
+            let curUnit = this.curUnitList[this.curUnitListIndex];
+            if(this.mode!=3&&curUnit.btd.isPlayer){
+                this.battle.map.battery[0] -= 1; // 电池消耗
+                this.battle.map.battery[0] = setInRange(this.battle.map.battery[0],0,this.battle.map.battery[1]);
+            }
             // 检查是否满足结束条件
             let checkEndResult = this.checkEnd();
             if(checkEndResult){ // 战斗结束
                 this.battleEnd(checkEndResult);
             }
             else{ // 战斗未结束
-                let curUnit = this.curUnitList[this.curUnitListIndex];
                 let oCurUnit = this.getUnit(curUnit.id);
                 // console.log(`单位回合结束`,curUnit.btd.name);
                 // 清除画布的 response trigger
@@ -958,30 +973,35 @@ export default {
         },
         checkEnd(){ // 检查胜负 0未结束 1我方获胜 2敌人获胜 3撤离成功
             let res = 0;
-            if(this.mode==4){ // 营地模式
-                return res;
-            }
-            let playerDefeat = 1, enemyDefeat = 1;
-            for(let unit of this.playerTeam){
-                if(!unit.btd.out){
-                    playerDefeat = 0;
-                    break;
-                }
-            }
-            for(let unit of this.enemyTeam){
-                if(!unit.btd.out){
-                    enemyDefeat = 0;
-                    break;
-                }
-            }
-            if(playerDefeat&&enemyDefeat){
-                res = 3;
-            }
-            else if(enemyDefeat){
-                res = 1;
-            }
-            else if(playerDefeat){
+            if(this.mode!=3&&this.battle.map.battery[0]<=0){ // 电池枯竭，直接失败
                 res = 2;
+            }
+            else{
+                if(this.mode==4){ // 营地模式
+                    return res;
+                }
+                let playerDefeat = 1, enemyDefeat = 1;
+                for(let unit of this.playerTeam){
+                    if(!unit.btd.out){
+                        playerDefeat = 0;
+                        break;
+                    }
+                }
+                for(let unit of this.enemyTeam){
+                    if(!unit.btd.out){
+                        enemyDefeat = 0;
+                        break;
+                    }
+                }
+                if(playerDefeat&&enemyDefeat){
+                    res = 3;
+                }
+                else if(enemyDefeat){
+                    res = 1;
+                }
+                else if(playerDefeat){
+                    res = 2;
+                }
             }
             return res;
         },
@@ -1857,6 +1877,9 @@ export default {
             this.menuData.state = this.menuData.stateRecordList[this.menuData.stateRecordList.length-1];
             this.menuData.stateRecordList.pop();
         },
+        onTapMenuGuide(){ // 点击【菜单-帮助】
+            this.showMenuGuide = !this.showMenuGuide;
+        },
         onTapMenuAttack({flag,data,ban,buffId,buffLevel,sp,spLevel}){ // 点击【菜单-攻击】
             if(flag==1){ // 点击attack图标
                 this.onTapMenu({flag:101,data,ban});
@@ -2165,7 +2188,7 @@ export default {
         justify-content: space-around;
         align-items: flex-start;
         flex-wrap: nowrap;
-        height: 5rem;
+        height: 4.2rem;
         padding: 0 .1rem;
         /* box-shadow: 0 0 .1rem red inset; */
     }
@@ -2250,7 +2273,7 @@ export default {
     }
     .board-flee-wrap .board-flee-bar{
         margin: 0 auto;
-        width: 5rem;
+        width: 4.5rem;
         height: .38rem;
         border: .01rem solid #888;
         border-radius: .04rem;
@@ -2485,5 +2508,37 @@ export default {
         line-height: .76rem;
         background-color: #2F4F4F;
     }
-
+    /* 电池 */
+    .battery-wrap{
+        position: absolute;
+        left: .08rem;
+        top: 0;
+        width: 1.2rem;
+        color: #fff;
+        border: .02rem solid #fff;
+    }
+    .battery-wrap .battery-title{
+        height: .3rem;
+        line-height: .3rem;
+        border-bottom: .02rem solid #fff;
+        background-image: radial-gradient(closest-corner, rgba(5,5,25,1) 0%, rgba(45,45,125,.8) 100%);
+    }
+    .battery-wrap .battery-value{
+        height: .6rem;
+        line-height: .6rem;
+        font-size: .3rem;
+    }
+    .battery-wrap .battery-value-remain{
+        width: 85%;
+        margin: 0 auto;
+        height: .3rem;
+        line-height: .3rem;
+        border-bottom: .01rem solid #fff;
+    }
+    .battery-wrap .battery-value-total{
+        width: 85%;
+        margin: 0 auto;
+        height: .3rem;
+        line-height: .3rem;
+    }
 </style>

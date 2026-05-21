@@ -103,6 +103,7 @@
                     :onTapLeave="onTapLeaveDungeon"
                     :onTapCore="onTapDungeonCore"
                     :onTapResident="onTapResident"
+                    :onTapBattery="onTapBattery"
                 />
             </div>
             <!-- 啤酒按钮 -->
@@ -139,7 +140,7 @@
             <div class="unit-info-pop unit-board" v-if="popUnitTab==1">
                 <Unit1 :unit="selectingUnit" :showTransferButton="team.length>1&&selectingUnit.rel==3" @onTapTransferMoney="onTapTransferMoney" @onTapAvatar="onTapAvatar" :mode="1" />
                 <!-- 角色隶属操作栏 -->
-                <div class="unit-board option-wrap">
+                <div class="unit-board option-wrap" v-if="state==1">
                     <a class="btn" v-if="selectingUnit.id==me.id" @click="onTapLogout()">销号</a>
                     <a class="btn" v-if="selectingUnit.rel<3" @click="onTapChallenge(selectingUnit)">单挑</a>
                     <a class="btn" v-if="selectingUnit.rel<2&&selectingUnit.id!=1" @click="onTapHire(selectingUnit)">
@@ -186,15 +187,15 @@
             <div class="unit-info-pop unit-skill-board" v-if="popUnitTab==3">
                 <div class="skill-x-wrap" v-if="selectingUnit.id==me.id&&(game.x>0||game.xp>0)">
                     <Bar1 class="skill-x" title="灵感指数" :mode="2" :type="4" :crt="game.x" :max="common.calcSkillXDemand(game.xl)" @onTap="onTapXPointBar" />
-                    <a class="btn btn-skill-x" :class="`${game.xp>0?'btn-skill-x-active':''}`" @click="onTapXPoint">{{game.xp}}</a>
+                    <a class="btn btn-skill-x" :class="`${game.xp>0?'btn-skill-x-active':''}`" @click="onTapXPointBar">{{game.xp}}</a>
                 </div>
-                <div class="skill-copy-wrap" v-if="selectingUnit.id==me.id&&showSkillCopy">
+                <!-- <div class="skill-copy-wrap" v-if="selectingUnit.id==me.id&&showSkillCopy">
                     <div class="title">选择要复制的技能（{{skillCopyList.length}}）：</div>
                     <Skill class="skill" v-for="skill of skillCopyList" :key="skill.id" :skill="skill" :isOption="true" :mode="1" @onTap="onTapCopySkill" />
-                </div>
+                </div> -->
                 <draggable v-if="selectingUnit.btd.skillList.length>0" class="skill-list-group" handle=".mover" :disabled="false" v-model="selectingUnit.btd.skillList" @end="onSkillDragEnd" animation="100">
                     <div class="skill-wrap" v-for="skill of selectingUnit.btd.skillList" :key="skill.id">
-                        <Skill class="skill" :skill="skill" :mode="1" @onTap="onTapSkill" />
+                        <Skill class="skill" :skill="skill" :unit="selectingUnit" :me="me" :x="game.xp" :mode="1" @onTap="onTapSkill" />
                         <a class="anchor mover" v-if="selectingUnit.rel==3&&selectingUnit.btd.skillList.length>1">拖<br/>移<br/>↕</a>
                     </div>
                 </draggable>
@@ -212,6 +213,10 @@
             <div class="row row-money" v-if="award.gold">
                 <label class="title">获得金币：</label>
                 <span class="value money" v-html="`${common.moneyFormat(award.gold)} $`"></span>
+            </div>
+            <div class="row row-battery" v-if="award.battery">
+                <label class="title">获得能量：</label>
+                <span class="value battery">{{award.battery}}</span>
             </div>
             <div class="row row-equips" v-if="award.equipList.length>0">
                 <label class="title">获得装备（{{award.equipList.length}}）：</label>
@@ -328,11 +333,13 @@ export default {
                 show: false,
                 gold: 0,
                 guard: 0,
+                battery: 0,
                 x: 0, // 技能经验
                 equipList: [],
                 // show: true,
                 // gold: 47864,
                 // guard: 0,
+                // battery: 15,
                 // x: 0,
                 // equipList: [
                 //     {t:1,n:'隆力奇'},
@@ -480,8 +487,8 @@ export default {
         initNavis(){ // 初始化导航数据
             let navis = [];
             let conqueredIDList = [];
-            let conqueres = [];
-            // let conqueres = [101,102,103,104,105,106,107,108,109,110];
+            // let conqueres = [];
+            let conqueres = [101,102,103,104,105,106,107,108,109,110];
             // 获取已攻克地图的ID数组
             for(let map of this.game.mapList){
                 if(arrContains(map.flagMarks,0)==-1){
@@ -770,6 +777,7 @@ export default {
                     // 惩罚：所有人金币归零
                     for(let player of playerTeam){
                         let oUnit = getMatchList(this.game.allUnits,[['id',player.id]])[0];
+                        this._alert(`损失金币：${oUnit.g} $`,5);
                         oUnit.g = 0;
                     }
                     // 惩罚：回到龙虾村
@@ -782,6 +790,7 @@ export default {
                         show: true,
                         gold: 0,
                         guard: 0,
+                        battery: 0,
                         x: 0,
                         equipList: [],
                     }
@@ -797,6 +806,8 @@ export default {
                             // 警戒值
                             let floor = this.map.floors[enemyUnit.it];
                             award.guard += floor.guard;
+                            // 能量点数
+                            award.battery += enemyUnit.it*enemyUnit.it+1;
                             // 灵感指数
                             award.x += Math.ceil(award.gold*.5);
                             // 服饰装备
@@ -807,7 +818,7 @@ export default {
                             }
                             // 武器
                             if(enemyUnit.it>0){
-                                let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.l,inten:enemyUnit.it,type:1,});
+                                let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.l,inten:enemyUnit.it,type:r(1,5),});
                                 common.registerEquip({equip:newWeapon,game:this.game,});
                                 award.equipList.push(newWeapon);
                             }
@@ -865,6 +876,10 @@ export default {
                     // award 赋值
                     this.map.guard += award.guard;
                     this.map.guard = setInRange(this.map.guard,0,100);
+                    if(this.map.battery){
+                        this.map.battery[0] += award.battery;
+                        this.map.battery[0] = setInRange(this.map.battery[0],0,this.map.battery[1]);
+                    }
                     oMe.g += award.gold;
                     oMe.g = setInRange(oMe.g,0,Infinity);
                     common.skillXIncrease(award.x,this.game);
@@ -1020,6 +1035,25 @@ export default {
             else if(flag==3&&text){ // 发送说明弹窗
                 this._alert(text);
             }
+            else if(flag==4){ // 学习技能
+                console.log(`学习技能`,skill);
+                this._confirm(`确定要复制技能 “${skill.n}” 吗？`,_=>{
+                    if(this.game.xp>0){
+                        let oMe = getMatchList(this.game.allUnits,[['id',this.me.id]])[0];
+                        oMe.ss.push(skill.id);
+                        this.game.xp -= 1;
+                        if(this.game.xp<=0){
+                            this.showSkillCopy = false;
+                        }
+                        this.asynTeam();
+                        this.asynInmates();
+                        this._alert(`${this.me.nm} 复制了技能 “${skill.n}”`,5);
+                    }
+                    else{
+                        this._alert(`灵感点数不够`);
+                    }
+                });
+            }
         },
         onTapEquip(data){ // 点击【装备】
             if(this.banReactive) return;
@@ -1126,9 +1160,12 @@ export default {
             enemyDistributionList = shuffle(enemyDistributionList);
             for(let i=0;i<enemyCount;i++){
                 if(!cellList[enemyDistributionList[i]].core){
-                    cellList[enemyDistributionList[i]].enemy = r(1,navi.level==1?3:4);
+                    cellList[enemyDistributionList[i]].enemy = r(1,(navi.level<3)?3:4);
                 }
             }
+            // 配备电池
+            let battery = cellCount*15;
+            map.battery = [battery,battery]
 
             map.cellList = cellList;
             map.guard = CONFIG.initGuard;
@@ -1358,67 +1395,62 @@ export default {
         },
         onTapXPointBar(){ // 点击【灵感进度条】
             if(this.banReactive) return;
-            if(this.game.xp<=0){
-                this._alert(`每次战斗后积累，槽满后可复制队友的一个技能`,5);
-            }
-            else{
-                this.onTapXPoint();
-            }
+            this._alert(`每次战斗后积累，槽满后可复制非敌对角色的一个技能`,5);
         },
-        onTapXPoint(){ // 点击【灵感进度数字】
-            if(this.banReactive) return;
-            let skillCopyList = [];
-            if(this.team.length<2){
-                this._alert(`没有队友`);
-                return;
-            }
-            if(this.game.xp>0){
-                for(let unit of this.team){
-                    if(unit.id!=this.me.id){
-                        // 从所有队友技能中筛选“我未拥有的技能”
-                        let skillList = unit.btd.skillList;
-                        let mySkillList = this.me.btd.skillList;
-                        for(let skill of skillList){
-                            let mySkill = getMatchList(mySkillList,[['id',skill.id]])[0];
-                            if(!mySkill){ // 若我已有的技能数组中没有这个技能，则放入 copylist
-                                skillCopyList.push(skill);
-                            }
-                        }
-                    }
-                }
-                this.skillCopyList = cloneObj(skillCopyList);
-                this.showSkillCopy = !this.showSkillCopy;
-            }
-        },
-        onTapCopySkill({flag,data,}){ // 点击【复制技能】
-            if(this.banReactive) return;
-            let skill = data;
-            if(flag!=1){
-                return;
-            }
-            this._confirm(`确定要复制技能 “${skill.n}” 吗？`,_=>{
-                if(this.game.xp>0){
-                    let oMe = getMatchList(this.game.allUnits,[['id',this.me.id]])[0];
-                    oMe.ss.push(skill.id);
-                    this.game.xp -= 1;
-                    this.asynTeam();
-                    this.asynInmates();
-                    if(this.game.xp<=0){
-                        this.showSkillCopy = false;
-                    }
-                    else{
-                        this.onTapXPoint();
-                        this.$nextTick(_=>{
-                            this.onTapXPoint();
-                        })
-                    }
-                    this._alert(`成功学会技能 “${skill.n}”`);
-                }
-                else{
-                    this._alert(`灵感点数不够`);
-                }
-            });
-        },
+        // onTapXPoint(){ // 点击【灵感进度数字】
+        //     if(this.banReactive) return;
+        //     let skillCopyList = [];
+        //     if(this.team.length<2){
+        //         this._alert(`没有队友`);
+        //         return;
+        //     }
+        //     if(this.game.xp>0){
+        //         for(let unit of this.team){
+        //             if(unit.id!=this.me.id){
+        //                 // 从所有队友技能中筛选“我未拥有的技能”
+        //                 let skillList = unit.btd.skillList;
+        //                 let mySkillList = this.me.btd.skillList;
+        //                 for(let skill of skillList){
+        //                     let mySkill = getMatchList(mySkillList,[['id',skill.id]])[0];
+        //                     if(!mySkill){ // 若我已有的技能数组中没有这个技能，则放入 copylist
+        //                         skillCopyList.push(skill);
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         this.skillCopyList = cloneObj(skillCopyList);
+        //         this.showSkillCopy = !this.showSkillCopy;
+        //     }
+        // },
+        // onTapCopySkill({flag,data,}){ // 点击【复制技能】
+        //     if(this.banReactive) return;
+        //     let skill = data;
+        //     if(flag!=1){
+        //         return;
+        //     }
+        //     this._confirm(`确定要复制技能 “${skill.n}” 吗？`,_=>{
+        //         if(this.game.xp>0){
+        //             let oMe = getMatchList(this.game.allUnits,[['id',this.me.id]])[0];
+        //             oMe.ss.push(skill.id);
+        //             this.game.xp -= 1;
+        //             this.asynTeam();
+        //             this.asynInmates();
+        //             if(this.game.xp<=0){
+        //                 this.showSkillCopy = false;
+        //             }
+        //             else{
+        //                 this.onTapXPoint();
+        //                 this.$nextTick(_=>{
+        //                     this.onTapXPoint();
+        //                 })
+        //             }
+        //             this._alert(`成功学会技能 “${skill.n}”`);
+        //         }
+        //         else{
+        //             this._alert(`灵感点数不够`);
+        //         }
+        //     });
+        // },
         onTapBonfire(){ // 点击【营地】
             if(this.banReactive) return;
             let playerTeamIds = Array.from(this.team,unit=>{
@@ -1473,7 +1505,7 @@ export default {
         /* 地牢 */
         onTapGuard(){ // 点击【警戒栏位】
             if(this.banReactive) return;
-            this._alert(`警戒值越高，敌人越强大，装备掉落率也越高`,5);
+            this._alert(`警戒值越高，敌人越强大，装备掉落率也越高`,10);
         },
         onTapCell(cell,index){ // 点击【单元格】
             if(this.banReactive) return;
@@ -1585,6 +1617,9 @@ export default {
             if(this.banReactive) return;
 
         },
+        onTapBattery(){ // 点击【电池】
+            this._alert(`每次行动都会消耗能源储备，能源枯竭后自动判定全队战败`,10);
+        },
 
 
         _alert(text,time){ // 显示提示
@@ -1597,14 +1632,12 @@ export default {
         onTapCheat(){ // 点击【作弊】按钮
             // let me = this.game.allUnits[1];
             // me.g += 100000;
-            // common.skillXIncrease(55000,this.game);
-            for(let map of this.game.mapList){
-                map.flagMarks = Array.from(map.flagMarks,_=>{
-                    return 1;
-                });
-            }
-            this.initNavis();
-            this.dayPass();
+            common.skillXIncrease(55000,this.game);
+            // for(let map of this.game.mapList){
+            //     map.flagMarks = Array.from(map.flagMarks,_=>{
+            //         return 1;
+            //     });
+            // }
             this.asynTeam();
         },
     },
