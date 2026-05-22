@@ -56,6 +56,8 @@ module.exports = {
 			x: 0, // 主角技能经验（0-10000）
 			xl: 1, // 主角技能经验等级
 			xp: 0, // 主角技能复制点数
+			bank: 0, // 金库金币
+			leaderIndex: 0, // 小队的领队下标
 
 			allUnits: [], // 角色
 			unitIndex: 101, // 角色 ID 索引
@@ -435,80 +437,80 @@ module.exports = {
 				id:102, level:1, type:2, name:'活死人墓穴', links: [], size:4,
 				floors:[
 					{title:`流民`,thresGuard:0,guard:5,},
-					{title:`盗墓贼`,thresGuard:30,guard:10,},
+					{title:`盗墓贼`,thresGuard:50,guard:10,},
 				],
 				bosses:[{
-					title: `祭品盗贼`, id: 51, inten: 4, expired: 15, gold: 5000,
+					title: `祭品盗贼`, id: 51, inten: 4, expired: 30, gold: 5000,
 				}],
 			},
 			{
 				id:103, level:2, type:2, name:'非法山林', links: [102,], size:5,
 				floors:[
 					{title:`混混`,thresGuard:0,guard:3,},
-					{title:`悍匪`,thresGuard:25,guard:5,},
-					{title:`头目`,thresGuard:50,guard:10,},
+					{title:`悍匪`,thresGuard:35,guard:5,},
+					{title:`头目`,thresGuard:70,guard:10,},
 				],
 				bosses:[{
-					title: `渡鸦`, id: 52, inten: 5, expired: 20, gold: 15000,
+					title: `渡鸦`, id: 52, inten: 5, expired: 50, gold: 15000,
 				}],
 			},
 			{
 				id:104, level:3, type:2, name:'熔铁洞窟', links: [103,], size:5,
 				floors:[
 					{title:`学徒`,thresGuard:0,guard:3,},
-					{title:`匠人`,thresGuard:25,guard:5,},
-					{title:`铸剑师`,thresGuard:50,guard:10,},
+					{title:`匠人`,thresGuard:35,guard:5,},
+					{title:`铸剑师`,thresGuard:70,guard:10,},
 				],
 				bosses:[
-					{ title: `舞女剑`, id: 53, inten: 4, expired: 25, gold: 20000, },
-					{ title: `练星刀`, id: 54, inten: 4, expired: 25, gold: 20000, },
+					{ title: `舞女剑`, id: 53, inten: 4, expired: 70, gold: 20000, },
+					{ title: `练星刀`, id: 54, inten: 4, expired: 70, gold: 20000, },
 				],
 			},
 			{
 				id:105, level:4, type:2, name:'雪海', links: [103,], size:5,
 				floors:[
 					{title:`水手`,thresGuard:0,guard:3,},
-					{title:`海盗`,thresGuard:25,guard:5,},
-					{title:`船长`,thresGuard:50,guard:10,},
+					{title:`海盗`,thresGuard:35,guard:5,},
+					{title:`船长`,thresGuard:70,guard:10,},
 				],
 				bosses:[{
-					title: `寒冰魅影`, id: 55, inten: 5, expired: 30, gold: 50000,
+					title: `寒冰魅影`, id: 55, inten: 5, expired: 90, gold: 50000,
 				}],
 			},
 			{
 				id:106, level:5, type:2, name:'落叶城', links: [105,], size:6,
 				floors:[
 					{title:`佣兵`,thresGuard:0,guard:3,},
-					{title:`佩剑士`,thresGuard:25,guard:5,},
-					{title:`副将`,thresGuard:50,guard:10,},
-					{title:`大将`,thresGuard:75,guard:20,},
+					{title:`佩剑士`,thresGuard:30,guard:5,},
+					{title:`副将`,thresGuard:60,guard:10,},
+					{title:`大将`,thresGuard:90,guard:20,},
 				],
 				bosses:[{
-					title: `镇压官`, id: 56, inten: 5, expired: 35, gold: 80000,
+					title: `镇压官`, id: 56, inten: 5, expired: 110, gold: 80000,
 				}],
 			},
 			{
 				id:107, level:6, type:2, name:'愚困密道', links: [106,], size:6,
 				floors:[
 					{title:`密探`,thresGuard:0,guard:3,},
-					{title:`信徒`,thresGuard:25,guard:5,},
-					{title:`邪师`,thresGuard:50,guard:10,},
-					{title:`主教`,thresGuard:75,guard:20,},
+					{title:`信徒`,thresGuard:30,guard:5,},
+					{title:`邪师`,thresGuard:60,guard:10,},
+					{title:`主教`,thresGuard:90,guard:20,},
 				],
 				bosses:[
-					{ title: `处刑人`, id: 57, inten: 5, expired: 40, gold: 100000, },
-					{ title: `替罪者`, id: 58, inten: 5, expired: 40, gold: 100000, },
+					{ title: `处刑人`, id: 57, inten: 5, expired: 130, gold: 100000, },
+					{ title: `替罪者`, id: 58, inten: 5, expired: 130, gold: 100000, },
 				],
 			},
 			{
 				id:108, level:7, type:2, name:'云观', links: [106,], size:5,
 				floors:[
 					{title:`门使`,thresGuard:0,guard:3,},
-					{title:`游仙`,thresGuard:25,guard:5,},
-					{title:`破道者`,thresGuard:50,guard:10,},
+					{title:`游仙`,thresGuard:35,guard:5,},
+					{title:`破道者`,thresGuard:70,guard:10,},
 				],
 				bosses:[{
-					title: `天体轨道护卫`, id: 59, inten: 6, expired: 45, gold: 250000,
+					title: `天体轨道护卫`, id: 59, inten: 6, expired: 150, gold: 250000,
 				}],
 			},
 			{
@@ -521,19 +523,19 @@ module.exports = {
 					{title:`统帅`,thresGuard:100,guard:30,},
 				],
 				bosses:[
-					{ title: `恐惧之神`, id: 60, inten: 5, expired: 50, gold: 300000, },
-					{ title: `痛苦之源`, id: 61, inten: 5, expired: 50, gold: 300000, },
-					{ title: `谎言之主`, id: 62, inten: 5, expired: 50, gold: 300000, },
+					{ title: `恐惧之神`, id: 60, inten: 5, expired: 180, gold: 300000, },
+					{ title: `痛苦之源`, id: 61, inten: 5, expired: 180, gold: 300000, },
+					{ title: `谎言之主`, id: 62, inten: 5, expired: 180, gold: 300000, },
 				],
 			},
 			{
 				id:110, level:9, type:2, name:'漩涡', links: [109,], size:4,
 				floors:[
 					{title:`天选`,thresGuard:0,guard:5,},
-					{title:`神话`,thresGuard:30,guard:10,},
+					{title:`神话`,thresGuard:50,guard:10,},
 				],
 				bosses:[{
-					title: `系统权限`, id: 63, inten: 6, expired: 60, gold: 1,
+					title: `系统权限`, id: 63, inten: 6, expired: 200, gold: 1,
 				}],
 			},
 		],
@@ -542,13 +544,13 @@ module.exports = {
 		// 商人聊天
 		bartenderChats: [
 			`我知道你早就看出来了，我和你一样是来自现实世界的穿越者，不过14年前我就已经决定在这里定居了。你不想留下来吗？`,
-			`你可以在我这儿休息和采购，我会定期进货一些物美价廉的装备，希望对你有帮助。`,
+			`你可以在我这儿休息、采购和存钱，我会定期进货一些物美价廉的装备，希望对你有帮助。`,
 			`他已经躲进了这个世界，为什么你还要追杀他？`,
 			`除了你我，这个世界还有很多穿越者。这个酒馆里就有。`,
 			`保持低调，赏金猎人。`,
 			`这个世界的赏金并不能带回现实世界，如果你最终打算回去，那么在这个世界挣钱是毫无意义的，不是吗？`,
 			`这个世界是生活，那个世界是生存。`,
-			`不知道你有没有注意到，这个世界没有老人，即便他们年龄已经很大了。`,
+			`这个世界没有老人，即便他们年龄已经很大了。`,
 			`为什么叫‘以太酒馆’？因为这里是以太世界。`,
 			`这里一切都是虚拟的，唯有酒精是真实的。`,
 			`欢迎回来，赏金猎人。`,
@@ -592,8 +594,8 @@ module.exports = {
 			level: 15,
 			age: 37,
 			nk: '商人酒保',
-			as: [43150,8535,1280,250, 650,1795,1600,1900,1890,242,715,], // 11维身体属性（4个外在，7个内在） [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
-			st: [43150,8535,],
+			as: [4150,1535,280,94, 350,725,390,900,890,242,15,], // 11维身体属性（4个外在，7个内在） [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
+			st: [4150,1535,],
 			tms: 0,
 			rel: 1,
 			rt: 100001,
@@ -614,6 +616,8 @@ game = {
 	x: 370, // 主角技能经验
 	xl: 1, // 主角技能经验等级
 	xp: 2, // 主角技能复制点数
+	bank: 12345, // 金库金币
+	leaderIndex: 1, // 小队的领队下标 1-4 0没有队长
 
 	allUnits: [], // 角色
 	unitIndex: 101, // 角色 ID 索引

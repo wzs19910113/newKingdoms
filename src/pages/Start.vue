@@ -180,7 +180,7 @@ export default {
             if(melee){
                 skill2Attack = {
         			n: '挥砍',
-        			d: 5+Math.ceil(skill2Consume*2.5), // 基础伤害
+        			d: 2+Math.ceil(skill2Consume*2.1), // 基础伤害
         			r1: 0, // 力量补正
         			r2: 0, // 精准补正
         			b: [], // buff制造表（buff id）
@@ -197,7 +197,7 @@ export default {
             else{
                 skill2Attack = {
         			n: '射击',
-        			d: 5+Math.ceil(skill2Consume*2.5), // 基础伤害
+        			d: 2+Math.ceil(skill2Consume*2.1), // 基础伤害
         			r1: 0, // 力量补正
         			r2: 0, // 精准补正
         			b: [], // buff制造表（buff id）

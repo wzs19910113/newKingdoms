@@ -1,0 +1,116 @@
+.temple{
+    position: absolute;
+    width: 100%;
+    top: .9rem;
+    bottom: 2.9rem;
+    z-index: 1200;
+    background-color: #F0E68C;
+    box-shadow: 0 0 .1rem .04rem #F5F5DC inset;
+}
+.temple-header{
+    height: 1.2rem;
+    line-height: 1.2rem;
+    color: #fff;
+}
+.temple-header .temple-title{
+    height: .6rem;
+    line-height: .6rem;
+    color: #000;
+    font-size: .4rem;
+    font-weight: bold;
+    text-align: left;
+    padding: 0 .6rem;
+    text-shadow: 0 0 .1rem #fff;
+}
+.temple-header .temple-title .temple-desc{
+    font-size: .24rem;
+    color: #444;
+    font-weight: normal;
+}
+.temple-header .btn-close{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 1rem;
+    height: .4rem;
+    line-height: .4rem;
+    top: .08rem;
+    right: .56rem;
+    white-space: nowrap;
+    word-break: keep-all;
+    overflow: hidden;
+}
+.temple-header .temple-guard-bar{
+    height: .4rem;
+    width: 85%;
+    margin: 0 auto;
+    margin-bottom: .1rem;
+    border: .04rem solid #000;
+}
+
+/* tabs */
+.temple-tabs-wrap{
+    width: 7rem !important;
+    margin: 0 auto;
+    background-color: #000 !important;
+    height: calc( 100% - 1.2rem );
+    color: #fff;
+}
+.temple-tabs-wrap .temple-tab-base-wrap{
+    padding: .2rem;
+    border: .01rem solid red;
+    background-image: linear-gradient(to right top, rgba(178,34,34,1) 0%, rgba(39,17,14,1) 30%, rgba(53,16,26,1) 50%, rgba(53,17,26,1) 55%, rgba(178,34,34,1) 100%);
+    box-shadow: 0 0 .1rem orangeRed;
+    min-height: 1.2rem;
+}
+.temple-tab-tip{
+    height: .33rem;
+    line-height: .33rem;
+    font-size: .22rem;
+    color: #ccc;
+    text-align: left;
+    padding-left: 0rem;
+}
+.temple-tab-base-item{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.temple-tabs-wrap .temple-tab-list-wrap{
+    padding-top: .4rem;
+    padding-left: .2rem;
+    padding-right: .2rem;
+    padding-bottom: 1rem;
+}
+.temple-item{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: .1rem;
+}
+.temple-equip{
+    width: 5.8rem;
+}
+.temple-skill{
+    width: 5.8rem;
+}
+.temple-base-btn,.temple-item-btn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 1.2rem;
+    border: .02rem solid orangeRed;
+    padding-top: .1rem;
+    padding-bottom: .1rem;
+    font-size: .3rem;
+    line-height: .32rem;
+    margin-left: .1rem;
+}
+.temple-base-btn{
+    background-color: #244;
+    border: .02rem solid #000;
+}
+.temple-item-btn{
+
+}

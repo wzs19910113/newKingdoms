@@ -28,7 +28,7 @@
                 <a class="btn btn-save" v-if="map.type==1" @click="onTapSave">存档</a>
                 <a class="btn btn-guide" @click="onTapGuide">指引</a>
                 <a class="btn btn-restart" @click="onTapExit">退出</a>
-                <!-- <a class="btn btn-cheat" v-if="DEBUG" @click="onTapCheat">作弊</a> -->
+                <a class="btn btn-cheat" v-if="DEBUG" @click="onTapCheat">作弊</a>
             </div>
             <!-- 吊牌 -->
             <a class="brand" @click="onTapBrand()">
@@ -57,6 +57,7 @@
                                 <div class="bartender">
                                     <a class="btn" @click="onTapChatButton">聊天</a>
                                     <a class="btn" v-if="game.day>1" @click="onTapSellButton">当卖</a>
+                                    <a class="btn" v-if="game.day>1" @click="onTapBankButton">金库</a>
                                     <a class="btn" @click="onTapRestButton">住宿</a>
                                 </div>
                                 <van-divider class="bartender-divider">装备交易（{{calcShopRefreshRemainDays()}}天后更新）</van-divider>
@@ -102,9 +103,49 @@
                     :onTapCell="onTapCell"
                     :onTapLeave="onTapLeaveDungeon"
                     :onTapCore="onTapDungeonCore"
-                    :onTapResident="onTapResident"
+                    :onTapTemple="onTapTemple"
                     :onTapBattery="onTapBattery"
                 />
+                <div class="temple" v-if="showTemple&&viewingUnit">
+                    <div class="temple-header">
+                        <div class="temple-title">
+                            神庙<span class="temple-desc">(消耗50警戒值进行装备融合或技能强化)</span>
+                        </div>
+                        <a class="btn btn-close" @click="onTapCloseTemple">关闭</a>
+                        <Bar1 class="temple-guard-bar" :type="5" :title="`警戒值`" :mode="2" :crt="map.guard" :max="100" />
+                    </div>
+                    <SwipeTabs class="temple-tabs-wrap" ref="temple-wrap" :tabs="[{label:`装备融合（${viewingUnit.nm}）`,},{label:`技能强化（${viewingUnit.nm}）`},]">
+                        <!-- 装备融合 -->
+                        <template #tab-0>
+                            <div class="temple-tab-base-wrap">
+                                <div class="temple-tab-tip">熔炉中的装备：</div>
+                                <div class="temple-tab-base-item">
+                                    <Equip class="temple-equip" :equip="temple.baseEquip" v-if="temple.baseEquip"/>
+                                    <a class="temple-base-btn" @click="onTapTempleRemove" v-if="temple.baseEquip">移出<br/>熔炉</a>
+                                </div>
+                            </div>
+                            <div class="temple-tab-list-wrap">
+                                <div class="temple-tab-tip">可融合的装备（{{temple.equipList.length}}）：</div>
+                                <div class="temple-item" v-for="(equip,index) of temple.equipList">
+                                    <Equip class="temple-equip" v-if="temple.baseEquip&&(temple.baseEquip.t==equip.t)" :compare="temple.baseEquip" :equip="equip" :key="index" @onTap="onTapEquip" />
+                                    <Equip class="temple-equip" v-else :equip="equip" :key="index" @onTap="onTapEquip" />
+                                    <a class="temple-item-btn" @click="onTapTempleEquip(equip)">
+                                        <span v-html="!temple.baseEquip?`加入<br/>熔炉`:`融合`"></span>
+                                    </a>
+                                </div>
+                            </div>
+                        </template>
+                        <!-- 技能强化 -->
+                        <template #tab-1>
+                            <div class="temple-tab-list-wrap">
+                                <div class="temple-item" v-for="(skill,index) of temple.skillList">
+                                    <Skill class="temple-skill" :skill="skill" :key="index" @onTap="onTapSkill" />
+                                    <a class="temple-item-btn" @click="onTapTempleSkill(skill)">强化</a>
+                                </div>
+                            </div>
+                        </template>
+                    </SwipeTabs>
+                </div>
             </div>
             <!-- 啤酒按钮 -->
             <a class="beer" v-if="state==1" @click="onTapBeer()">
@@ -114,31 +155,32 @@
             </a>
             <!-- 营地按钮 -->
             <a class="btn btn-bonfire" v-if="state==2" @click.stop="onTapBonfire">营</a>
-            <!-- 队形板块 -->
-            <div class="menu-wrap">
-                <draggable class="unit-list-group" handle=".mover" :disabled="false" v-model="team" @end="onUnitDragEnd" animation="100">
-                    <div class="unit-item" :class="((viewingUnit&&team[index]&&(team[index].id==viewingUnit.id))?'unit-item-cur':'')" v-for="index in [0,1,2,3]" :key="index">
-                        <a class="unit" v-if="team[index]">
-                            <Avatar class="unit-avatar" :unit="team[index]" @onTap="onTapUnit(team[index])" />
-                            <a class="anchor mover" v-if="team.length>1">拖移</a>
-                            <Bar1 class="unit-bar" @onTap="onTapUnit(team[index])" :suffix="team[index].btd.def[1]?`${team[index].btd.def[1]}`:''" :type="1" :crt="team[index].btd.hp[0]" :max="team[index].btd.hp[1]" />
-                            <Bar1 class="unit-bar" @onTap="onTapUnit(team[index])" :suffix="team[index].btd.phy[1]?`${team[index].btd.phy[1]}`:''" :type="2" :crt="team[index].btd.eng[0]" :max="team[index].btd.eng[1]" />
-                            <div class="icon-arrow-down" v-if="viewingUnit&&!coverTip&&!showMoneyTrasferCover&&team[index]&&(team[index].id==viewingUnit.id)"></div>
-                        </a>
-                        <div class="unit unit-empty" v-else></div>
-                    </div>
-                </draggable>
-            </div>
             <!-- 背景 -->
             <div class="bg" v-if="!loadingResources">
                 <!-- <img class="bg-pic" :class="state==2?'bg-pic-fade':''" :src="require(`../assets/${calcBgName()}.png`)" /> -->
             </div>
         </div>
+        <!-- 队形板块 -->
+        <div class="menu-wrap">
+            <draggable class="unit-list-group" handle=".mover" :disabled="false" v-model="team" @end="onUnitDragEnd" animation="100">
+                <div class="unit-item" :class="((viewingUnit&&team[index]&&(team[index].id==viewingUnit.id))?'unit-item-cur':'')" v-for="index in [0,1,2,3]" :key="index">
+                    <a class="unit" v-if="team[index]">
+                        <Avatar class="unit-avatar" :unit="team[index]" @onTap="onTapUnit(team[index])" />
+                        <a class="anchor mover" v-if="team.length>1">拖移</a>
+                        <Bar1 class="unit-bar" @onTap="onTapUnit(team[index])" :suffix="team[index].btd.def[1]?`${team[index].btd.def[1]}`:''" :type="1" :crt="team[index].btd.hp[0]" :max="team[index].btd.hp[1]" />
+                        <Bar1 class="unit-bar" @onTap="onTapUnit(team[index])" :suffix="team[index].btd.phy[1]?`${team[index].btd.phy[1]}`:''" :type="2" :crt="team[index].btd.eng[0]" :max="team[index].btd.eng[1]" />
+                        <div class="icon-arrow-down" v-if="viewingUnit&&!coverTip&&!showMoneyTrasferCover&&team[index]&&(team[index].id==viewingUnit.id)"></div>
+                        <div class="me-xp" v-if="team[index].id==101&&game.xp>0">技能</div>
+                    </a>
+                    <div class="unit unit-empty" v-else></div>
+                </div>
+            </draggable>
+        </div>
         <!-- 单位浏览弹窗 -->
         <Pop class="pop-unit" v-if="showUnitPop&&selectingUnit" ref="pop-content" :title="`${selectingUnit.btd.name}的${[`面板`,`装备`,`技能`,][popUnitTab-1]}${popUnitTab==3?`（${selectingUnit.btd.skillList.length}）`:``}`" :arrowTitle="`${[`装备`,`技能`,`面板`,][popUnitTab-1]}`" :showCloseButton="true" @onTapClose="onTapClosePop" @onTapArrow="onTapArrowPop">
             <!-- 角色面板 -->
             <div class="unit-info-pop unit-board" v-if="popUnitTab==1">
-                <Unit1 :unit="selectingUnit" :showTransferButton="team.length>1&&selectingUnit.rel==3" @onTapTransferMoney="onTapTransferMoney" @onTapAvatar="onTapAvatar" :mode="1" />
+                <Unit1 :unit="selectingUnit" :game="game" :team="team" @onTapLeader="onTapLeader" :showTransferButton="team.length>1&&selectingUnit.rel==3" @onTapTransferMoney="onTapTransferMoney" @onTapAvatar="onTapAvatar" :mode="1" />
                 <!-- 角色隶属操作栏 -->
                 <div class="unit-board option-wrap" v-if="state==1">
                     <a class="btn" v-if="selectingUnit.id==me.id" @click="onTapLogout()">销号</a>
@@ -233,7 +275,44 @@
             <div class="pop-money-transfer-wrap">
                 <van-slider class="pop-money-transfer-slider" active-color="gold" v-model="transferringMoney" :step="100" :min="1" :max="selectingUnit.g" />
                 <div class="pop-money-transfer-indicator" v-html="common.moneyFormat(transferringMoney)+' $'"></div>
-                <a class="btn btn-money-transfer-all" @click.stop="onTapAllMoneyTransfer">满</a>
+                <a class="btn btn-money-transfer-all" @click.stop="onTapAllMoneyTransfer">全</a>
+            </div>
+        </Cover>
+        <!-- 金库遮罩 -->
+        <Cover v-if="showBankCover&&viewingUnit" @onTap="onTapCover">
+            <div class="pop-bank-wrap">
+                <div class="bank-row">金库余额：<b class="money" v-html="common.moneyFormat(game.bank)+' $'"></b></div>
+                <div class="bank-row">
+                    执行人：{{viewingUnit.nm}}（<b class="money" v-html="common.moneyFormat(viewingUnit.g)+' $'"></b>）
+                </div>
+                <div class="bank-row">
+                    <a class="btn-bank-mode" :class="`${bank.mode==1?`btn-bank-mode-sel`:``}`" @click.stop="onTapSwitchBankMode(1)">存入</a>
+                    <a class="btn-bank-mode" :class="`${bank.mode==2?`btn-bank-mode-sel`:``}`" @click.stop="onTapSwitchBankMode(2)">取出</a>
+                </div>
+                <!-- 存钱 -->
+                <div class="pop-bank-mode" v-if="bank.mode==1">
+                    <div v-if="viewingUnit.g>0">
+                        <div class="bank-slider-wrap">
+                            <van-slider class="pop-money-transfer-slider" active-color="gold" v-model="bank.saveMoney" :min="0" :max="viewingUnit.g" />
+                            <div class="pop-money-transfer-indicator" v-html="common.moneyFormat(bank.saveMoney)+' $'"></div>
+                            <a class="btn btn-money-transfer-all" @click.stop="onTapBankAllMoney(1)">全</a>
+                        </div>
+                        <a class="btn btn-bank-confirm" @click.stop="onTapBankConfirm(1)">确认存入</a>
+                    </div>
+                    <div v-else>{{viewingUnit.nm}} 没有可存入的金币。</div>
+                </div>
+                <!-- 取钱 -->
+                <div class="pop-bank-mode" v-if="bank.mode==2">
+                    <div v-if="game.bank>0">
+                        <div class="bank-slider-wrap">
+                            <van-slider class="pop-money-transfer-slider" active-color="gold" v-model="bank.drawMoney" :min="0" :max="game.bank" />
+                            <div class="pop-money-transfer-indicator" v-html="common.moneyFormat(bank.drawMoney)+' $'"></div>
+                            <a class="btn btn-money-transfer-all" @click.stop="onTapBankAllMoney(2)">全</a>
+                        </div>
+                        <a class="btn btn-bank-confirm" @click.stop="onTapBankConfirm(2)">确认取出</a>
+                    </div>
+                    <div v-else>没有可取出的金币。</div>
+                </div>
             </div>
         </Cover>
         <!-- 普通提示遮罩 -->
@@ -249,15 +328,15 @@
             <div class="guide">
                 <div class="guide-row">
                     <label class="guide-title">游戏介绍</label>
-                    <p class="guide-para">击杀所有悬赏目标。回合类战斗。高度肉鸽。</p>
+                    <p class="guide-para">积累装备和技能，召集队友，击杀所有悬赏目标。回合类战斗。高度肉鸽。</p>
                 </div>
                 <div class="guide-row">
                     <label class="guide-title">战斗属性介绍</label>
                     <p class="guide-para">
                         【生命】归零时退出战斗，可通过技能和住宿补充。<br/>
-                        【防御】受到伤害时代替生命的损失。<br/>
+                        【防御】受到伤害时替代生命的损失。<br/>
                         【精力】进行动作时消耗，只能通过住宿补充。<br/>
-                        【体力】代替精力消耗。<br/>
+                        【体力】替代精力消耗。<br/>
                         【行动力】涨满即可行动，增长率由“速度”决定。<br/>
                         【潜能】消耗体力时缓慢增长，一次性消耗所有潜能可临时提升自身的属性（仅当前战斗有效），增长率由“爆发”决定。<br/>
                         【存在感】被敌方命中的概率，由“隐蔽”和装备决定。<br/>
@@ -268,7 +347,8 @@
                     <label class="guide-title">其他战斗机制</label>
                     <p class="guide-para">
                         【屈服】对已经奔溃的敌人使用“话术”可使其立刻屈服败退，并加入到酒馆中。<br/>
-                        【负面状态】通过武器攻击或技能，可对 <b>‘防御被击破的目标’</b> 施加负面状态。<br/>
+                        【状态】通过武器攻击或技能，可对 <b>‘防御被击破的目标’</b> 施加负面状态。<br/>
+                        【暴击】当行动力高于 90%（95%）时，受到的伤害翻 2（3）倍。<br/>
                         【战意流失】每固定时间触发，我方集体心理防御下降。<br/>
                     </p>
                 </div>
@@ -304,8 +384,9 @@ import * as ai from '../tools/ai';
 import Vue from 'vue';
 import { Slider } from 'vant-green';
 import { Divider } from 'vant-green';
+import { Switch } from 'vant-green';
 import 'vant-green/lib/index.css';
-Vue.use(Slider).use(Divider);
+Vue.use(Slider).use(Divider).use(Switch);
 
 import { DEBUG, CONFIG, CACHE, ASSETS, } from '../config/config';
 
@@ -350,6 +431,17 @@ export default {
                 //     {t:5,n:'愚蠢鞋子'},
                 // ],
             },
+            bank: { // 金库数据
+                mode: 1, // 模式 1存 2取
+                drawMoney: 0, // 预设取出的钱
+                saveMoney: 0, // 预设存入的钱
+            },
+            temple:{ // 神庙数据
+                tag: 1, // 1装备融合 2技能强化
+                skillList: [],
+                equipList: [],
+                baseEquip: null,
+            },
 
             popUnitTab: 1,
             viewingUnit: null, // 浏览者，只能是团队中的人
@@ -369,6 +461,8 @@ export default {
             showGuide: false, // 显示指引弹窗
             skillCopyList: [], // 可复制的技能数组
             viewingAvatar: null, // 正在浏览的头像数据
+            showBankCover: false, // 显示金库弹窗
+            showTemple: false, // 显示神庙
 
             coverTip: '', // 阴影遮罩文本
             confirmTip: '', // 确认弹窗的文本
@@ -605,6 +699,34 @@ export default {
                 }
             }
         },
+        asynTemple(){ // 同步神庙数据
+            let { b, ss, } = this.viewingUnit;
+            let skillList = [], equipList = [];
+            let baseEquip = this.temple.baseEquip;
+            for(let equipId of b){
+                let oEquip = getMatchList(this.game.allEquips,[['id',equipId]])[0];
+                let showEquip = false;
+                if(!baseEquip){ // 若没有base装备
+                    showEquip = true;
+                }
+                else if(oEquip.t==baseEquip.t&&oEquip.id!=baseEquip.id){ // 若熔炉中已有base装备，则判断装备类型，且避免显示同一件装备
+                    showEquip = true;
+                }
+                if(showEquip){
+                    equipList.push(oEquip);
+                }
+            }
+            for(let skillId of ss){
+                let oSkill = getMatchList(this.game.allSkills,[['id',skillId]])[0];
+                skillList.push(oSkill);
+            }
+            this.temple.skillList = skillList;
+            this.temple.equipList = equipList;
+        },
+        initTemple(){ // 初始化神庙数据
+            this.asynTemple();
+            this.temple.baseEquip = null;
+        },
         resetViewingUnitPopData(){ // 重置单位预览弹窗数据
             this.showUnitPop = false;
             this.selectingUnit = null;
@@ -630,12 +752,12 @@ export default {
             this.viewingUnit = null;
             this.selectingUnit = null;
             this.selectingUnitBodyEquipIndex = -1;
-            this.onTapCover();
 
             this.$nextTick(_=>{
                 this.viewingUnit = unit;
                 this.selectingUnit = unit;
-                if(showUnitPop){
+                this.initTemple();
+                if(showUnitPop&&!this.showBankCover&&!this.showTemple){
                     this.showUnitPop = true;
                 }
                 callback&&callback();
@@ -700,12 +822,15 @@ export default {
                     let unit = common.genUnit({
                         id: i,
                         game: this.game,
-                        level: 2,
+                        level: 1,
                         nickname: `酒馆客人`,
                         equipList: tempEquipList,
                         skillList: tempSkillList,
                         rel: 1,
                     });
+                    unit.g = 0;
+                    unit.b = [];
+                    unit.es = [unit.es[0],0,0,0,0,0,0,];
                     tempUnitList.push(unit);
                 }
                 for(let unit of tempUnitList){
@@ -764,6 +889,7 @@ export default {
                 }
             }
             this.map = map;
+            this.asynTeam();
             if(mode==3){ // 切磋模式
 
             }
@@ -775,16 +901,27 @@ export default {
                 }
                 else if(result==2){ // 战败
                     // 惩罚：所有人金币归零
+                    let goldLose = 0;
                     for(let player of playerTeam){
                         let oUnit = getMatchList(this.game.allUnits,[['id',player.id]])[0];
-                        this._alert(`损失金币：${oUnit.g} $`,5);
+                        goldLose += oUnit.g;
                         oUnit.g = 0;
                     }
+                    this._alert(`总共损失金币：${goldLose} $`,5);
                     // 惩罚：回到龙虾村
                     this.backToShrimp();
                 }
                 else if(result==1){ // 获胜
-                    let oMe = getMatchList(this.game.allUnits,[['id',101]])[0];
+                    let oLeader, autoGather = false; // 自动集结金币
+                    if(this.game.leaderIndex==0){
+                        oLeader = getMatchList(this.game.allUnits,[['id',101]])[0]; // 队长是我本人
+                    }
+                    else{
+                        let leader = this.team[this.game.leaderIndex-1];
+                        oLeader = getMatchList(this.game.allUnits,[['id',leader.id]])[0];
+                        autoGather = true;
+                    }
+
                     // 奖励金币、随机装备、灵感指数和警戒值
                     let award = {
                         show: true,
@@ -880,11 +1017,21 @@ export default {
                         this.map.battery[0] += award.battery;
                         this.map.battery[0] = setInRange(this.map.battery[0],0,this.map.battery[1]);
                     }
-                    oMe.g += award.gold;
-                    oMe.g = setInRange(oMe.g,0,Infinity);
+                    oLeader.g += award.gold;
+                    oLeader.g = setInRange(oLeader.g,0,Infinity);
+                    if(autoGather){ // 自动集结金币给leader
+                        for(let unit of this.team){
+                            if(unit.id!=oLeader.id){
+                                let oUnit = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
+                                let gold = oUnit.g;
+                                oUnit.g -= gold;
+                                oLeader.g += gold;
+                            }
+                        }
+                    }
                     common.skillXIncrease(award.x,this.game);
                     for(let equip of award.equipList){
-                        oMe.b.push(equip.id);
+                        oLeader.b.push(equip.id);
                     }
 
                     this.award = award;
@@ -1076,6 +1223,7 @@ export default {
         onTapBrand(){ // 点击【标牌】
             if(this.banReactive) return;
             this.showTarven = false;
+            this.onTapCloseTemple();
         },
         onTapBeer(){ // 点击【啤酒】
             if(this.banReactive) return;
@@ -1357,6 +1505,16 @@ export default {
             this.asynTeam();
             this.asynInmates();
         },
+        onTapLeader(unit,teamIndex){ // 点击【Leader】
+            if(this.banReactive) return;
+            if(teamIndex==this.game.leaderIndex-1){ // 取消leader
+                this.game.leaderIndex = 0;
+            }
+            else{ // 设为leader
+                this.game.leaderIndex = teamIndex+1;
+            }
+            this.asynTeam();
+        },
         onTapChatButton(){ // 点击【聊天】
             if(this.banReactive) return;
             this.coverTip = `酒保·${this.bartender.nm}：`+CONFIG.bartenderChats[r(0,CONFIG.bartenderChats.length-1)];
@@ -1373,6 +1531,39 @@ export default {
                 this.asynInmates();
                 this._alert(`所有人状态恢复`);
             });
+        },
+        onTapBankButton(){ // 点击【存取】
+            if(this.banReactive) return;
+            this.showBankCover = !this.showBankCover;
+        },
+        onTapSwitchBankMode(flag){ // 点击【金库-模式切换】
+            this.bank.mode = flag;
+        },
+        onTapBankAllMoney(flag){ // 点击【金库-全】
+            if(this.banReactive) return;
+            if(flag==1){ // 存入
+                this.bank.saveMoney = this.viewingUnit.g;
+            }
+            else{ // 取出
+                this.bank.drawMoney = this.game.bank;
+            }
+        },
+        onTapBankConfirm(flag){ // 点击【金库-确认】
+            if(this.banReactive) return;
+            let oUnit = getMatchList(this.game.allUnits,[['id',this.viewingUnit.id]])[0];
+            if(flag==1&&this.bank.saveMoney>0){ // 存入
+                oUnit.g -= this.bank.saveMoney;
+                this.game.bank += this.bank.saveMoney;
+                this.bank.saveMoney = 0;
+                this._alert(`金币已入库`);
+            }
+            else if(flag==2&&this.bank.drawMoney>0){ // 取出
+                oUnit.g += this.bank.drawMoney;
+                this.game.bank -= this.bank.drawMoney;
+                this.bank.drawMoney = 0;
+                this._alert(`金币已出库`);
+            }
+            this.asynTeam();
         },
         onTapSellButton(){ // 点击【当卖】
             if(this.banReactive) return;
@@ -1500,6 +1691,12 @@ export default {
             this.movingEquipList = [];
             this.transferringMoney = 0;
             this.showMoneyTrasferCover = false;
+            this.showBankCover = false;
+            this.bank = {
+                mode:1,
+                drawMoney:0,
+                saveMoney:0,
+            }
         },
 
         /* 地牢 */
@@ -1613,12 +1810,54 @@ export default {
                 this.goBattle({playerTeamIds,enemyTeamIds,game:tempGame,mode:2});
             });
         },
-        onTapResident(){ // 点击【解救居民】
-            if(this.banReactive) return;
-
-        },
         onTapBattery(){ // 点击【电池】
+            if(this.banReactive) return;
             this._alert(`每次行动都会消耗能源储备，能源枯竭后自动判定全队战败`,10);
+        },
+        onTapTemple(){ // 点击【神庙】
+            if(this.banReactive) return;
+            if(this.viewingUnit){
+                this.initTemple();
+                this.showTemple = true;
+            }
+        },
+        onTapCloseTemple(){ // 点击【关闭神庙】
+            if(this.banReactive) return;
+            this.showTemple = false;
+            this.temple = {
+                tag: 1,
+                skillList: [],
+                equipList: [],
+                baseEquip: null,
+            };
+        },
+        onTapTempleRemove(){ // 点击【神秘-移出熔炉】
+            if(this.banReactive) return;
+            this.temple.baseEquip = null;
+            this.asynTemple();
+        },
+        onTapTempleEquip(equip){ // 点击【神庙-装备】
+            if(this.banReactive) return;
+            if(!this.temple.baseEquip){ // 加入熔炉
+                this.temple.equipList = [];
+                this.$nextTick(_=>{
+                    this.temple.baseEquip = equip;
+                    this.asynTemple();
+                });
+            }
+            else{ // 融合
+                this._confirm(`确定要融合 ${equip.n} 的属性到 ${this.temple.baseEquip.n} 上吗（消耗警戒值50）？`,_=>{
+
+                    this.asynTemple();
+                });
+            }
+        },
+        onTapTempleSkill(skill){ // 点击【神庙-技能】
+            if(this.banReactive) return;
+            this._confirm(`确定强化 ${skill.n} 吗（消耗警戒值50）？`,_=>{
+
+                this.asynTemple();
+            });
         },
 
 
@@ -1630,9 +1869,9 @@ export default {
         },
 
         onTapCheat(){ // 点击【作弊】按钮
-            // let me = this.game.allUnits[1];
-            // me.g += 100000;
-            common.skillXIncrease(55000,this.game);
+            let me = this.game.allUnits[1];
+            me.g += 11123;
+            // common.skillXIncrease(55000,this.game);
             // for(let map of this.game.mapList){
             //     map.flagMarks = Array.from(map.flagMarks,_=>{
             //         return 1;
@@ -1668,6 +1907,7 @@ export default {
     @import '../style/home/navis.css';
     @import '../style/home/guide.css';
     @import '../style/home/tarven.css';
+    @import '../style/home/temple.css';
     @import '../style/home/team.css';
     @import '../style/home/pop.css';
     @import '../style/home/pop-board.css';

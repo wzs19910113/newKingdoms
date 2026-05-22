@@ -35,14 +35,8 @@
         <div class="dungeon-ops">
             <a class="btn btn-leave-tip" v-if="calcFlagCount()<(map.size-1)">找齐 {{map.size-1}}（{{calcFlagCount()}}） 个<b>路标</b>方可离开</a>
             <a class="btn btn-leave" v-else @click.stop="onTapLeave">返回龙虾村</a>
-            <a class="btn btn-core" v-if="calcCoreShow()" @click.stop="onTapCore">
-                <!-- <img :src="require(`../assets/icon-core.png`)" /> -->
-                进入核心
-            </a>
-            <a class="btn btn-resident" v-if="calcResidentShow()" @click.stop="onTapResident">
-                <!-- <img :src="require(`../assets/icon-resident.png`)" /> -->
-                解救居民
-            </a>
+            <a class="btn btn-core" v-if="calcCoreShow()" @click.stop="onTapCore">进入核心</a>
+            <a class="btn btn-temple" v-if="calcTempleShow()" @click.stop="onTapTemple">参拜神庙</a>
             <a class="battery-wrap" @click.stop="onTapBattery">
                 <div class="battery-title">能源储备</div>
                 <div class="battery-value">
@@ -83,7 +77,7 @@ export default {
             type: Function,
             default: function(){},
         },
-        onTapResident: { // 点击解救居民按钮事件
+        onTapTemple: { // 点击解救居民按钮事件
             type: Function,
             default: function(){},
         },
@@ -139,7 +133,7 @@ export default {
             }
             return res;
         },
-        calcResidentShow(){ // 判断居民是否可见
+        calcTempleShow(){ // 判断居民是否可见
             let res = true;
             for(let cell of this.map.cellList){
                 if(!cell.show){
@@ -157,7 +151,8 @@ export default {
                 }
                 res = !hasNoCore;
             }
-            return res;
+            return true; // @test
+            // return res;
         },
         calcNextGuard(){ // 计算下一个等级警戒值需求
             let res = `升级需求警戒值：`;
@@ -433,12 +428,12 @@ export default {
             box-shadow: 0 0 1.24rem #e81313;
         }
     }
-    .dungeon-ops .btn-resident{
+    .dungeon-ops .btn-temple{
         border: .02rem solid #f1a644;
         box-shadow: 0 0 .04rem #f1a644;
-        animation: residentFlash 1s ease-in-out infinite alternate;
+        animation: templeFlash 1s ease-in-out infinite alternate;
     }
-    @keyframes residentFlash {
+    @keyframes templeFlash {
         to{
             box-shadow: 0 0 1.24rem #f1a644;
         }
@@ -452,6 +447,7 @@ export default {
         display: inline-block;
         height: 70%;
     }
+
     /* 电池 */
     .battery-wrap{
         position: absolute;

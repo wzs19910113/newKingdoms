@@ -29,7 +29,7 @@
                         <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊2</a>
                         <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊1</a>
                         <div class="battery-wrap" v-if="battle.map.battery">
-                            <div class="battery-title">能源储备</div>
+                            <div class="battery-title">能源</div>
                             <div class="battery-value">
                                 <div class="battery-value-remain">{{battle.map.battery[0]}}</div>
                                 <div class="battery-value-total">{{battle.map.battery[1]}}</div>
@@ -2184,12 +2184,14 @@ export default {
         /* box-shadow: 0 0 .24rem #fff inset; */
     }
     .team-pan{
+        position: relative;
         display: flex;
         justify-content: space-around;
         align-items: flex-start;
         flex-wrap: nowrap;
         height: 4.2rem;
         padding: 0 .1rem;
+        z-index: 1060;
         /* box-shadow: 0 0 .1rem red inset; */
     }
     .team-pan-top{
@@ -2508,37 +2510,53 @@ export default {
         line-height: .76rem;
         background-color: #2F4F4F;
     }
+
     /* 电池 */
+    /* <div class="battery-wrap" v-if="battle.map.battery">
+        <div class="battery-title">能源储备</div>
+        <div class="battery-value">
+            <div class="battery-value-remain">{{battle.map.battery[0]}}</div>
+            <div class="battery-value-total">{{battle.map.battery[1]}}</div>
+        </div>
+    </div> */
     .battery-wrap{
         position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         left: .08rem;
         top: 0;
         width: 1.2rem;
         color: #fff;
+        z-index: 100;
         border: .02rem solid #fff;
     }
     .battery-wrap .battery-title{
-        height: .3rem;
-        line-height: .3rem;
-        border-bottom: .02rem solid #fff;
+        height: .5rem;
+        line-height: .23rem;
+        width: .3rem;
+        border-right: .02rem solid #fff;
+        writing-mode: vertical-lr;
+        font-size: .22rem;
         background-image: radial-gradient(closest-corner, rgba(5,5,25,1) 0%, rgba(45,45,125,.8) 100%);
     }
     .battery-wrap .battery-value{
-        height: .6rem;
-        line-height: .6rem;
-        font-size: .3rem;
+        width: .9rem;
+        height: .5rem;
+        line-height: .5rem;
+        font-size: .26rem;
     }
     .battery-wrap .battery-value-remain{
         width: 85%;
         margin: 0 auto;
-        height: .3rem;
-        line-height: .3rem;
+        height: .25rem;
+        line-height: .25rem;
         border-bottom: .01rem solid #fff;
     }
     .battery-wrap .battery-value-total{
         width: 85%;
         margin: 0 auto;
-        height: .3rem;
-        line-height: .3rem;
+        height: .25rem;
+        line-height: .25rem;
     }
 </style>

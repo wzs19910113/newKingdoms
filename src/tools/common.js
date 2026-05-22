@@ -14,10 +14,10 @@ const BENI_SKILL_EFFECT_LIST = [2,5,7,8,9,];
 const HARM_SKILL_EFFECT_LIST = [1,2,7,8,9,];
 const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添加状态 3减弱增益状态 4减弱减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感 】
     3, // 攻击
-    3, // 添加状态
+    5, // 添加状态
     1, // 减弱增益状态
     1, // 减弱减益状态
-    2, // 治疗
+    3, // 治疗
     0, // 改变护甲
     1, // 改变潜能
     1, // 改变心防
@@ -826,7 +826,22 @@ export function genUnit({id,level=1,inten=0,rel,game,nickname='',equipList,skill
         equipList.push(newEquip);
     }
     // 配备技能
-    let skillCount = 4+exptr(0,2,2);
+    let skillCount;
+    if(level==1){
+        skillCount = 2;
+    }
+    else if(level==2){
+        skillCount = r(2,3);
+    }
+    else if(level==3){
+        skillCount = r(3,4);
+    }
+    else if(level==4){
+        skillCount = 3+exptr(0,2,2);
+    }
+    else{
+        skillCount = 4+exptr(0,2,2);
+    }
     let lastSkillId;
     for(let i=0;i<skillCount;i++){
         let newSkill = genSkillData({ id:id*10000+i, level, melee, isBoss, game, });

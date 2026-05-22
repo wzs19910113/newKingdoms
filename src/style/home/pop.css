@@ -25,3 +25,55 @@
 .unit-board .option-wrap .money{
     color: gold;
 }
+
+/* 金库 */
+.pop-bank-wrap{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    margin: 0;
+    padding: 1rem .8rem;
+    color: #fff;
+}
+.pop-bank-wrap .bank-row{
+    display: block;
+    width: 6rem;
+    height: .5rem;
+    line-height: .5rem;
+    font-size: .3rem;
+    text-align: left;
+    margin-bottom: .2rem;
+}
+.pop-bank-wrap .bank-row .btn-bank-mode{
+    display: inline-block;
+    width: 1.2rem;
+    height: .5rem;
+    line-height: .5rem;
+    border-radius: .1rem;
+    text-align: center;
+}
+.pop-bank-wrap .bank-row .btn-bank-mode-sel{
+    border: .02rem solid orangeRed;
+}
+.pop-bank-wrap .pop-bank-mode{
+    position: absolute;
+    width: 6rem;
+    left: .75rem;
+    top: 3.5rem;
+}
+.pop-bank-wrap .bank-slider-wrap{
+    height: 1.8rem;
+    line-height: 1.8rem;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+.pop-bank-wrap .btn-bank-confirm{
+    display: block;
+    height: .8rem;
+    line-height: .8rem;
+}

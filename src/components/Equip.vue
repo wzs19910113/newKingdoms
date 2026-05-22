@@ -8,12 +8,13 @@
             <span class="awa" v-if="mode==1&&compare">存{{common.awaFormat(equip.d)}}%</span>
         </div>
         <div class="row" v-if="mode==1&&attrList.length>0&&compare">
+            <!-- {{compareAttrList}} -->
             <div class="attr attr-compare" v-for="attrIndex in 11">
-                <div class="attr-squre" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?'attr-green':''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?'attr-red':''}`" v-show="attrList[attrIndex-1][1]">
+                <div class="attr-squre" v-if="compareAttrList[attrIndex-1]" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?'attr-green':''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?'attr-red':''}`" v-show="attrList[attrIndex-1][1]">
                     <span class="attr-name">{{CONFIG.attrMap[attrList[attrIndex-1][0]]}}</span>
                     <span class="attr-val">+{{attrList[attrIndex-1][1]}}</span>
                 </div>
-                <div class="attr-squre" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?'attr-green':''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?'attr-red':''}`" v-show="!attrList[attrIndex-1][1]&&compareAttrList[attrIndex-1][1]">
+                <div class="attr-squre" v-if="compareAttrList[attrIndex-1]" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?'attr-green':''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?'attr-red':''}`" v-show="!attrList[attrIndex-1][1]&&compareAttrList[attrIndex-1][1]">
                     <span class="attr-name">{{CONFIG.attrMap[compareAttrList[attrIndex-1][0]]}}</span>
                     <span class="attr-val">/</span>
                 </div>

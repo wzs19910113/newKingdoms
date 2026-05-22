@@ -30,8 +30,15 @@
                 心里防御：<span :class="unit.btd.mdef<=0?'red':''">{{unit.btd.mdef}}{{unit.btd.mdef<=0?`（奔溃中）`:``}}</span>
             </div>
             <div class="stat-row">
-                金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
-                <a class="btn btn-transfer" v-if="showTransferButton" @click.stop="_onTapTransferMoney">转</a>
+                <div class="stat-row-flex">
+                    <div class="stat-row-l">
+                        金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
+                        <a class="btn btn-transfer" v-if="showTransferButton" @click.stop="_onTapTransferMoney">转</a>
+                    </div>
+                    <div class="stat-row-r">
+                        <a class="btn-leader" :class="`${isLeader()?`btn-leader-on`:``}`" @click.stop="_onTapLeader">{{isLeader()?`取消领队`:`设为领队`}}</a>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="block block-data">
@@ -57,15 +64,26 @@ import Buff from '../components/Buff';
 import { query, r, bulbsort, getParentNode, numFormat, genRandomWorkerName, genRandomRoomName, genRandomFactoryName, genRandomWorker, genRandomTerminal, genRandomRoom, getListByID } from '../tools/utils';
 import * as common from '../tools/common';
 import { DEBUG, CONFIG } from '../config/config';
+import Vue from 'vue';
+import { Switch } from 'vant-green';
+import 'vant-green/lib/index.css';
+Vue.use(Switch);
+
 export default {
     props:{
         unit: Object, // 角色数据
+        game: Object, // 游戏数据
+        team: Array, // 小队数据
         showTransferButton: Boolean, // 是否显示转移金币按钮
         onTapTransferMoney: { // 转移金币函数
             type: Function,
             defalut: function(){},
         },
         onTapAvatar: { // 点击头像事件
+            type: Function,
+            defalut: function(){},
+        },
+        onTapLeader: { // 改变leader
             type: Function,
             defalut: function(){},
         },
@@ -78,6 +96,7 @@ export default {
         return {
             loading: false,
             stys: [],
+            leaderChecked: this.getTeamIndex(),
 
             common,
             CONFIG,
@@ -102,11 +121,29 @@ export default {
             res += 'rem';
             return res;
         },
+        getTeamIndex(){ // 获取小队下标
+            let res = -1;
+            for(let i=0;i<this.team.length;i++){
+                if(this.team[i].id==this.unit.id){
+                    res = i;
+                    break;
+                }
+            }
+            return res;
+        },
+        isLeader(){ // 检查是否为小队leader
+            let teamIndex = this.getTeamIndex();
+            return teamIndex==this.game.leaderIndex-1;
+        },
         _onTapTransferMoney(){
             this.$emit('onTapTransferMoney');
         },
         _onTapAvatar(){
             this.$emit('onTapAvatar',this.unit);
+        },
+        _onTapLeader(){
+            let teamIndex = this.getTeamIndex();
+            this.$emit('onTapLeader',this.unit,teamIndex);
         },
     },
     components:{
@@ -206,6 +243,35 @@ export default {
         line-height: .46rem;
         text-align: left;
         font-size: .26rem;
+    }
+    .stat-row-flex{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .stat-row-l{
+        display: inline-block;
+        width: 50%;
+    }
+    .stat-row-r{
+        display: inline-block;
+        width: 50%;
+        text-align: right;
+    }
+    .btn-leader{
+        display: inline-block;
+        text-align: center;
+        border: .02rem solid orangeRed;
+        width: 1.28rem;
+        height: .4rem;
+        line-height: .4rem;
+        border-radius: .06rem;
+        color: #fff;
+    }
+    .btn-leader-on{
+        border: .02rem solid #fff;
+        background-color: orangeRed;
+        box-shadow: 0 0 .1rem orangeRed;
     }
     .bar-1{
         height: .46rem;

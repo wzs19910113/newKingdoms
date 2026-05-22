@@ -53,6 +53,9 @@ export default {
     mounted(){
         this.init();
     },
+    updated(){
+        this.init();
+    },
     methods: {
         init(){
             let cvs = this.$refs.cvs;
