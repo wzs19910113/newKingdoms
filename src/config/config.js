@@ -1,5 +1,5 @@
 module.exports = {
-	DEBUG: 1,
+	DEBUG: 0,
 	CACHE: {
 		sto: '_DS_RWD_L',
 	},
@@ -539,7 +539,7 @@ module.exports = {
 				}],
 			},
 		],
-		initGuard: 100,
+		initGuard: 10,
 
 		// 商人聊天
 		bartenderChats: [

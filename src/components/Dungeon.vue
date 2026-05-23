@@ -151,8 +151,7 @@ export default {
                 }
                 res = !hasNoCore;
             }
-            return true; // @test
-            // return res;
+            return res;
         },
         calcNextGuard(){ // 计算下一个等级警戒值需求
             let res = `升级需求警戒值：`;

@@ -841,7 +841,7 @@ export default {
                         rel: 1,
                     });
                     unit.g = 0;
-                    // unit.b = [];
+                    unit.b = [];
                     unit.es = [unit.es[0],0,0,0,0,0,0,];
                     tempUnitList.push(unit);
                 }

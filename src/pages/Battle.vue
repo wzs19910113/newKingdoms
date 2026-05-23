@@ -14,6 +14,8 @@
                     <div class="team-pan team-pan-top">
                         <Unit2 class="unit" v-for="unit in enemyTeam" :ref="'u-'+unit.id" :key="unit.id" :pageState="pageState" :unit="unit" @onTap="onTapUnit" />
                     </div>
+                    <!-- 战斗开始 -->
+                    <a class="btn btn-start" v-if="pageState==1" @click="onTapStartBattle">开 始 战 斗</a>
                     <!-- 公示信息区域 -->
                     <div class="board-container">
                         <div class="board-flee-wrap" v-if="isFleeing">
@@ -25,7 +27,6 @@
                             <i class="flashing-skill">{{boardSkill.n}}</i>
                             <i class="flashing flashing-right">{{boardSkill.n}}</i>
                         </div>
-                        <a class="btn btn-start" v-if="pageState==1" @click="onTapStartBattle">开 始 战 斗</a>
                         <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊2</a>
                         <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊1</a>
                         <div class="battery-wrap" v-if="battle.map.battery">
@@ -2209,6 +2210,25 @@ export default {
         margin: 0;
     }
 
+    /* 战斗开始 */
+    .btn-start{
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 4.2rem;
+        margin: 0 auto;
+        width: 4rem;
+        height: 1rem;
+        line-height: 1rem;
+        text-align: center;
+        font-size: .4rem;
+        font-weight: bold;
+        color: #8ae4f1;
+        z-index: 1070;
+        box-shadow: 0 0 .5rem .2rem #2F4F4F inset;
+        animation: startBtn 1.33s ease-in-out infinite alternate;
+    }
+
     /* 战场-board */
     .board-container{
         position: relative;
@@ -2225,7 +2245,6 @@ export default {
         font-size: .24rem;
         color: #fff;
     }
-    .board-container .btn-start,
     .board-container .btn-cheat{
         position: relative;
         display: block;
