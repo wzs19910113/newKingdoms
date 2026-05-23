@@ -10,11 +10,11 @@
         <div class="row" v-if="mode==1&&attrList.length>0&&compare">
             <!-- {{compareAttrList}} -->
             <div class="attr attr-compare" v-for="attrIndex in 11">
-                <div class="attr-squre" v-if="compareAttrList[attrIndex-1]" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?'attr-green':''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?'attr-red':''}`" v-show="attrList[attrIndex-1][1]">
+                <div class="attr-squre" v-if="compareAttrList[attrIndex-1]" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?getColor1():''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?getColor2():''}`" v-show="attrList[attrIndex-1][1]">
                     <span class="attr-name">{{CONFIG.attrMap[attrList[attrIndex-1][0]]}}</span>
                     <span class="attr-val">+{{attrList[attrIndex-1][1]}}</span>
                 </div>
-                <div class="attr-squre" v-if="compareAttrList[attrIndex-1]" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?'attr-green':''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?'attr-red':''}`" v-show="!attrList[attrIndex-1][1]&&compareAttrList[attrIndex-1][1]">
+                <div class="attr-squre" v-if="compareAttrList[attrIndex-1]" :class="`${(attrList[attrIndex-1][1]<compareAttrList[attrIndex-1][1])?getColor1():''} ${(attrList[attrIndex-1][1]>compareAttrList[attrIndex-1][1])?getColor2():''}`" v-show="!attrList[attrIndex-1][1]&&compareAttrList[attrIndex-1][1]">
                     <span class="attr-name">{{CONFIG.attrMap[compareAttrList[attrIndex-1][0]]}}</span>
                     <span class="attr-val">/</span>
                 </div>
@@ -46,6 +46,10 @@ export default {
     props:{
         equip: Object, // 原装备
         compare: Object, // 对比装备
+        colorReverse: { // 对比色反转
+            type: Boolean,
+            default: false,
+        },
         mode: { // 模式 1详细 2简约
             type: Number,
             default: 1,
@@ -103,6 +107,12 @@ export default {
                 return attr;
             }
             return [0,0,];
+        },
+        getColor1(){
+            return this.colorReverse?`attr-red`:`attr-green`;
+        },
+        getColor2(){
+            return this.colorReverse?`attr-green`:`attr-red`;
         },
         _onTap(){
             this.$emit('onTap',{flag:1,equip:this.equip,});

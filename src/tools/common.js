@@ -16,7 +16,7 @@ const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添�
     3, // 攻击
     5, // 添加状态
     1, // 减弱增益状态
-    1, // 减弱减益状态
+    1, // 减弱负面状态
     3, // 治疗
     0, // 改变护甲
     1, // 改变潜能
@@ -40,19 +40,19 @@ const INTEN_LEVEL_MAP = [ // 强度等级-等级映射表
     1, // 1级
     1, // 2级
     2, // 3级
-    2, // 4级
+    3, // 4级
     3, // 5级
-    3, // 6级
-    4, // 7级
-    4, // 8级
-    5, // 9级
-    5, // 10级
-    6, // 11级
-    6, // 12级
-    7, // 13级
-    7, // 14级
-    8, // 15级
-    8, // 16级
+    4, // 6级
+    5, // 7级
+    5, // 8级
+    6, // 9级
+    7, // 10级
+    7, // 11级
+    8, // 12级
+    9, // 13级
+    9, // 14级
+    9, // 15级
+    9, // 16级
     9, // 17级
     9, // 18级
 ];
@@ -100,7 +100,7 @@ export function genRoleName(gender=1){ // 生成角色名
     let givennames = gender==1?NAMES.MALE_NAME_LIST:NAMES.FEMALE_NAME_LIST;
     return `${randIn(SURNAMES)}${r(0,1)?randIn(givennames):''}${randIn(givennames)}`;
 };
-export function genSkillName({level=1,beni=0}){ // 生成技能名 level（1-18）
+export function genSkillName({level=1,beni=0}){ // 生成技能名 level（1-14）
     let res = ``;
     let prefix1List, prefix2List, suffixList;
     if(beni){ // 保护和强化
@@ -154,7 +154,7 @@ export function calcAvatarData(unit){ // 计算单位的 avatarData
     return res;
 }
 
-export function genRx(level,exponent=1){ // 随机生成补正数值 level（1-18）
+export function genRx(level,exponent=1){ // 随机生成补正数值 level（1-14）
     let minRx = CONFIG.rxRangeMap[level-1][0]||1, maxRx = CONFIG.rxRangeMap[level-1][1]||1;
     let res = cl(exptr(minRx,maxRx,exponent));
     res = setInRange(res,1,Infinity);
@@ -214,7 +214,7 @@ export function genRandomAge(){ // 随机生成年龄
     }
     return age;
 };
-export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ // 生成一个攻击方式数据 level（1-18）
+export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ // 生成一个攻击方式数据 level（1-14）
     let newAtk = {};
     let atkAll = 0; // 是否为全体攻击
     let r1Ratio = 0, r2Ratio = 0, rAllRatio = 0;
@@ -283,12 +283,13 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
         a: atkAll,
     };
 
-    // 力量和精准补正
-    newAtk.r1 = cl(genRx(level,1)*r1Ratio*rAllRatio);
-    newAtk.r2 = cl(genRx(level,1)*r2Ratio*rAllRatio);
-
     if(equipId){ // 属于武器
         newAtk.eid = equipId;
+
+        // 力量和精准补正
+        newAtk.r1 = cl(genRx(level,1)*r1Ratio*rAllRatio);
+        newAtk.r2 = cl(genRx(level,1)*r2Ratio*rAllRatio);
+
         if(!atkAll){ // 如果不是全体攻击
             if(level>=3){
                 // 添加buff
@@ -307,6 +308,10 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
         newAtk.sl = r(1,INTEN_LEVEL_MAP[level]);
     }
     else if(skillId){ // 属于技能
+        // 力量和精准补正
+        newAtk.r1 = cl(genRx(level+5,1)*r1Ratio*rAllRatio);
+        newAtk.r2 = cl(genRx(level+5,1)*r2Ratio*rAllRatio);
+
         newAtk.sid = skillId;
     }
     newAtk.c = calcWeaponAtkConsume(newAtk); // 攻击体耗
@@ -314,7 +319,7 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
     return newAtk;
 }
 
-export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRandomAge(),tms=0,level=1,inten=0,rel=0,icon,isBoss,}){ // 生成一个角色数据 level（1-18） inten强度（0-4）
+export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRandomAge(),tms=0,level=1,inten=0,rel=0,icon,isBoss,}){ // 生成一个角色数据 level（1-14） inten强度（0-4）
     let genAttr = (stable=0) =>{ // 生成一个内在属性
         let res = 1;
         let min=CONFIG.attrRangeMap[level-1][0], max=CONFIG.attrRangeMap[level-1][1];
@@ -414,7 +419,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     // }
     return res;
 }
-export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生成一个装备数据 level（1-18）
+export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生成一个装备数据 level（1-14）
     let res = {
         id,
         n: '',
@@ -566,7 +571,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
 
     return res;
 }
-export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // 生成一个技能数据 level（1-18） melee力准倾向（0|1）isTrace为追踪型技能
+export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // 生成一个技能数据 level（1-9） melee力准倾向（0|1）isTrace为追踪型技能
 	/*id: 11,
 	l: 1,
 	n: '治愈术',
@@ -605,7 +610,7 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
     // 根据倾向设置基础变量
     let target;
     let fact; // 乘积因子：-1或1
-    let skillEffectList;
+    let skillEffectList; // 可能拥有的效果数组
     if(beni==1){ // 保护和强化
         res.t = [1,1,1,2,2,][r(0,4)];
         sfdBuffs = shuffle(CONFIG.goodBuffs);
@@ -628,8 +633,9 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
     }
     // 技能效果
     let eCount; // 效果数量
-    if(isTrace){ // 若为追踪型技能，则效果数量为 0-2
-        eCount = exptr(0,2,1);
+    if(isTrace){ // 若为追踪型技能，则添加追踪效果，且效果数量为 1-2
+        skillEffectList.push(9);
+        eCount = exptr(1,2,1);
     }
     else{
         if(level<3){
@@ -639,20 +645,17 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
             eCount = exptr(1,3,1);
         }
     }
-    let sfdSkillEffectList = []; // 可能拥有的效果数组
-    if(isTrace){ // 若为追踪型技能，则添加追踪效果
-        eCount += 1;
-        sfdSkillEffectList.push(9);
-    }
+
+    let sfdSkillEffectList = []; // 洗乱的可能拥有的效果数组
     let _sfdSkillEffectList = [];
-    for(let e of skillEffectList){
-        for(let i=0;i<SKILL_EFFECT_MAP[e-1];i++){
-            _sfdSkillEffectList.push(e);
+    for(let i=0;i<SKILL_EFFECT_MAP.length;i++){
+        for(let j=0;j<SKILL_EFFECT_MAP[i];j++){
+            _sfdSkillEffectList.push(i+1);
         }
     }
     _sfdSkillEffectList = shuffle(_sfdSkillEffectList); // 洗乱
     for(let e of _sfdSkillEffectList){ // 去重
-        if(arrContains(sfdSkillEffectList,e)==-1){
+        if(arrContains(sfdSkillEffectList,e)==-1&&arrContains(skillEffectList,e)>-1){
             sfdSkillEffectList.push(e);
         }
     }
@@ -677,7 +680,7 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
                 let buffCount = exptr(1,3,5); // buff数量
                 for(let j=0;j<buffCount;j++){
                     newEffect.d.b.push(sfdBuffs[j].id); // 随机buffId
-                    newEffect.d.bl.push(r(1,INTEN_LEVEL_MAP[level])); // 随机buff等级
+                    newEffect.d.bl.push(r(1,level)); // 随机buff等级
                 }
             break;
             case 3: // 减弱一个增益状态
@@ -688,7 +691,7 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
                 newEffect.d = { h:0, rx:0, };
                 newEffect.d.h = 15+exptr(1,cl(CONFIG.hpRangeMap[level-1][1]/100+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
                 if(level>=r(4,5)){ // 施法者的智力补正
-                    newEffect.d.rx = genRx(level);
+                    newEffect.d.rx = genRx(level+5,3);
                 }
             break;
             case 6: // 改变护甲
@@ -696,26 +699,26 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
             break;
             case 7: // 改变潜能
                 newEffect.d = { d:0, rx:0, };
-                newEffect.d.d = (500+exptr(3,level*9,1)*(fact?25:50))*fact;
+                newEffect.d.d = (500+exptr(3,level*9,1)*(fact==1?25:50))*fact;
                 newEffect.d.d = setInRange(newEffect.d.d,-10000,10000);
                 if(beni&&level>=r(3,6)){ // 目标单位的爆发补正
-                    newEffect.d.rx = genRx(level,5);
+                    newEffect.d.rx = genRx(level+5,3);
                 }
             break;
             case 8: // 改变心防
                 newEffect.d = { d:0, rx1:0, rx2:0,};
-                newEffect.d.d = cl((5+exptr(5,level*10,1))*fact);
+                newEffect.d.d = cl((10+exptr(10,level*25,1))*fact);
                 if(beni&&level>=r(4,6)){ // 目标单位的定力补正
-                    newEffect.d.rx1 = genRx(level);
+                    newEffect.d.rx1 = genRx(level+5,3);
                 }
                 else if(!beni&&level>=r(4,6)){ // 施法者的智力补正
-                    newEffect.d.rx2 = genRx(level);
+                    newEffect.d.rx2 = genRx(level+5,3);
                 }
             break;
             case 9: // 改变存在感
                 newEffect.d = { d:0, rx:0, };
                 if(beni){ // 增益效果，设置隐蔽补正
-                    newEffect.d.rx = genRx(level);
+                    newEffect.d.rx = genRx(level+5,3);
                 }
                 else{ // 减益效果，设置存在感提升值
                     newEffect.d.d = exptr(80,100+level*30,1)*25*(-fact);
@@ -781,6 +784,205 @@ export function genRegisterTime({id,game,}){ // 根据单位ID生成注册时间
     }
     res = `${game.day}${sdSuffix}`;
     return res;
+}
+export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后的技能 level(1-8)
+    let res;
+    let cSkill = cloneObj(skill);
+    let { t, el, l, n, } = cSkill;
+    let beniFact = t<2?1:-1;
+    let melee = false;
+    let maxEl = [
+        { d:0, r1:0, r2:0, }, // 1攻击
+        { b:[0,0,0,], bl:[0,0,0,],}, // 2添加状态
+        0, // 3削弱一个增益状态
+        0, // 4削弱一个减益状态
+        { h:0, rx:0, }, // 5治疗
+        0, // 6防御
+        { d:0, rx:0, }, // 7潜能
+        { d:0, rx1:0, rx2:0, }, // 8心防（固定修改值和定力、智力补正）
+        { d:0, rx:0, }, // 9存在感
+    ];
+    let getAvg = (min,max) =>{ // 获取中间值
+        return Math.round((min+max)/2);
+    }
+
+    // 生成 maxEl
+    for(let e of el){
+        let type = e.t, data = e.d;
+        if(type==1){ // 攻击
+            melee = data.r1>=data.r2;
+            let r1Ratio = 0, r2Ratio = 0;
+            if(melee==1){ // 近战
+                if(data.r2==0){ // 纯近战
+                    r1Ratio = 1;
+                    r2Ratio = 0;
+                }
+                else{
+                    r1Ratio = .9;
+                    r2Ratio = .7;
+                }
+            }
+            else{ // 远程
+                if(data.r1==0){ // 纯远程
+                    r1Ratio = 0;
+                    r2Ratio = 1;
+                }
+                else{
+                    r1Ratio = .7;
+                    r2Ratio = .9;
+                }
+            }
+            maxEl[0] = {
+                d: CONFIG.skillAtkRangeMap[level-1][1],
+                r1: cl(CONFIG.rxRangeMap[level+4][1]*r1Ratio),
+                r2: cl(CONFIG.rxRangeMap[level+4][1]*r2Ratio),
+            };
+        }
+        else if(type==2){ // 添加状态 { b:[0,0,0,], bl:[0,0,0,],}
+            for(let i=0;i<data.b.length;i++){
+                maxEl[1].bl[i] = level+1;
+            }
+        }
+        else if(type==3){ // 削弱一个增益状态
+            maxEl[2] = level+1;
+        }
+        else if(type==4){ // 削弱一个减益状态
+            maxEl[3] = level+1;
+        }
+        else if(type==5){ // 治疗 { h:0, rx:0, }
+            maxEl[4].h = 35+cl(CONFIG.hpRangeMap[level-1][1]/100)+cl(pow(level,3.5));
+            if(skill.l>4){
+                maxEl[4].rx = cl(CONFIG.rxRangeMap[level+4][1]);
+            }
+        }
+        else if(type==7){ // 潜能 { d:0, rx:0, }
+            maxEl[6].d = cl((500+level*9*(beniFact==1?25:50))*beniFact);
+            if(skill.l>=3){ // 目标单位的爆发补正
+                newEffect.rx = cl(CONFIG.rxRangeMap[level+4][1]);
+            }
+        }
+        else if(type==8){ // 心防（固定修改值和定力、智力补正） { d:0, rx1:0, rx2:0, }
+            maxEl[7].d = cl((10+level*25)*beniFact);
+            if(beniFact==1&&level>=4){ // 强化心理防御，目标单位的定力补正
+                newEffect.rx1 = cl(CONFIG.rxRangeMap[level+4][1]);
+            }
+            else if(beniFact==-1&&level>=4){ // 造成心理伤害，施法者的智力补正
+                newEffect.rx2 = cl(CONFIG.rxRangeMap[level+4][1]);
+            }
+        }
+        else if(type==9){ // 存在感 { d:0, rx:0, }
+            if(beniFact==1){ // 增益效果，设置隐蔽补正
+                maxEl[8].rx = cl(CONFIG.rxRangeMap[level+4][1]);
+            }
+            else{ // 减益效果，设置存在感提升值
+                maxEl[8].d = cl((2500+level*750)*(-beniFact));
+            }
+        }
+    }
+
+    // 调整cSkill
+    for(let e of cSkill.el){
+        let type = e.t;
+        if(type==1){ // 攻击
+            e.d.d = getAvg(e.d.d,maxEl[0].d);
+            e.d.r1 = getAvg(e.d.r1,maxEl[0].r1);
+            e.d.r2 = getAvg(e.d.r2,maxEl[0].r2);
+        }
+        else if(type==2){ // 添加状态 { b:[0,0,0,], bl:[0,0,0,],}
+            for(let i=0;i<e.d.b.length;i++){
+                e.d.bl[i] = getAvg(e.d.bl[i],maxEl[1].bl[i]);
+            }
+        }
+        else if(type==3){ // 削弱一个增益状态
+            e.d = getAvg(e.d,maxEl[2]);
+        }
+        else if(type==4){ // 削弱一个减益状态
+            e.d = getAvg(e.d,maxEl[3]);
+        }
+        else if(type==5){ // 治疗 { h:0, rx:0, }
+            e.d.h = getAvg(e.d.h,maxEl[4].h);
+            e.d.rx = getAvg(e.d.rx,maxEl[4].rx);
+        }
+        else if(type==7){ // 潜能 { d:0, rx:0, }
+            e.d.d = getAvg(e.d.d,maxEl[6].d);
+            e.d.rx = getAvg(e.d.rx,maxEl[6].rx);
+        }
+        else if(type==8){ // 心防（固定修改值和定力、智力补正） { d:0, rx1:0, rx2:0, }
+            e.d.d = getAvg(e.d.d,maxEl[7].d);
+            if(beniFact==1){ // 强化心理防御
+                e.d.rx1 = getAvg(e.d.rx1,maxEl[7].rx1);
+            }
+            else if(beniFact==-1){ // 造成心理伤害
+                e.d.rx2 = getAvg(e.d.rx2,maxEl[7].rx2);
+            }
+        }
+        else if(type==9){ // 存在感 { d:0, rx:0, }
+            if(beniFact==1){ // 增益效果，设置隐蔽补正
+                e.d.rx = getAvg(e.d.rx,maxEl[8].rx);
+            }
+            else{ // 减益效果，设置存在感提升值
+                e.d.d = getAvg(e.d.d,maxEl[8].d);
+            }
+        }
+    }
+
+    res = cSkill;
+
+    // 计算价值
+    res.v = calcSkillValue(res);
+    res.v = setInRange(res.v,10,Infinity);
+    // 根据价值计算体力消耗
+    res.c = cl(res.v*.006+5);
+    res.c = setInRange(res.c,1,Infinity);
+
+    // 重命名
+    let lastChar = res.n[res.n.length-1];
+    let suffixList = [`*`,`☆`,`卐`,];
+    if(arrContains(suffixList,lastChar)!=-1){
+        res.n = split(0,res.n.length-2);
+    }
+    if(level<=3){
+        res.n += suffixList[0];
+    }
+    else if(level<=6){
+        res.n += suffixList[1];
+    }
+    else if(level<=9){
+        res.n += suffixList[2];
+    }
+
+    return res;
+}
+export function fuseEquip({baseEquip,equip,unit,game,}){ // 融合装备
+    let newEquip = cloneObj(baseEquip);
+    let newA = [];
+    let getAttrByIndex = (equip,attrIndex) =>{ // 根据 attr下标（0-10） 获取 装备的 attr 数据 :[x,y]
+        let attr = getMatchList(equip.a,[[0,attrIndex]])[0];
+        if(attr){
+            return attr;
+        }
+        return [0,0,];
+    }
+    for(let i=0;i<11;i++){
+        let attr = 0;
+        let newEquipAttr = getAttrByIndex(newEquip,i);
+        let oldEquipAttr = getAttrByIndex(equip,i);
+        attr = Math.max(newEquipAttr[1],oldEquipAttr[1]);
+        if(attr>0){
+            newA.push([i,attr]);
+        }
+    }
+    newEquip.a = newA;
+    // 赋值到 game
+    for(let i=0;i<game.allEquips.length;i++){
+        if(game.allEquips[i].id==baseEquip.id){
+            game.allEquips[i] = newEquip;
+        }
+    }
+    // 删除被溶解的equip
+    unregisterEquips({equipIdList:[equip.id],game,});
+    let oUnit = getMatchList(game.allUnits,[['id',unit.id]])[0];
+    oUnit.b = removeFromNumberList(equip.id,oUnit.b);
 }
 
 export function genUnit({id,level=1,inten=0,rel,game,nickname='',equipList,skillList,isBoss=false,}){ // 生成一个完整的单位数据（带装备、背包和技能）

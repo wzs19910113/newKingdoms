@@ -109,25 +109,25 @@
                 <div class="temple" v-if="showTemple&&viewingUnit">
                     <div class="temple-header">
                         <div class="temple-title">
-                            神庙<span class="temple-desc">(消耗50警戒值进行装备融合或技能强化)</span>
+                            神庙<span class="temple-desc">(消耗警戒值进行装备融合或技能强化)</span>
                         </div>
-                        <a class="btn btn-close" @click="onTapCloseTemple">关闭</a>
-                        <Bar1 class="temple-guard-bar" :type="5" :title="`警戒值`" :mode="2" :crt="map.guard" :max="100" />
+                        <a class="btn btn-close" @click="onTapCloseTemple">离开</a>
+                        <Bar1 class="temple-guard-bar" :type="5" :title="`剩余警戒值：`" :mode="2" :crt="map.guard" :max="100" />
                     </div>
                     <SwipeTabs class="temple-tabs-wrap" ref="temple-wrap" :tabs="[{label:`装备融合（${viewingUnit.nm}）`,},{label:`技能强化（${viewingUnit.nm}）`},]">
                         <!-- 装备融合 -->
                         <template #tab-0>
-                            <div class="temple-tab-base-wrap">
+                            <div class="temple-tab-base-wrap smelter">
                                 <div class="temple-tab-tip">熔炉中的装备：</div>
                                 <div class="temple-tab-base-item">
                                     <Equip class="temple-equip" :equip="temple.baseEquip" v-if="temple.baseEquip"/>
-                                    <a class="temple-base-btn" @click="onTapTempleRemove" v-if="temple.baseEquip">移出<br/>熔炉</a>
+                                    <a class="temple-base-btn" @click="onTapTempleRemoveEquip" v-if="temple.baseEquip">移出<br/>熔炉</a>
                                 </div>
                             </div>
                             <div class="temple-tab-list-wrap">
                                 <div class="temple-tab-tip">可融合的装备（{{temple.equipList.length}}）：</div>
                                 <div class="temple-item" v-for="(equip,index) of temple.equipList">
-                                    <Equip class="temple-equip" v-if="temple.baseEquip&&(temple.baseEquip.t==equip.t)" :compare="temple.baseEquip" :equip="equip" :key="index" @onTap="onTapEquip" />
+                                    <Equip class="temple-equip" v-if="temple.baseEquip&&(temple.baseEquip.t==equip.t)" :compare="temple.baseEquip" :colorReverse="true" :equip="equip" :key="index" @onTap="onTapEquip" />
                                     <Equip class="temple-equip" v-else :equip="equip" :key="index" @onTap="onTapEquip" />
                                     <a class="temple-item-btn" @click="onTapTempleEquip(equip)">
                                         <span v-html="!temple.baseEquip?`加入<br/>熔炉`:`融合`"></span>
@@ -137,10 +137,18 @@
                         </template>
                         <!-- 技能强化 -->
                         <template #tab-1>
+                            <div class="temple-tab-base-wrap preview">
+                                <div class="temple-tab-tip">强化后的技能效果：</div>
+                                <div class="temple-tab-base-item">
+                                    <Skill class="temple-skill" :skill="temple.previewSkill" v-if="temple.previewSkill"/>
+                                    <a class="temple-base-btn" @click="onTapTempleUpgradeSkill" v-if="temple.previewSkill">强化</a>
+                                </div>
+                            </div>
                             <div class="temple-tab-list-wrap">
+                                <div class="temple-tab-tip">可强化的技能（{{temple.skillList.length}}）：</div>
                                 <div class="temple-item" v-for="(skill,index) of temple.skillList">
                                     <Skill class="temple-skill" :skill="skill" :key="index" @onTap="onTapSkill" />
-                                    <a class="temple-item-btn" @click="onTapTempleSkill(skill)">强化</a>
+                                    <a class="temple-item-btn" @click="onTapTempleViewSkill(skill,map.level)">预览<br/>强化</a>
                                 </div>
                             </div>
                         </template>
@@ -441,6 +449,7 @@ export default {
                 skillList: [],
                 equipList: [],
                 baseEquip: null,
+                previewSkill: null,
             },
 
             popUnitTab: 1,
@@ -705,15 +714,17 @@ export default {
             let baseEquip = this.temple.baseEquip;
             for(let equipId of b){
                 let oEquip = getMatchList(this.game.allEquips,[['id',equipId]])[0];
-                let showEquip = false;
-                if(!baseEquip){ // 若没有base装备
-                    showEquip = true;
-                }
-                else if(oEquip.t==baseEquip.t&&oEquip.id!=baseEquip.id){ // 若熔炉中已有base装备，则判断装备类型，且避免显示同一件装备
-                    showEquip = true;
-                }
-                if(showEquip){
-                    equipList.push(oEquip);
+                if(oEquip){
+                    let showEquip = false;
+                    if(!baseEquip){ // 若没有base装备
+                        showEquip = true;
+                    }
+                    else if(oEquip.t==baseEquip.t&&oEquip.id!=baseEquip.id){ // 若熔炉中已有base装备，则判断装备类型，且避免显示同一件装备
+                        showEquip = true;
+                    }
+                    if(showEquip){
+                        equipList.push(oEquip);
+                    }
                 }
             }
             for(let skillId of ss){
@@ -724,8 +735,9 @@ export default {
             this.temple.equipList = equipList;
         },
         initTemple(){ // 初始化神庙数据
-            this.asynTemple();
             this.temple.baseEquip = null;
+            this.temple.previewSkill = null;
+            this.asynTemple();
         },
         resetViewingUnitPopData(){ // 重置单位预览弹窗数据
             this.showUnitPop = false;
@@ -829,7 +841,7 @@ export default {
                         rel: 1,
                     });
                     unit.g = 0;
-                    unit.b = [];
+                    // unit.b = [];
                     unit.es = [unit.es[0],0,0,0,0,0,0,];
                     tempUnitList.push(unit);
                 }
@@ -1218,7 +1230,7 @@ export default {
         onTapBuff(id,level){ // 点击【buff】
             if(this.banReactive) return;
             let buff = getMatchList(BUFF_LIST,[['id',id]])[0]||{};
-            this._alert(`给予目标：${buff.name}（强度${level}）- ${buff.desc}`,5);
+            this._alert(`给予${buff.good?'':'失防'}目标：${buff.name}（强度${level}）- ${buff.desc}`,5);
         },
         onTapBrand(){ // 点击【标牌】
             if(this.banReactive) return;
@@ -1829,9 +1841,10 @@ export default {
                 skillList: [],
                 equipList: [],
                 baseEquip: null,
+                previewSkill: null,
             };
         },
-        onTapTempleRemove(){ // 点击【神秘-移出熔炉】
+        onTapTempleRemoveEquip(){ // 点击【神秘-移出熔炉】
             if(this.banReactive) return;
             this.temple.baseEquip = null;
             this.asynTemple();
@@ -1843,20 +1856,71 @@ export default {
                 this.$nextTick(_=>{
                     this.temple.baseEquip = equip;
                     this.asynTemple();
+                    // 设置 tab-content 的滚动条到原有位置
+                    this.$nextTick(_=>{
+                        let tarvenDom = this.$refs[`temple-wrap`];
+                        if(tarvenDom){
+                            let domList = tarvenDom.$refs[`contentRef`];
+                            if(domList){
+                                domList.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth'  // 平滑滚动
+                                });
+                                setTimeout(_=>{
+                                    domList.scrollTop = 0;
+                                },100);
+                            }
+                        }
+                    });
                 });
             }
             else{ // 融合
                 this._confirm(`确定要融合 ${equip.n} 的属性到 ${this.temple.baseEquip.n} 上吗（消耗警戒值50）？`,_=>{
-
-                    this.asynTemple();
+                    if(this.map.guard>=50){
+                        common.fuseEquip({baseEquip:this.temple.baseEquip,equip,unit:this.viewingUnit,game:this.game,});
+                        this.map.guard -= 50;
+                        this.map.guard = setInRange(this.map.guard,0,100);
+                        this._alert(`融合成功！`);
+                        this.asynTeam();
+                        this.$nextTick(_=>{
+                            this.initTemple();
+                        });
+                    }
+                    else{
+                        this._alert(`警戒值不足`);
+                    }
                 });
             }
         },
-        onTapTempleSkill(skill){ // 点击【神庙-技能】
+        onTapTempleViewSkill(skill,level){ // 点击【神庙-预览技能】
             if(this.banReactive) return;
-            this._confirm(`确定强化 ${skill.n} 吗（消耗警戒值50）？`,_=>{
-
-                this.asynTemple();
+            let previewSkill = common.genUpgradeSkillData({skill,level,game:this.game,});
+            this.temple.previewSkill = null;
+            this.$nextTick(_=>{
+                this.temple.previewSkill = previewSkill;
+            });
+        },
+        onTapTempleUpgradeSkill(){ // 点击【神庙-强化技能】
+            if(this.banReactive) return;
+            this._confirm(`确定强化 ${this.temple.previewSkill.n} 吗（消耗警戒值50）？`,_=>{
+                if(this.map.guard>=50){
+                    let oSkill = getMatchList(this.game.allSkills,[['id',this.temple.previewSkill.id]])[0];
+                    for(let i=0;i<this.game.allSkills.length;i++){
+                        if(this.game.allSkills[i].id==this.temple.previewSkill.id){
+                            this.game.allSkills[i] = cloneObj(this.temple.previewSkill);
+                        }
+                    }
+                    this.map.guard -= 50;
+                    this.map.guard = setInRange(this.map.guard,0,100);
+                    this._alert(`强化成功！`);
+                    this.asynTeam();
+                    this.$nextTick(_=>{
+                        this.initTemple();
+                    });
+                }
+                else{
+                    this._alert(`警戒值不足`);
+                }
             });
         },
 
@@ -1871,6 +1935,8 @@ export default {
         onTapCheat(){ // 点击【作弊】按钮
             let me = this.game.allUnits[1];
             me.g += 11123;
+            this.map.guard += 50;
+            this.map.guard = setInRange(this.map.guard,0,100);
             // common.skillXIncrease(55000,this.game);
             // for(let map of this.game.mapList){
             //     map.flagMarks = Array.from(map.flagMarks,_=>{

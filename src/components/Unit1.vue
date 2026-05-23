@@ -35,7 +35,7 @@
                         金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
                         <a class="btn btn-transfer" v-if="showTransferButton" @click.stop="_onTapTransferMoney">转</a>
                     </div>
-                    <div class="stat-row-r">
+                    <div class="stat-row-r" v-if="mode==1">
                         <a class="btn-leader" :class="`${isLeader()?`btn-leader-on`:``}`" @click.stop="_onTapLeader">{{isLeader()?`取消领队`:`设为领队`}}</a>
                     </div>
                 </div>
@@ -123,10 +123,12 @@ export default {
         },
         getTeamIndex(){ // 获取小队下标
             let res = -1;
-            for(let i=0;i<this.team.length;i++){
-                if(this.team[i].id==this.unit.id){
-                    res = i;
-                    break;
+            if(this.team){
+                for(let i=0;i<this.team.length;i++){
+                    if(this.team[i].id==this.unit.id){
+                        res = i;
+                        break;
+                    }
                 }
             }
             return res;

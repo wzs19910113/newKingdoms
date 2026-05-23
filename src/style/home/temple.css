@@ -51,7 +51,6 @@
 
 /* tabs */
 .temple-tabs-wrap{
-    width: 7rem !important;
     margin: 0 auto;
     background-color: #000 !important;
     height: calc( 100% - 1.2rem );
@@ -59,10 +58,29 @@
 }
 .temple-tabs-wrap .temple-tab-base-wrap{
     padding: .2rem;
-    border: .01rem solid red;
-    background-image: linear-gradient(to right top, rgba(178,34,34,1) 0%, rgba(39,17,14,1) 30%, rgba(53,16,26,1) 50%, rgba(53,17,26,1) 55%, rgba(178,34,34,1) 100%);
-    box-shadow: 0 0 .1rem orangeRed;
     min-height: 1.2rem;
+}
+.temple-tabs-wrap .smelter{
+    background-image: linear-gradient(to right top, rgba(178,34,34,1) 0%, rgba(39,17,14,1) 12%, rgba(93,36,26,1) 50%, rgba(33,17,26,1) 85%, rgba(178,34,34,1) 100%);
+    box-shadow: 0 0 .1rem orangeRed inset;
+    border: .04rem solid red;
+    animation: smelterFlash .5s ease-in-out infinite alternate;
+}
+.temple-tabs-wrap .preview{
+    background-image: linear-gradient(to right bottom, rgba(178,164,34,1) 0%, rgba(41,47,14,1) 13%, rgba(76,76,26,1) 50%, rgba(43,47,26,1) 85%, rgba(178,164,34,1) 100%);
+    box-shadow: 0 0 .1rem yellow inset;
+    border: .04rem solid yellow;
+    animation: previewFlash .5s ease-in-out infinite alternate;
+}
+@keyframes smelterFlash {
+    to{
+        box-shadow: 0 0 .4rem orangeRed inset;
+    }
+}
+@keyframes previewFlash {
+    to{
+        box-shadow: 0 0 .4rem yellow inset;
+    }
 }
 .temple-tab-tip{
     height: .33rem;

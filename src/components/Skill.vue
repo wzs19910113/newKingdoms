@@ -83,18 +83,21 @@ export default {
     computed: {
     },
     mounted(){
-        for(let i=0;i<this.skill.el.length;i++){
-            let effect = this.skill.el[i];
-            if(effect.t==1){
-                this.atkEffectIndex = i;
-            }
-            if(effect.t==2){
-                this.buffEffectIndex = i;
-            }
-        }
+        this.init();
         // console.log(this.skill.n,this.skill);
     },
     methods: {
+        init(){
+            for(let i=0;i<this.skill.el.length;i++){
+                let effect = this.skill.el[i];
+                if(effect.t==1){
+                    this.atkEffectIndex = i;
+                }
+                if(effect.t==2){
+                    this.buffEffectIndex = i;
+                }
+            }
+        },
         genBuff(buffId,buffLevel){ // 生成buff数据
             let res = {};
             let buffArr = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
