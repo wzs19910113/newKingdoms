@@ -1210,7 +1210,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
             if(equip.t==1){
                 weaponList.push(cloneObj(equip));
             }
-            equipScore += equip.v*.12;
+            equipScore += equip.v*.6;
         }
         else{
             equips.push(null);
@@ -1351,7 +1351,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     // let newBuff2 = cloneObj(CONFIG.badBuffs[14]);
     // newBuff2.level = 7;
     // btd.buffList.push(newBuff2);
-    // let newBuff3 = cloneObj(CONFIG.goodBuffs[4]);
+    // let newBuff3 = cloneObj(CONFIG.goodBuffs[10]);
     // newBuff3.level = 4;
     // btd.buffList.push(newBuff3);
     // let newBuff4 = cloneObj(CONFIG.goodBuffs[8]);
@@ -1591,16 +1591,16 @@ export function calcEquipValue(equip){ // 计算装备的价值
     for(let attr of equip.a){
         switch(attr[0]){
             case 0: // 血量
-                score += cl(attr[1]*.7);
+                score += cl(attr[1]*.14);
             break;
             case 1: // 精力
-                score += cl(attr[1]*1.1);
+                score += cl(attr[1]*.22);
             break;
             case 2: // 体力
-                score += cl(attr[1]*367);
+                score += cl(attr[1]*73.4);
             break;
             case 3: // 防御
-                score += cl(attr[1]*29);
+                score += cl(attr[1]*5.8);
             break;
             case 4: // 属性
             case 5:
@@ -1609,7 +1609,7 @@ export function calcEquipValue(equip){ // 计算装备的价值
             case 8:
             case 9:
             case 10:
-                score += cl(attr[1]*63);
+                score += cl(attr[1]*12.6);
             break;
         }
     }
@@ -1642,11 +1642,16 @@ export function calcBodyValue(unit){ // 计算单位的所有已着装备价值�
     }
     return res;
 }
-export function calcBagValue(unit){ // 计算单位的背包所有装备价值（要求btd）
+export function calcBagValue(unit,includeHighLights=true){ // 计算单位的背包所有装备价值（要求btd）
     let res = 0;
     let bagList = unit.btd.bagList;
     for(let equip of bagList){
-        res += equip.v;
+        if(!includeHighLights&&equip.hl){
+
+        }
+        else{
+            res += equip.v;
+        }
     }
     return res;
 }
@@ -1669,8 +1674,8 @@ export function getSellPrice(equip){ // 获取装备的售卖价格
     res = Math.ceil(res*CONFIG.sellingRatio);
     return res;
 }
-export function getSellAllPrice(unit){ // 获取单位的背包售卖价格（要求btd）
-    let res = calcBagValue(unit);
+export function getSellAllPrice(unit,includeHighLights=true){ // 获取单位的背包售卖价格（要求btd）
+    let res = calcBagValue(unit,includeHighLights);
     res = Math.ceil(res*CONFIG.sellingRatio);
     return res;
 }

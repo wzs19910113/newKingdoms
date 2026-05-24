@@ -122,6 +122,12 @@
                     <label class="guide-name">{{item.name}}：</label><label class="guide-desc">{{item.desc}}。</label>
                 </p>
             </div>
+            <div class="guide-ops">
+                <div class="guide-ops-row">
+                    <label class="ops-name">行动条模式：{{tickMode==1?`显示`:`跳过`}}动画</label>
+                    <a class="ops-btn" @click="onTapSwitchTickMode">切换</a>
+                </div>
+            </div>
         </Pop>
         <!-- alert -->
         <Toast ref="toast-alert" />
@@ -216,6 +222,8 @@ export default {
 
             boardText: '', // 战场公示文字
             boardSkill: {}, // 战场公示特效技能
+
+            tickMode: parseInt(localStorage.getItem(CACHE.tm)), // 行动条模式
 
             menuData: { // 菜单数据
                 state: 0, // 操作面板出现状态【0:不显示|1：基础选项|2：攻击选项|3：技能选项|4：选择单位|5：选择属性】
@@ -566,7 +574,12 @@ export default {
                     this.curUnitList = [];
                     this.curUnitListIndex = 0;
                     // 行动力推进
-                    this.movementProcess();
+                    if(this.tickMode==1){
+                        this.movementProcess();
+                    }
+                    else{
+                        this.movementFastProcess();
+                    }
                 break;
                 case 3: // 进行操作
                 case 4: // 动画
@@ -601,6 +614,77 @@ export default {
             this.menuData.state = flag;
         },
         movementProcess(){ // 行动条进展，计算出本帧行动者数组
+            let allAliveUnits;
+            if(this.isFleeing){ // 如果正在撤离
+                let allEnemyUnits = [...this.enemyTeam];
+                allAliveUnits = getSubMatchList(allEnemyUnits,[['out',0]],'btd');
+            }
+            else{
+                allAliveUnits = this.getAllAliveUnits();
+            }
+            let tickCount = 0;
+            let _curUnitList = []; // 可行动单位数组
+            let curUnitList = []; // 多重可行动单位数组
+            let tick = _ =>{
+                // 每个存活单位行动力增长一次
+                for(let unit of allAliveUnits){
+                    if(this.isFleeing&&unit.btd.isPlayer){ // 如果正在撤离，且本单位是玩家单位
+
+                    }
+                    else{
+                        unit.btd.mov += common.getSpeed(unit)*100;
+                    }
+                    if(unit.btd.mov>=10000){
+                        unit.overflowMove = unit.btd.mov-10000;
+                        _curUnitList.push(unit);
+                    }
+                }
+                // 根据超出行动力，对本帧行动者数组进行逆向排序
+                _curUnitList = bulbsort(_curUnitList,'overflowMove',1);
+                // 根据每个行动者的 roundTotal 进行复制
+                for(let unit of _curUnitList){
+                    for(let i=0;i<unit.btd.roundTotal;i++){
+                        curUnitList.push(unit);
+                    }
+                }
+                // 如果有人的行动力达到最高值
+                if(curUnitList.length>0){
+                    clearInterval(this.ticker);
+                    this.ticker = null;
+                    this.curUnitList = curUnitList; // [{id:1,...},{id:1,...},{id:2,...},{id:3,...},{id:3,...},...]
+                    if(this.isFleeing){ // 如果正在撤离，则根据已过时间单位（tickCount）增加撤离进度
+                        let allPlayerUnits = [...this.playerTeam];
+                        let allAlivePlayerUnits = getSubMatchList(allPlayerUnits,[['out',0]],'btd');
+                        let fleeMoveIncresement = 0; // 所有存活我方单位的速度总和
+                        for(let unit of allAlivePlayerUnits){
+                            fleeMoveIncresement += common.getSpeed(unit);
+                        }
+                        this.fleeMove += Math.round(fleeMoveIncresement*tickCount*.01);
+                    }
+                    if(this.isFleeing&&this.fleeMove>=this.totalFleeMove){ // 如果撤离进度满，则撤离成功，结束战斗
+                        this.fleeMove = this.totalFleeMove;
+                        this.battleEnd(3);
+                    }
+                    else{ // 开始下一个 curUnitList 的第一个单位行动
+                        this.timerList.push(setTimeout(_=>{
+                            // 所有本帧行动者行动条归零
+                            for(let _unit of this.curUnitList){
+                                _unit.btd.mov = 0;
+                            }
+
+                            // 回合开始
+                            let curUnit = this.curUnitList[this.curUnitListIndex];
+                            this.roundStart(curUnit);
+                        },100));
+                    }
+                }
+            }
+
+            this.ticker = setInterval(_=>{
+                tick();
+            },100);
+        },
+        movementFastProcess(){ // 行动条快速进展，计算出本帧行动者数组
             let allAliveUnits;
             if(this.isFleeing){ // 如果正在撤离
                 let allEnemyUnits = [...this.enemyTeam];
@@ -1256,7 +1340,7 @@ export default {
                     }
                 }
 
-                // 如果穿透防御，则添加buff
+                // 如果穿透防御，则添加攻击附带的buff
                 if((target.btd.penetrated||(target.btd.hp[0]<target.btd.hp[1]))&&attack.b){
                     for(let i=0;i<attack.b.length;i++){
                         let buffId = attack.b[i], buffLevel = attack.bl[i];
@@ -1561,8 +1645,6 @@ export default {
 
             caster.btd.changes.domAni = "cast";
 
-            console.log(skill.n,skill);
-
             // 施放者体力消耗
             let consume = common.calcConsume({type:1,unit:caster,data:skill,});
             this.consumeAction({consume,unit:caster,});
@@ -1593,7 +1675,7 @@ export default {
                         }
                         else if(t==2){ // 添加状态
                             let { b, bl, } = d;
-                            if((target.btd.hp[0]<target.btd.hp[1])||target.btd.penetrated){ // 如果 target 已掉血或者已被破防
+                            if((target.btd.isPlayer==caster.btd.isPlayer)||(target.btd.hp[0]<target.btd.hp[1])||target.btd.penetrated){ // 如果 target 与 caster 同阵营，或者 target 已掉血，或者 target 已被破防
                                 // 祝福bufff
                                 let blessBuff = common.getBuff(target,3);
 
@@ -2000,7 +2082,16 @@ export default {
                 }
             }
         },
-
+        onTapSwitchTickMode(){ // 点击【切换行动条模式】
+            this.tickMode = this.tickMode==1?2:1;
+            try{
+                localStorage.setItem(CACHE.tm,this.tickMode+'');
+            }
+            catch(err){
+                this._alert(`数据保存失败（${err}）`);
+                console.error(err);
+            }
+        },
 
 
         /* 其他 */
@@ -2490,6 +2581,8 @@ export default {
         width: 100%;
         padding: .32rem .18rem;
         font-weight: normal;
+        margin-bottom: .08rem;
+        border-bottom: .01rem solid #8ae4f1;
     }
     .guide-menu-row{
         display: flex;
@@ -2508,6 +2601,32 @@ export default {
     .guide-menu-row .guide-desc{
         display: inline-block;
         width: calc( 100% - 1.2rem );
+    }
+    .guide-ops{
+        width: 100%;
+        padding: .32rem .18rem;
+    }
+    .guide-ops-row{
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        min-height: .4rem;
+        line-height: .4rem;
+        text-align: left;
+        font-size: .3rem;
+    }
+    .guide-ops-row .ops-name{
+        display: inline-block;
+        margin-right: .2rem;
+    }
+    .guide-ops-row .ops-btn{
+        display: inline-block;
+        height: .44rem;
+        line-height: .44rem;
+        text-align: center;
+        padding: 0 .1rem;
+        border-radius: .06rem;
+        border: .02rem solid orangeRed;
     }
     .buff-edit-menu{
         width: 3.2rem;

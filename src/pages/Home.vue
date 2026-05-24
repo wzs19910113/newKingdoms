@@ -225,7 +225,7 @@
                         <!-- 背包顶部操作栏，只有在队或同道才能显示 -->
                         <div class="bag-op" v-if="selectingUnit.rel==3">
                             <a class="btn btn-bag-title-sellAll" v-if="selling&&selectingUnit.btd.bagList.length>0" @click="onTapSellBag(selectingUnit.btd.bagList,selectingUnit)">
-                                全售卖 <b class="money" v-html="`${common.moneyFormat(common.getSellAllPrice(selectingUnit))} $`"></b>
+                                全售卖 <b class="money" v-html="`${common.moneyFormat(common.getSellAllPrice(selectingUnit,false))} $`"></b>
                             </a>
                             <a class="btn btn-bag-title-moveAll" v-if="selectingUnit.btd.bagList.length>1&&team.length>1" @click="onTapMoveBag(selectingUnit.btd.bagList)">全转移</a>
                         </div>
@@ -355,7 +355,7 @@
                     <label class="guide-title">其他战斗机制</label>
                     <p class="guide-para">
                         【屈服】对已经奔溃的敌人使用“话术”可使其立刻屈服败退，并加入到酒馆中。<br/>
-                        【状态】通过武器攻击或技能，可对 <b>‘防御被击破的目标’</b> 施加负面状态。<br/>
+                        【状态】通过武器攻击或技能，可对 <b style="color:#a5d3f9">‘非满生命值敌人’</b> 施加负面状态。<br/>
                         【暴击】当行动力高于 90%（95%）时，受到的伤害翻 2（3）倍。<br/>
                         【战意流失】每固定时间触发，我方集体心理防御下降。<br/>
                     </p>
@@ -826,7 +826,7 @@ export default {
             }
             this._alert(`一天过去了...`);
             // 第二天
-            if(this.game.day==2){
+            if(this.game.day==3){
                 // 注册 3 个客人
                 let tempUnitList = [], tempEquipList = [], tempSkillList = [];
                 for(let i=2;i<5;i++){
@@ -1421,16 +1421,22 @@ export default {
         },
         onTapSellBag(equipList,seller){ // 点击【全售卖】
             if(this.banReactive) return;
-            this._confirm(`确定要售卖全部（共 ${equipList.length} 个）装备吗？`,_=>{
+            let opEquipList = [];
+            for(let equip of equipList){
+                if(!equip.hl){
+                    opEquipList.push(equip);
+                }
+            }
+            this._confirm(`确定售卖全部未标记装备吗？<br/>（共 ${opEquipList.length} 个）`,_=>{
                 let oSeller = getMatchList(this.game.allUnits,[['id',seller.id]])[0];
                 let buyer = this.bartender;
-                let price = common.getSellAllPrice(seller);
-                this.moveEquipList(buyer,seller,equipList);
+                let price = common.getSellAllPrice(seller,false);
+                this.moveEquipList(buyer,seller,opEquipList);
                 oSeller.g += price;
                 this.asynTeam();
                 this.asynBartender();
                 this.asynInmates();
-                this._alert(`已售卖 ${equipList.length} 个装备`);
+                this._alert(`已售卖 ${opEquipList.length} 个装备`);
             });
         },
         onTapBuyEquip(equip,price,seller,buyer){ // 点击【购买装备】
@@ -1490,11 +1496,13 @@ export default {
             let oUnit = getMatchList(this.game.allUnits,[['id',unit.id]])[0];
             let price = unit.btd.price;
             if(employer.g>=price){
-                oUnit.rel = 2;
-                employer.g -= price;
-                this.asynTeam();
-                this.asynInmates();
-                this._alert(`欢迎新队友：${oUnit.nm} ！`,5);
+                this._confirm(`确定雇佣 ${oUnit.nm} 吗？`,_=>{
+                    oUnit.rel = 2;
+                    employer.g -= price;
+                    this.asynTeam();
+                    this.asynInmates();
+                    this._alert(`欢迎新队友：${oUnit.nm} ！`,5);
+                });
             }
             else{
                 this._alert(`${employer.nm} 的金币不足`);
@@ -1719,7 +1727,7 @@ export default {
                     });
                     // 设置金币
                     let gold = this.map.floors[inten].award*10;
-                    gold = cl(gold+r(0,gold/7.5));
+                    gold = cl(gold+r(0,gold*.33));
                     enemy.g = gold;
                     // 属性调整
                     if(this.map.level==1){ // 1级地图

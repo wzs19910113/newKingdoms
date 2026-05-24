@@ -3,7 +3,7 @@
         <!-- 普通提示 -->
         <TransitionGroup class="toast" name="toast" tag="div">
             <div v-for="toast in activeToasts" :key="toast.id" class="toast-message" @click.stop="manualClose(toast.id)" >
-                <div class="message">{{ toast.message }}</div>
+                <div class="message" v-html="toast.message"></div>
                 <div class="message-bg"></div>
             </div>
         </TransitionGroup>
@@ -11,7 +11,7 @@
         <!-- 确认弹窗遮罩 -->
         <div v-if="confirmDialog.visible" class="confirm-mask" @click.self="handleCancel">
             <div class="confirm-dialog">
-                <div class="confirm-content">{{ confirmDialog.tip }}</div>
+                <div class="confirm-content" v-html="confirmDialog.tip"></div>
                 <div class="confirm-buttons">
                     <button class="confirm-btn cancel" @click="handleCancel">取消</button>
                     <button class="confirm-btn confirm" @click="handleConfirm">确认</button>

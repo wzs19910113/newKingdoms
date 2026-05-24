@@ -33,6 +33,10 @@ export default{
             type: Number,
             default: 25
         },
+        showCritical: {  // 显示90%以上暴击提示
+            type: Boolean,
+            default: false,
+        },
         strokeWidth:{ // 圆环线条粗细
             type: Number,
             default: 15
@@ -78,7 +82,7 @@ export default{
         checkLeak(){ // 检查是否出现鲁莽
             let res = '';
             let pct = this.getPercentage();
-            if(this.type==1){
+            if(this.showCritical){
                 if(pct>=90&&pct<95){
                     res = `progress-float-1`;
                 }

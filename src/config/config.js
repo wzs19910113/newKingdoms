@@ -2,6 +2,7 @@ module.exports = {
 	DEBUG: 0,
 	CACHE: {
 		sto: '_DS_RWD_L',
+		tm: '_DS_RWD_T',
 	},
 	ASSETS: {
 		image_urls:[
@@ -111,11 +112,11 @@ module.exports = {
 			},{
 				id: 11,name: '反伤',trend:1,good:1,
 				desc: '对伤害来源造成伤害',
-				construction: [.2, .225, .25, 275, .3, .325, .35, .375, .4,],
+				construction: [.2, .225, .25, .275, .3, .325, .35, .375, .4,],
 			},{
 				id: 12,name: '嗜血',trend:1,good:1,
 				desc: '造成伤害后恢复自己的生命',
-				construction: [.2, .225, .25, 275, .3, .325, .35, .375, .4,],
+				construction: [.2, .225, .25, .275, .3, .325, .35, .375, .4,],
 			},{
 				id: 13,name: '猛攻',trend:2,good:1,
 				desc: '提升力量补正',
@@ -422,7 +423,7 @@ module.exports = {
 
 		followChangesDelay: .35, // 跟随 changes 的结算延时（秒）
 
-		shopRefreshInterval: 5, // 酒保商品更新频率（天）
+		shopRefreshInterval: 10, // 酒保商品更新频率（天）
 		sellingRatio: .25, // 售卖价格比率
 		skillXLevelMap: [5000,10000,20000,30000,45000,90000,], // 技能经验升级阈值分布（6级之前）
 		skillXLevelRate: 1.5, // 技能经验升级阈值上涨比率（6级之后）

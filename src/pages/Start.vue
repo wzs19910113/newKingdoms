@@ -114,6 +114,7 @@ export default {
                 try{
                     let newStorage = this.game;
                     localStorage.setItem(CACHE.sto,JSON.stringify(newStorage));
+                    localStorage.setItem(CACHE.tm,1);
                     this.$router.push('home');
                 }
                 catch(err){
