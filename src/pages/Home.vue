@@ -996,12 +996,12 @@ export default {
                             award.x += Math.ceil(enemyUnit.btd.score*.05);
                             // 服饰装备
                             for(let i=0;i<3;i++){
-                                let newEquip = common.genEquipData({game:this.game,level:enemyUnit.l+1,inten:enemyUnit.it,type:r(2,5),});
+                                let newEquip = common.genEquipData({game:this.game,level:enemyUnit.l+1,type:r(2,5),});
                                 common.registerEquip({equip:newEquip,game:this.game,});
                                 award.equipList.push(newEquip);
                             }
                             // 武器
-                            let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.l+1,inten:enemyUnit.it,type:1,});
+                            let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.l+1,type:1,});
                             common.registerEquip({equip:newWeapon,game:this.game,});
                             award.equipList.push(newWeapon);
                         }
