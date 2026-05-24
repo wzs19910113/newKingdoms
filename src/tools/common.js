@@ -376,6 +376,15 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
         }
     }
 
+    // 计算携带金币
+    let gold = 0;
+    if(rel==0){ // 敌人
+
+    }
+    else{
+        gold = cl(((level*5+inten)*3+r(0,level*(level+inten))*50));
+    }
+
     let res = {
         id,
         l: level,
@@ -383,7 +392,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
         nm: name,
         nk: nickname,
         gd: gender,
-        g: cl(((level*5+inten)*3+r(0,level*(level+inten))*50)),
+        g: gold,
         age,
         tms,
         rel,
@@ -426,6 +435,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
         l: level,
         it: inten,
         t: type,
+        hl: 0,
         a: [],
         d: 25,
         v: 0,
@@ -939,7 +949,7 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
     let lastChar = res.n[res.n.length-1];
     let suffixList = [`*`,`☆`,`卐`,];
     if(arrContains(suffixList,lastChar)!=-1){
-        res.n = split(0,res.n.length-2);
+        res.n = res.n.slice(0,res.n.length-1);
     }
     if(level<=3){
         res.n += suffixList[0];
@@ -2038,7 +2048,7 @@ export function calcMentalSpDmg({caster,target,dmg,}){ // 计算攻心带来的�
 export function calcGoldSpDmg({target,attack,dmg,}){ // 计算偷窃带来的金币伤害
     let res = 0;
     let hr = hurtRate(target);
-    res = cl(CONFIG.spLevelMap[6][attack.sl-1]*dmg/1000*hr);
+    res = cl(CONFIG.spLevelMap[6][attack.sl-1]*dmg/200*hr);
     return res;
 }
 

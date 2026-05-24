@@ -1,6 +1,6 @@
 <template>
     <a class="attack" :class="`mode-${mode} ${ban?'attack-ban':''}`" @click.stop="_onTap">
-        <span class="attack-mode" v-if="mode==1">
+        <span class="attack-mode" :class="highLight?'attack-mode-highlight':''" v-if="mode==1">
             <span class="attack-item attack-name">{{attack.a?'全':''}}{{attack.n}} <span class="attack-consume">({{common.calcConsume({type:1,data:attack,unit})}})</span></span>
             <span class="attack-item">伤害<br/>{{attack.d}}</span>
             <span class="attack-item"><span v-show="attack.r1">力补<br/>{{common.genRXString(attack.r1)}}</span></span>
@@ -39,6 +39,10 @@ export default {
             default: 1,
         },
         ban: { // 禁用
+            type: Boolean,
+            default: false,
+        },
+        highLight: { // 是否高亮
             type: Boolean,
             default: false,
         },
@@ -121,6 +125,10 @@ export default {
         padding: .04rem .08rem;
         height: 1rem;
         line-height: .33rem;
+    }
+    .mode-1 .attack-mode-highlight{
+        color: #fff;
+        background-color: rgba(0,0,0,.73);
     }
     .mode-1 .attack-item{
         width: 13%;

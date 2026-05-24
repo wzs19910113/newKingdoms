@@ -248,24 +248,24 @@ module.exports = {
 			},],
 
 		hpRangeMap: [ // 等级和血量范围表
-			[2,5], // 1
-			[4,8], // 2
-			[10,20], // 3
-			[20,40], // 4
-			[40,80], // 5
-			[80,150], // 6
-			[150,300], // 7
-			[300,550], // 8
-			[500,1000], // 9
-			[900,1800], // 10
-			[1600,3200], // 11
-			[2800,5600], // 12
-			[5000,10000], // 13
-			[8000,15000], // 14
-			[12000,24000], // 15
-			[20000,40000], // 16
-			[30000,60000], // 17
-			[40000,80000], // 18
+			[3,6], // 1
+			[5,12], // 2
+			[15,35], // 3
+			[30,70], // 4
+			[45,140], // 5
+			[80,270], // 6
+			[150,500], // 7
+			[300,1000], // 8
+			[500,2000], // 9
+			[900,4000], // 10
+			[1600,8000], // 11
+			[2800,15000], // 12
+			[5000,30000], // 13
+			[8000,55000], // 14
+			[12000,100000], // 15
+			[20000,200000], // 16
+			[30000,400000], // 17
+			[40000,750000], // 18
 		],
 		engRangeMap: [ // 等级和精力范围表
 			[5,15], // 1
@@ -436,8 +436,8 @@ module.exports = {
 			{
 				id:102, level:1, type:2, name:'活死人墓穴', links: [], size:4,
 				floors:[
-					{title:`流民`,thresGuard:0,guard:5,},
-					{title:`盗墓贼`,thresGuard:50,guard:10,},
+					{title:`流民`,thresGuard:0,guard:5,award:15,},
+					{title:`盗墓贼`,thresGuard:50,guard:10,award:50,},
 				],
 				bosses:[{
 					title: `祭品盗贼`, id: 51, inten: 4, expired: 30, gold: 5000,
@@ -446,9 +446,9 @@ module.exports = {
 			{
 				id:103, level:2, type:2, name:'非法山林', links: [102,], size:5,
 				floors:[
-					{title:`混混`,thresGuard:0,guard:3,},
-					{title:`悍匪`,thresGuard:35,guard:5,},
-					{title:`头目`,thresGuard:70,guard:10,},
+					{title:`混混`,thresGuard:0,guard:3,award:30,},
+					{title:`悍匪`,thresGuard:35,guard:5,award:80,},
+					{title:`头目`,thresGuard:70,guard:10,award:200,},
 				],
 				bosses:[{
 					title: `渡鸦`, id: 52, inten: 5, expired: 50, gold: 15000,
@@ -457,9 +457,9 @@ module.exports = {
 			{
 				id:104, level:3, type:2, name:'熔铁洞窟', links: [103,], size:5,
 				floors:[
-					{title:`学徒`,thresGuard:0,guard:3,},
-					{title:`匠人`,thresGuard:35,guard:5,},
-					{title:`铸剑师`,thresGuard:70,guard:10,},
+					{title:`学徒`,thresGuard:0,guard:3,award:60,},
+					{title:`匠人`,thresGuard:35,guard:5,award:160,},
+					{title:`铸剑师`,thresGuard:70,guard:10,award:500,},
 				],
 				bosses:[
 					{ title: `舞女剑`, id: 53, inten: 4, expired: 70, gold: 20000, },
@@ -469,9 +469,9 @@ module.exports = {
 			{
 				id:105, level:4, type:2, name:'雪海', links: [103,], size:5,
 				floors:[
-					{title:`水手`,thresGuard:0,guard:3,},
-					{title:`海盗`,thresGuard:35,guard:5,},
-					{title:`船长`,thresGuard:70,guard:10,},
+					{title:`水手`,thresGuard:0,guard:3,award:150,},
+					{title:`海盗`,thresGuard:35,guard:5,award:350,},
+					{title:`船长`,thresGuard:70,guard:10,award:800,},
 				],
 				bosses:[{
 					title: `寒冰魅影`, id: 55, inten: 5, expired: 90, gold: 50000,
@@ -480,10 +480,10 @@ module.exports = {
 			{
 				id:106, level:5, type:2, name:'落叶城', links: [105,], size:6,
 				floors:[
-					{title:`佣兵`,thresGuard:0,guard:3,},
-					{title:`佩剑士`,thresGuard:30,guard:5,},
-					{title:`副将`,thresGuard:60,guard:10,},
-					{title:`大将`,thresGuard:90,guard:20,},
+					{title:`佣兵`,thresGuard:0,guard:3,award:250,},
+					{title:`佩剑士`,thresGuard:30,guard:5,award:550,},
+					{title:`副将`,thresGuard:60,guard:10,award:1000,},
+					{title:`大将`,thresGuard:90,guard:20,award:2000,},
 				],
 				bosses:[{
 					title: `镇压官`, id: 56, inten: 5, expired: 110, gold: 80000,
@@ -492,10 +492,10 @@ module.exports = {
 			{
 				id:107, level:6, type:2, name:'愚困密道', links: [106,], size:6,
 				floors:[
-					{title:`密探`,thresGuard:0,guard:3,},
-					{title:`信徒`,thresGuard:30,guard:5,},
-					{title:`邪师`,thresGuard:60,guard:10,},
-					{title:`主教`,thresGuard:90,guard:20,},
+					{title:`密探`,thresGuard:0,guard:3,award:400,},
+					{title:`信徒`,thresGuard:30,guard:5,award:800,},
+					{title:`邪师`,thresGuard:60,guard:10,award:1600,},
+					{title:`主教`,thresGuard:90,guard:20,award:3200,},
 				],
 				bosses:[
 					{ title: `处刑人`, id: 57, inten: 5, expired: 130, gold: 100000, },
@@ -505,9 +505,9 @@ module.exports = {
 			{
 				id:108, level:7, type:2, name:'云观', links: [106,], size:5,
 				floors:[
-					{title:`门使`,thresGuard:0,guard:3,},
-					{title:`游仙`,thresGuard:35,guard:5,},
-					{title:`破道者`,thresGuard:70,guard:10,},
+					{title:`门使`,thresGuard:0,guard:3,award:750,},
+					{title:`游仙`,thresGuard:35,guard:5,award:1500,},
+					{title:`破道者`,thresGuard:70,guard:10,award:3500,},
 				],
 				bosses:[{
 					title: `天体轨道护卫`, id: 59, inten: 6, expired: 150, gold: 250000,
@@ -516,11 +516,11 @@ module.exports = {
 			{
 				id:109, level:8, type:2, name:'终神宫', links: [107,108,], size:7,
 				floors:[
-					{title:`卫兵`,thresGuard:0,guard:2,},
-					{title:`骑士`,thresGuard:25,guard:4,},
-					{title:`骑兵长`,thresGuard:50,guard:8,},
-					{title:`副统帅`,thresGuard:75,guard:15,},
-					{title:`统帅`,thresGuard:100,guard:30,},
+					{title:`卫兵`,thresGuard:0,guard:2,award:1000,},
+					{title:`骑士`,thresGuard:25,guard:4,award:2000,},
+					{title:`骑兵长`,thresGuard:50,guard:8,award:4000,},
+					{title:`副统帅`,thresGuard:75,guard:15,award:8000,},
+					{title:`统帅`,thresGuard:100,guard:30,award:18000,},
 				],
 				bosses:[
 					{ title: `恐惧之神`, id: 60, inten: 5, expired: 180, gold: 300000, },
@@ -531,8 +531,8 @@ module.exports = {
 			{
 				id:110, level:9, type:2, name:'漩涡', links: [109,], size:4,
 				floors:[
-					{title:`天选`,thresGuard:0,guard:5,},
-					{title:`神话`,thresGuard:50,guard:10,},
+					{title:`天选`,thresGuard:0,guard:5,award:1800,},
+					{title:`神话`,thresGuard:50,guard:10,award:4500,},
 				],
 				bosses:[{
 					title: `系统权限`, id: 63, inten: 6, expired: 200, gold: 1,
@@ -608,7 +608,7 @@ module.exports = {
 	},
 }
 /*
-∷⊕▓▣▦░↔†✉◘◙★☆◆■▲▼●♠♦卐☽☾
+∷⊕▓▣▦░↔†✉◘◙★☆◆■▲▼●♠♦卐☽☾×✘♣
 game = {
 	day: 1,
 	mapList: [], // 所有地图数据数字
@@ -689,6 +689,7 @@ equip = {
 			eid: 1, // 所属的武器id
 		},
 	],
+	hl: 1, // 标记为高亮
 	v: 225, // 价值
 }
 

@@ -20,8 +20,7 @@
     height: 100%;
 }
 .menu-wrap .btn-expand,
-.menu-wrap .btn-back,
-.menu-wrap .btn-guide{
+.menu-wrap .btn-back{
     display: inline-block;
     position: absolute;
     top: 0;
@@ -40,12 +39,23 @@
     font-size: .4rem;
 }
 .menu-wrap .btn-back{
-    right: 1.36rem;
+    right: .86rem;
     font-size: .24rem;
 }
 .menu-wrap .btn-guide{
-    right: .68rem;
+    color: #8ae4f1;
+    display: inline-block;
     font-size: .24rem;
+    box-shadow: none;
+    border: none;
+}
+.menu-wrap .btn-guide >b{
+    display: block;
+    width: .36rem;
+    height: .36rem;
+    line-height: .36rem;
+    border: .02rem solid #8ae4f1;
+    border-radius: 50%;
 }
 .menu{
     display: flex;

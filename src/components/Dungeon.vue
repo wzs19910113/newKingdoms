@@ -1,12 +1,21 @@
 <template>
     <div class="dungeon">
-        <a class="dungeon-guard" @click.stop="onTapGuard">
-            <div class="guard-level">
-                <span>警戒等级：{{common.calcGuardLevel(map)}} 级</span>
-                <span>{{calcNextGuard()}}</span>
-            </div>
-            <Bar1 class="guard-bar" @onTap="onTapGuard" :class="`guard-${common.calcGuardLevel(map)}`" :type="5" :title="`警戒值`" :mode="2" :crt="map.guard" :max="100" />
-        </a>
+        <div class="dungeon-header">
+            <a class="battery-wrap" @click.stop="onTapBattery">
+                <div class="battery-title">能源储备</div>
+                <div class="battery-value">
+                    <div class="battery-value-remain">{{map.battery[0]}}</div>
+                    <div class="battery-value-total">{{map.battery[1]}}</div>
+                </div>
+            </a>
+            <a class="dungeon-guard" @click.stop="onTapGuard">
+                <div class="guard-level">
+                    <span>警戒等级：{{common.calcGuardLevel(map)}} 级</span>
+                    <span>{{calcNextGuard()}}</span>
+                </div>
+                <Bar1 class="guard-bar" @onTap="onTapGuard" :class="`guard-${common.calcGuardLevel(map)}`" :type="5" :title="`警戒值`" :mode="2" :crt="map.guard" :max="100" />
+            </a>
+        </div>
         <div class="dungeon-main">
             <div class="cell-wrap">
                 <!--
@@ -37,13 +46,7 @@
             <a class="btn btn-leave" v-else @click.stop="onTapLeave">返回龙虾村</a>
             <a class="btn btn-core" v-if="calcCoreShow()" @click.stop="onTapCore">进入核心</a>
             <a class="btn btn-temple" v-if="calcTempleShow()" @click.stop="onTapTemple">参拜神庙</a>
-            <a class="battery-wrap" @click.stop="onTapBattery">
-                <div class="battery-title">能源储备</div>
-                <div class="battery-value">
-                    <div class="battery-value-remain">{{map.battery[0]}}</div>
-                    <div class="battery-value-total">{{map.battery[1]}}</div>
-                </div>
-            </a>
+
         </div>
     </div>
 </template>
@@ -183,24 +186,62 @@ export default {
         /* box-shadow: 0 0 .44rem pink inset; */
     }
 
+    /* 头部 */
+    .dungeon-header{
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 95%;
+        padding-top: .6rem;
+        margin: 0 auto;
+        height: .84rem;
+    }
+
+    /* 电池 */
+    .battery-wrap{
+        width: 18%;
+        margin-right: 2%;
+        color: #fff;
+        border: .02rem solid #fff;
+    }
+    .battery-wrap .battery-title{
+        height: .4rem;
+        line-height: .4rem;
+        border-bottom: .02rem solid #fff;
+        font-size: .24rem;
+        background-image: radial-gradient(closest-corner, rgba(5,5,15,1) 0%, rgba(45,45,154,.8) 100%);
+    }
+    .battery-wrap .battery-value{
+        display: block;
+        height: .42rem;
+        line-height: .42rem;
+    }
+    .battery-wrap .battery-value-total,
+    .battery-wrap .battery-value-remain{
+        width: 85%;
+        height: .21rem;
+        margin: 0 auto;
+        line-height: .21rem;
+        font-size: .22rem;
+    }
+    .battery-wrap .battery-value-remain{
+        border-bottom: .02rem solid #fff;
+    }
+    .battery-wrap .battery-value-total{
+    }
+
     /* 警戒值栏目 */
     .dungeon-guard{
-        position: absolute;
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        top: 0;
-        width: 100%;
-        left: 0;
-        right: 0;
-        margin: 0 auto;
-        height: 80px;
+        width: 80%;
         /* box-shadow: 0 0 .44rem grey inset; */
     }
     .guard-bar{
         height: .4rem;
-        width: 6.5rem;
+        width: 100%;
     }
     .guard-level{
         display: flex;
@@ -211,7 +252,7 @@ export default {
         color: #CD812C;
         font-weight: bold;
         text-align: left;
-        width: 6.5rem;
+        width: 100%;
         padding: .14rem;
         font-size: .27rem;
         background-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
@@ -445,39 +486,5 @@ export default {
     .btn >img{
         display: inline-block;
         height: 70%;
-    }
-
-    /* 电池 */
-    .battery-wrap{
-        position: absolute;
-        left: .4rem;
-        top: .2rem;
-        width: 1.2rem;
-        color: #fff;
-        border: .02rem solid #fff;
-    }
-    .battery-wrap .battery-title{
-        height: .5rem;
-        line-height: .5rem;
-        border-bottom: .02rem solid #fff;
-        background-image: radial-gradient(closest-corner, rgba(5,5,25,1) 0%, rgba(45,45,125,.8) 100%);
-    }
-    .battery-wrap .battery-value{
-        height: .72rem;
-        line-height: .72rem;
-        font-size: .3rem;
-    }
-    .battery-wrap .battery-value-remain{
-        width: 85%;
-        margin: 0 auto;
-        height: .36rem;
-        line-height: .36rem;
-        border-bottom: .02rem solid #fff;
-    }
-    .battery-wrap .battery-value-total{
-        width: 85%;
-        margin: 0 auto;
-        height: .36rem;
-        line-height: .36rem;
     }
 </style>

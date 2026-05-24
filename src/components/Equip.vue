@@ -1,5 +1,5 @@
 <template>
-    <a class="equip" :class="`equip-${equip.t} equip-mode-${mode}`" @click="_onTap">
+    <a class="equip" :class="`equip-${equip.t} equip-mode-${mode} ${(mode==1&&equip.hl)?'equip-hl':''}`" @click="_onTap">
         <span class="value money" v-if="mode==1&&!compare" v-html="common.moneyFormat(equip.v,1)"></span>
         <div class="row">
             <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
@@ -27,7 +27,7 @@
             </div>
         </div>
         <div class="row row-clm" v-if="equip.t==1">
-            <Attack class="atk" v-for="(attack,index) in equip.k" :key="index" :attack="attack" :mode="mode" @onTap="_onTapAttack" />
+            <Attack class="atk" v-for="(attack,index) in equip.k" :key="index" :highLight="!!(mode==1&&equip.hl)" :attack="attack" :mode="mode" @onTap="_onTapAttack" />
         </div>
         <div class="row" v-if="mode==2">
             <span class="brief money" v-html="common.moneyFormat(equip.v,1)"></span>
@@ -224,6 +224,29 @@ export default {
     .attr-green{
         color: #1CC956;
         box-shadow: 0 0 .02rem .02rem #1CC956 inset;
+    }
+
+    /* 高亮 */
+    .equip-hl{
+        background-color: transparent;
+        background-image: radial-gradient(closest-corner,rgba(175,175,8,1) 0%,rgba(255,255,211,1) 100%);
+        color: #000;
+    }
+    .equip-hl .row .name{
+        text-shadow: none;
+    }
+    .equip-hl .attr-squre{
+        box-shadow: 0 0 .01rem .01rem #000 inset;
+    }
+    .equip-hl .attr-red{
+        background-color: rgba(0,0,0,1);
+        color: #F5474F;
+        text-shadow: 0 0 .04rem #000;
+    }
+    .equip-hl .attr-green{
+        background-color: rgba(0,0,0,1);
+        color: #1CC956;
+        text-shadow: 0 0 .04rem #000;
     }
 
     .attr-name,.attr-val{

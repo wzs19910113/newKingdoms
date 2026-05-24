@@ -61,7 +61,7 @@
                                     <a class="btn" @click="onTapRestButton">住宿</a>
                                 </div>
                                 <van-divider class="bartender-divider">装备交易（{{calcShopRefreshRemainDays()}}天后更新）</van-divider>
-                                <EquipList v-if="bartender.btd.bagList&&bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :viewingUnit="viewingUnit" :onTapEquip="onTapEquip" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="3" />
+                                <EquipList v-if="bartender.btd.bagList&&bartender.btd.bagList.length>0" ref="shop" :unit="bartender" :selectingEquipId="selectingEquipId" :viewingUnit="viewingUnit" :onTapEquip="onTapEquip" :showBuy="true" :onTapBuyEquip="onTapBuyEquip" :onTapSwitchViewingUnit="team.length>1?onTapSwitchMember:null" :discount="3" />
                                 <div class="tarven-shop-empty" v-if="bartender.btd.bagList.length<=0">暂无商品</div>
                             </div>
                         </template>
@@ -109,9 +109,9 @@
                 <div class="temple" v-if="showTemple&&viewingUnit">
                     <div class="temple-header">
                         <div class="temple-title">
-                            神庙<span class="temple-desc">(消耗警戒值进行装备融合或技能强化)</span>
+                            神庙<span class="temple-desc">(等级{{map.level}})</span>
                         </div>
-                        <a class="btn btn-close" @click="onTapCloseTemple">离开</a>
+                        <a class="btn btn-close" @click="onTapCloseTemple">×</a>
                         <Bar1 class="temple-guard-bar" :type="5" :title="`剩余警戒值：`" :mode="2" :crt="map.guard" :max="100" />
                     </div>
                     <SwipeTabs class="temple-tabs-wrap" ref="temple-wrap" :tabs="[{label:`装备融合（${viewingUnit.nm}）`,},{label:`技能强化（${viewingUnit.nm}）`},]">
@@ -148,7 +148,7 @@
                                 <div class="temple-tab-tip">可强化的技能（{{temple.skillList.length}}）：</div>
                                 <div class="temple-item" v-for="(skill,index) of temple.skillList">
                                     <Skill class="temple-skill" :skill="skill" :key="index" @onTap="onTapSkill" />
-                                    <a class="temple-item-btn" @click="onTapTempleViewSkill(skill,map.level)">预览<br/>强化</a>
+                                    <a class="temple-item-btn" @click="onTapTempleViewSkill(skill,map.level)">预览</a>
                                 </div>
                             </div>
                         </template>
@@ -230,7 +230,7 @@
                             <a class="btn btn-bag-title-moveAll" v-if="selectingUnit.btd.bagList.length>1&&team.length>1" @click="onTapMoveBag(selectingUnit.btd.bagList)">全转移</a>
                         </div>
                     </div>
-                    <EquipList ref="bag" :unit="selectingUnit" :team="team" :viewingUnit="viewingUnit" :showSell="selling" :onTapSellEquip="onTapSellEquip" :onTapEquip="onTapEquip" :onTapEquipOn="onTapEquipOn" :onTapMoveEquip="onTapMoveEquip" />
+                    <EquipList ref="bag" :unit="selectingUnit" :team="team" :selectingEquipId="selectingEquipId" :viewingUnit="viewingUnit" :showSell="selling" :onTapSellEquip="onTapSellEquip" :onTapEquip="onTapEquip" :onTapEquipOn="onTapEquipOn" :onTapMoveEquip="onTapMoveEquip" :onTapHighLightEquip="onTapHighLightEquip" />
                 </div>
             </div>
             <!-- 角色技能表 -->
@@ -417,6 +417,7 @@ export default {
 
             bartender: null, // 商人酒保单位
             inmateList: [], // 酒馆大厅单位数组
+            selectingEquipId: 0, // 装备列表中，选中的装备ID
 
             award: { // 战斗结算奖励数据
                 show: false,
@@ -641,6 +642,7 @@ export default {
         backToShrimp(){ // 回到龙虾村
             this.map = getMatchList(CONFIG.mapConfigs,[['id',101]])[0];
             this.init(true);
+            this.dayPass();
         },
         asynTeam(){ // 同步 team 数据到 home，并重新计算每个单位的 btd
             let team = [];
@@ -666,16 +668,19 @@ export default {
             // 同步“单位浏览弹窗”中的单位数据
             if(viewingUnitId){
                 this.viewingUnit = getMatchList(this.team,[['id',viewingUnitId]])[0];
+                this.viewingUnit.btd = common.getUnitBtd(this.viewingUnit,this.game);
             }
             if(selectingUnitId){
                 this.selectingUnit = getMatchList(this.game.allUnits,[['id',selectingUnitId]])[0];
                 this.selectingUnit.btd = common.getUnitBtd(this.selectingUnit,this.game);
             }
             // 重置 EquipList 数据
-            let bagDom = this.$refs[`bag`];
-            if(bagDom){
-                bagDom.init();
-            }
+            this.$nextTick(_=>{
+                let bagDom = this.$refs[`bag`];
+                if(bagDom){
+                    bagDom.init();
+                }
+            })
         },
         asynBartender(){ // 同步酒保数据
             this.bartender = null;
@@ -745,12 +750,6 @@ export default {
             this.selectingUnitBodyEquipIndex = -1; // 单位弹窗-放大的装备 index
         },
         setViewingUnit(unit,showUnitPop,callback){ // 切换浏览者
-            // 记录shop中原有的“选择中的装备”
-            let shopDom = this.$refs[`shop`];
-            let oldSelectingEquip;
-            if(shopDom&&this.showTarven){
-                oldSelectingEquip = shopDom.selectingEquip;
-            }
             // 记录 tab-content 原有的滚动条位置
             let tarvenDom = this.$refs[`tarven-wrap`];
             let targetY = 0;
@@ -773,24 +772,23 @@ export default {
                     this.showUnitPop = true;
                 }
                 callback&&callback();
-                if(oldSelectingEquip){ // 处于酒馆中，并且shop中存在“原有的选择中的装备”，则选中这个装备
+                this.$nextTick(_=>{
+                    // shop初始化
+                    let shopDom = this.$refs[`shop`];
+                    if(shopDom){
+                        shopDom.init();
+                    }
+                    // 设置 tab-content 的滚动条到原有位置
                     this.$nextTick(_=>{
-                        shopDom = this.$refs[`shop`];
-                        if(shopDom){
-                            shopDom.setSelectingEquip(oldSelectingEquip);
-                        }
-                        // 设置 tab-content 的滚动条到原有位置
-                        this.$nextTick(_=>{
-                            let tarvenDom = this.$refs[`tarven-wrap`];
-                            if(tarvenDom){
-                                let domList = tarvenDom.$refs[`contentRef`];
-                                if(domList){
-                                    domList.scrollTop = targetY;
-                                }
+                        let tarvenDom = this.$refs[`tarven-wrap`];
+                        if(tarvenDom){
+                            let domList = tarvenDom.$refs[`contentRef`];
+                            if(domList){
+                                domList.scrollTop = targetY;
                             }
-                        });
+                        }
                     });
-                }
+                });
             });
         },
         dayPass(){ // 经历一天
@@ -808,8 +806,8 @@ export default {
                 this.game.allUnits[0].b = [];
                 let shopItemCount = 6+Math.floor(this.game.day/7);
                 let level = Math.ceil(this.game.day/5+.01);
-                if(shopItemCount>15){
-                    shopItemCount = 15;
+                if(shopItemCount>10){
+                    shopItemCount = 10;
                 }
                 if(level>9){
                     level = 9;
@@ -826,6 +824,7 @@ export default {
                 this.asynTeam();
                 this.asynBartender();
             }
+            this._alert(`一天过去了...`);
             // 第二天
             if(this.game.day==2){
                 // 注册 3 个客人
@@ -854,8 +853,8 @@ export default {
                     });
                     common.recoverUnit(newUnit,this.game);
                 }
+                this._alert(`酒馆里来了新的客人`,7);
             }
-            this._alert(`一天过去了...`);
         },
         goBattle({mode=1,playerTeamIds=[],enemyTeamIds=[],game=cloneObj(this.game)}){ // 进入战斗
             let field;
@@ -951,14 +950,14 @@ export default {
                         cell.enemy = 0;
                         for(let enemyUnit of enemyTeam){
                             // 金币
-                            award.gold += Math.ceil(enemyUnit.btd.score*.075);
+                            award.gold += Math.ceil(enemyUnit.g*.1);
                             // 警戒值
                             let floor = this.map.floors[enemyUnit.it];
                             award.guard += floor.guard;
                             // 能量点数
                             award.battery += enemyUnit.it*enemyUnit.it+1;
                             // 灵感指数
-                            award.x += Math.ceil(award.gold*.5);
+                            award.x += Math.ceil(enemyUnit.btd.score*.03);
                             // 服饰装备
                             if(enemyUnit.it<=0&&r(1,100)<this.map.guard){
                                 let newEquip = common.genEquipData({game:this.game,level:enemyUnit.l,inten:enemyUnit.it,type:r(2,5),});
@@ -1217,6 +1216,9 @@ export default {
         onTapEquip(data){ // 点击【装备】
             if(this.banReactive) return;
             let { flag, equip, buffId, buffLevel, sp, spLevel, } = data;
+            if(equip&&equip.id){
+                this.selectingEquipId = equip.id;
+            }
             if(flag==1){ //
                 // console.log(equip);
             }
@@ -1450,6 +1452,13 @@ export default {
             }
             // console.log(`点击【购买装备】`,equip,price,seller,buyer);
         },
+        onTapHighLightEquip(equip,unit){ // 点击【高亮装备】
+            if(this.banReactive) return;
+            let oEquip = getMatchList(this.game.allEquips,[['id',equip.id]])[0];
+            oEquip.hl = [1,0][oEquip.hl];
+            this.asynTeam();
+            this.asynInmates();
+        },
         onTapLogout(){ // 点击【销号】
             if(this.banReactive) return;
             this._confirm(`确定删除本次游戏所有存档吗？`,_=>{
@@ -1600,67 +1609,6 @@ export default {
             if(this.banReactive) return;
             this._alert(`每次战斗后积累，槽满后可复制非敌对角色的一个技能`,5);
         },
-        // onTapXPoint(){ // 点击【灵感进度数字】
-        //     if(this.banReactive) return;
-        //     let skillCopyList = [];
-        //     if(this.team.length<2){
-        //         this._alert(`没有队友`);
-        //         return;
-        //     }
-        //     if(this.game.xp>0){
-        //         for(let unit of this.team){
-        //             if(unit.id!=this.me.id){
-        //                 // 从所有队友技能中筛选“我未拥有的技能”
-        //                 let skillList = unit.btd.skillList;
-        //                 let mySkillList = this.me.btd.skillList;
-        //                 for(let skill of skillList){
-        //                     let mySkill = getMatchList(mySkillList,[['id',skill.id]])[0];
-        //                     if(!mySkill){ // 若我已有的技能数组中没有这个技能，则放入 copylist
-        //                         skillCopyList.push(skill);
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         this.skillCopyList = cloneObj(skillCopyList);
-        //         this.showSkillCopy = !this.showSkillCopy;
-        //     }
-        // },
-        // onTapCopySkill({flag,data,}){ // 点击【复制技能】
-        //     if(this.banReactive) return;
-        //     let skill = data;
-        //     if(flag!=1){
-        //         return;
-        //     }
-        //     this._confirm(`确定要复制技能 “${skill.n}” 吗？`,_=>{
-        //         if(this.game.xp>0){
-        //             let oMe = getMatchList(this.game.allUnits,[['id',this.me.id]])[0];
-        //             oMe.ss.push(skill.id);
-        //             this.game.xp -= 1;
-        //             this.asynTeam();
-        //             this.asynInmates();
-        //             if(this.game.xp<=0){
-        //                 this.showSkillCopy = false;
-        //             }
-        //             else{
-        //                 this.onTapXPoint();
-        //                 this.$nextTick(_=>{
-        //                     this.onTapXPoint();
-        //                 })
-        //             }
-        //             this._alert(`成功学会技能 “${skill.n}”`);
-        //         }
-        //         else{
-        //             this._alert(`灵感点数不够`);
-        //         }
-        //     });
-        // },
-        onTapBonfire(){ // 点击【营地】
-            if(this.banReactive) return;
-            let playerTeamIds = Array.from(this.team,unit=>{
-                return unit.id;
-            });
-            this.goBattle({mode:4,playerTeamIds,});
-        },
         onTapClosePop(){ // 点击【弹窗-关闭】
             if(this.banReactive) return;
             this.resetViewingUnitPopData();
@@ -1721,6 +1669,7 @@ export default {
             cell.show = true;
             // 同步这张地图的路标与核心数据的标记状态
             let gameMap = getMatchList(this.game.mapList,[['id',this.map.id]])[0];
+            let remainEnemyCellCount = 0;
             for(let cellIndex=0;cellIndex<this.map.cellList.length;cellIndex++){
                 let tCell = this.map.cellList[cellIndex];
                 if(tCell.show){
@@ -1732,12 +1681,19 @@ export default {
                         gameMap.coreMark = 1;
                     }
                 }
+                if(tCell.enemy){
+                    remainEnemyCellCount++;
+                }
             }
             // 如果有敌人
             if(cell.enemy){
                 let playerTeamIds = Array.from(this.team,unit=>{
                     return unit.id;
                 });
+                // 如果是地图最后一个敌对单元格，则强化敌人
+                if(remainEnemyCellCount==1){
+                    cell.enemy = 4;
+                }
                 // 生成随机敌人数据（unit, equips, skills），并保存至 battle.tempGame 中
                 let enemyTeamIds = [];
                 let { guard, level, floors, } = this.map;
@@ -1745,7 +1701,13 @@ export default {
                 let guardLevel = common.calcGuardLevel(this.map);
                 let enemyList = [];
                 for(let i=0;i<cell.enemy;i++){
-                    let inten = r(0,guardLevel);
+                    let inten = 0;
+                    if(remainEnemyCellCount==1){ // 如果是地图最后一个敌对单元格，则强化敌人
+                        inten = guardLevel;
+                    }
+                    else{
+                        inten = r(0,guardLevel);
+                    }
                     let enemy = common.genUnit({
                         id: tempGame.unitIndex++,
                         game: tempGame,
@@ -1755,6 +1717,10 @@ export default {
                         equipList: tempGame.allEquips,
                         skillList: tempGame.allSkills,
                     });
+                    // 设置金币
+                    let gold = this.map.floors[inten].award*10;
+                    gold = cl(gold+r(0,gold/7.5));
+                    enemy.g = gold;
                     // 属性调整
                     if(this.map.level==1){ // 1级地图
                         if(inten==0){ // 流浪者没有装备和技能
@@ -1821,6 +1787,15 @@ export default {
                 }
                 this.goBattle({playerTeamIds,enemyTeamIds,game:tempGame,mode:2});
             });
+        },
+        onTapBonfire(){ // 点击【营地】
+            if(this.banReactive) return;
+            let playerTeamIds = Array.from(this.team,unit=>{
+                return unit.id;
+            });
+            this.map.battery[0] -= 2;
+            this.map.battery[0] = setInRange(this.map.battery[0],0,this.map.battery[1]);
+            this.goBattle({mode:4,playerTeamIds,});
         },
         onTapBattery(){ // 点击【电池】
             if(this.banReactive) return;

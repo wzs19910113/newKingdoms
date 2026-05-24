@@ -26,7 +26,10 @@
                 <a class="btn btn-back" @click="onTapBack">返回</a>
             </div>
         </div>
-        <Toast ref="toast" />
+        <!-- alert -->
+        <Toast ref="toast-alert" />
+        <!-- confirm -->
+        <Toast ref="toast-confirm" />
     </div>
 </template>
 
@@ -107,13 +110,25 @@ export default {
             // 校对通过，生成游戏初始数据
             this.genGameData({name,gender,age});
 
-            try{
-                let newStorage = this.game;
-                localStorage.setItem(CACHE.sto,JSON.stringify(newStorage));
-                this.$router.push('home');
+            let begin = _ =>{
+                try{
+                    let newStorage = this.game;
+                    localStorage.setItem(CACHE.sto,JSON.stringify(newStorage));
+                    this.$router.push('home');
+                }
+                catch(err){
+                    this._alert(`存储失败（${err}）`);
+                }
             }
-            catch(err){
-                this._alert(`存储失败（${err}）`);
+
+            let _storage = localStorage.getItem(CACHE.sto);
+            if(_storage){
+                this._confirm(`创建新游戏会覆盖以前的存档，确定要创建吗？`,_=>{
+                    begin();
+                });
+            }
+            else{
+                begin();
             }
         },
 
@@ -325,8 +340,11 @@ export default {
             }
         },
 
-        _alert(text){ // 显示提示
-            this.$refs.toast.trigger(text);
+        _alert(text,time){ // 显示提示
+            this.$refs['toast-alert'].trigger(text,time);
+        },
+        _confirm(confirmTip,onTapConfirm){ // 显示确认文本
+            this.$refs['toast-confirm'].showConfirm({ confirmTip, onTapConfirm, });
         },
     },
     components:{

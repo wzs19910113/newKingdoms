@@ -30,11 +30,7 @@
                         <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊2</a>
                         <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊1</a>
                         <div class="battery-wrap" v-if="battle.map.battery">
-                            <div class="battery-title">能源</div>
-                            <div class="battery-value">
-                                <div class="battery-value-remain">{{battle.map.battery[0]}}</div>
-                                <div class="battery-value-total">{{battle.map.battery[1]}}</div>
-                            </div>
+                            能源：{{battle.map.battery[0]}}
                         </div>
                     </div>
                     <!-- 我方区域 -->
@@ -44,12 +40,13 @@
                 </div>
                 <!-- 操作板块 -->
                 <div class="menu-wrap" :class="`${menuData.expand?'menu-wrap-expand':''}`" v-if="menuData.state>0">
-                    <a class="btn btn-back" v-if="menuData.state>1" @click="onTapMenuBack">回退</a>
-                    <a class="btn btn-guide" @click="onTapMenuGuide">帮助</a>
+                    <a class="btn btn-back" v-if="menuData.state>1" @click="onTapMenuBack">❮</a>
                     <a class="btn btn-expand" @click="onTapMenuExpand">{{menuData.expand?`▽`:`△`}}</a>
                     <div class="menu">
-                        <p class="menu-tip">{{menuData.tip}} {{menuData.extip}}：</p>
-
+                        <p class="menu-tip">
+                            <a class="btn btn-guide" @click="onTapMenuGuide"><b>?</b></a>
+                            {{menuData.tip}} {{menuData.extip}}：
+                        </p>
                         <div class="menu-tag" v-if="menuData.state==1">
                             <a class="btn menu-block menu-btn menu-btn-1" @click="onTapMenu({flag:1})">攻击</a>
                             <a class="btn menu-block menu-btn menu-btn-2" @click="onTapMenu({flag:2})">技能</a>
@@ -1803,7 +1800,14 @@ export default {
         },
         unitFlee(caster){ // 单位撤离
             if(this.mode==4){ // 营地模式
-                this.battleEnd();
+                // 检查是否满足结束条件
+                let checkEndResult = this.checkEnd();
+                if(checkEndResult){
+                    this.battleEnd(checkEndResult);
+                }
+                else{
+                    this.battleEnd(); // 战斗结束
+                }
             }
             else{ // 非营地模式
                 this._confirm(`确定要从本场战斗撤离吗？`,_=>{
@@ -2540,42 +2544,18 @@ export default {
     </div> */
     .battery-wrap{
         position: absolute;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        text-align: left;
         left: .08rem;
         top: 0;
-        width: 1.2rem;
+        width: 1.4rem;
+        height: .3rem;
+        padding-left: .04rem;
+        white-space: nowrap;
+        word-break: keep-all;
+        line-height: .3rem;
         color: #fff;
         z-index: 100;
         border: .02rem solid #fff;
-    }
-    .battery-wrap .battery-title{
-        height: .5rem;
-        line-height: .23rem;
-        width: .3rem;
-        border-right: .02rem solid #fff;
-        writing-mode: vertical-lr;
-        font-size: .22rem;
-        background-image: radial-gradient(closest-corner, rgba(5,5,25,1) 0%, rgba(45,45,125,.8) 100%);
-    }
-    .battery-wrap .battery-value{
-        width: .9rem;
-        height: .5rem;
-        line-height: .5rem;
-        font-size: .26rem;
-    }
-    .battery-wrap .battery-value-remain{
-        width: 85%;
-        margin: 0 auto;
-        height: .25rem;
-        line-height: .25rem;
-        border-bottom: .01rem solid #fff;
-    }
-    .battery-wrap .battery-value-total{
-        width: 85%;
-        margin: 0 auto;
-        height: .25rem;
-        line-height: .25rem;
+        background-image: linear-gradient(to bottom, rgba(5,5,65,1) 0%, rgba(45,45,194,.8) 100%);
     }
 </style>

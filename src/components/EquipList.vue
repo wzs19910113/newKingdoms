@@ -5,6 +5,8 @@
             <div class="unit-bag-op-wrap" v-show="selectingEquip.id==equip.id">
                 <!-- 在队或同道单位 -->
                 <div class="unit-bag-op" v-if="unit.rel==3">
+                    <a class="btn btn-hl btn-hl-off" v-if="selectingEquip.hl" @click.stop="onTapHighLightEquip(equip,unit)">取消标记</a>
+                    <a class="btn btn-hl btn-hl-on" v-else @click.stop="onTapHighLightEquip(equip,unit)">标记</a>
                     <a class="btn" v-if="showSell" @click.stop="onTapSellEquip(equip,unit)">
                         售卖 <b class="money" v-html="`${common.moneyFormat(common.getSellPrice(equip))} $`"></b>
                     </a>
@@ -15,7 +17,7 @@
                 </div>
                 <!-- 购买栏 -->
                 <div class="unit-bag-op" v-if="showBuy">
-                    <a class="btn btn-switch" v-if="onTapSwitchViewingUnit" @click.stop="onTapSwitchViewingUnit(equip)">切换</a>
+                    <a class="btn btn-switch" v-if="onTapSwitchViewingUnit" @click.stop="onTapSwitchViewingUnit(equip)">⇄</a>
                     <!-- <a class="btn" :class="viewingUnit.g<calcPrice(equip.v)?'btn-ban':''" @click.stop="onTapBuyEquip(equip,calcPrice(equip.v),unit,viewingUnit)">
                         由 {{viewingUnit.nm}} 购买 <b class="money" v-html="` ${common.moneyFormat(calcPrice(equip.v))} $ `"></b>
                     </a> -->
@@ -67,6 +69,10 @@ export default {
             default: {},
             required: true,
         },
+        selectingEquipId: { // 选中的背包装备ID
+            type: Number,
+            default: 0,
+        },
         onTapEquip: { // 点击【装备】
             type: Function,
             default: function(){},
@@ -87,6 +93,10 @@ export default {
             type: Function,
             default: function(){},
         },
+        onTapHighLightEquip: { // 点击【标记】
+            type: Function,
+            default: function(){},
+        },
         onTapSwitchViewingUnit: Function, // 点击【切换浏览者】
         showSell: Boolean, // 是否显示售卖按钮
         showBuy: Boolean, // 是否显示购买按钮
@@ -97,7 +107,7 @@ export default {
     },
     data() {
         return {
-            selectingEquip: { id:0, }, // 单位弹窗-选中的背包装备
+            selectingEquip: { id:0, },
             compare1: {}, // 对比装备1
             compare2: {}, // 对比装备2
 
@@ -108,9 +118,7 @@ export default {
         };
     },
     watch:{
-        selectingEquip(newVal){
 
-        },
     },
     computed: {},
     mounted(){
@@ -118,12 +126,12 @@ export default {
     },
     methods: {
         init(){
-            this.selectingEquip = { id:0, };
             this.compare1 = {};
             this.compare2 = {};
-        },
-        setSelectingEquip(equip){
-            this.onTapEquip(equip);
+            this.selectingEquip = (getMatchList(this.unit.btd.bagList,[['id',this.selectingEquipId]])[0])||{ id:0, };
+            if(this.selectingEquip.id){
+                this._setCompares(this.selectingEquip);
+            }
         },
         calcPrice(value){ // 计算装备的购入价格
             return Math.ceil(value*this.discount/10);
@@ -135,21 +143,24 @@ export default {
                 this.compare2 = {};
             }
             else{ // 选中装备
-                this.selectingEquip = equip;
-                // 设置2个“对比装备”
-                let equipList = this.viewingUnit.btd.equipList;
-                if(equip.t==1){ // 武器 [1手,2头,3身体,4配饰,5脚]
-                    this.compare1 = equipList[0]||{};
-                    this.compare2 = equipList[1]||{};
-                }
-                else if(equip.t==4){ // 首饰
-                    this.compare1 = equipList[2]||{};
-                    this.compare2 = equipList[3]||{};
-                }
-                else{
-                    this.compare1 = equipList[[0,0,5,4,0,6,][equip.t]]||{};
-                    this.compare2 = {};
-                }
+                this._setCompares(equip);
+            }
+        },
+        _setCompares(equip){
+            this.selectingEquip = equip;
+            // 设置2个“对比装备”
+            let equipList = this.viewingUnit.btd.equipList;
+            if(equip.t==1){ // 武器 [1手,2头,3身体,4配饰,5脚]
+                this.compare1 = equipList[0]||{};
+                this.compare2 = equipList[1]||{};
+            }
+            else if(equip.t==4){ // 首饰
+                this.compare1 = equipList[2]||{};
+                this.compare2 = equipList[3]||{};
+            }
+            else{
+                this.compare1 = equipList[[0,0,5,4,0,6,][equip.t]]||{};
+                this.compare2 = {};
             }
         },
     },
@@ -250,5 +261,17 @@ export default {
     }
     .btn-ban .money{
         color: #666;
+    }
+    .btn-hl{
+    }
+    .btn-hl-on{
+        color: #ffa;
+        border: .02rem solid #ffa;
+        box-shadow: 0 0 .1rem #ffa inset;
+    }
+    .btn-hl-off{
+        color: #fff;
+        border: none;
+        box-shadow: none;
     }
 </style>
