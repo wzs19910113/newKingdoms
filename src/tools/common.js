@@ -357,7 +357,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     ];
 
     // 外在属性强化
-    hp = cl(hp*pow(2.1,inten));
+    hp = cl(hp*pow(2.9,inten));
     eng = cl(eng*pow(1.5,inten));
     phy = cl(phy*pow(1.5,inten));
     if(isBoss){
@@ -822,6 +822,7 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
         if(type==1){ // 攻击
             melee = data.r1>=data.r2;
             let r1Ratio = 0, r2Ratio = 0;
+            let r1 = 0, r2 = 0;
             if(melee==1){ // 近战
                 if(data.r2==0){ // 纯近战
                     r1Ratio = 1;
@@ -842,10 +843,16 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
                     r2Ratio = .9;
                 }
             }
+            if(data.r1){
+                r1 = cl(CONFIG.rxRangeMap[level+4][1]*r1Ratio);
+            }
+            if(data.r2){
+                r2 = cl(CONFIG.rxRangeMap[level+4][1]*r2Ratio);
+            }
             maxEl[0] = {
                 d: CONFIG.skillAtkRangeMap[level-1][1],
-                r1: cl(CONFIG.rxRangeMap[level+4][1]*r1Ratio),
-                r2: cl(CONFIG.rxRangeMap[level+4][1]*r2Ratio),
+                r1,
+                r2,
             };
         }
         else if(type==2){ // 添加状态 { b:[0,0,0,], bl:[0,0,0,],}
@@ -2155,7 +2162,7 @@ export function calcFixPoisonBuff({buff,}){ // 干毒bufff
 }
 export function calcPctPoisonBuff({caster,buff,}){ // 湿毒bufff
     let res = 0, rate = buff.construction[buff.level-1];
-    res = cl(caster.btd.hp[0]*rate);
+    res = cl(caster.btd.hp[1]*rate+buff.level*buff.level-1);
     return res;
 }
 

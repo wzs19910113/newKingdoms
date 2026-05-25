@@ -93,7 +93,8 @@ export default {
         border-radius: 50%;
     }
     .avatar-crumble{
-        box-shadow: 0 0 .4rem #e81313 inset;
+        background-color: #8803d3;
+        box-shadow: 0 0 .1rem .25rem #8803d3;
     }
     .avatar .nickname,
     .avatar .name{

@@ -31,30 +31,6 @@
     </a>
 </template>
 <script>
-/*
-hp: 5, // 生命力
-atk: 1, // 攻击力
-def: 2, // 护甲
-weight: 3, // 权重
-heal: 0, // 治愈
-str: 0, // 力量
-dex: 0, // 防御
-vig: 3, // 气力
-tvig: 50, // 精力（总体力）
-int: 8, // 智力
-buffList: [{ // 状态栏
-    id: 1,
-    name: '急救',
-    desc: '每回合恢复生命力',
-    level: 1,
-    trendVals: [20,0,0,0], // 倾向分值[保护,强化,伤害,弱化]
-    elapse: 9, // 剩余回合数
-},]
-mentalDef: 150, // 心理防御
-mov: 1, // 本回合行动者顺序，由小到大【0:非本回合行动者】
-out: 0, // 是否出局
-isPlayer: 1, // 玩家可操控
-*/
 import Bar1 from '../components/Bar1';
 import Bar2 from '../components/Bar2';
 import Bar3 from '../components/Bar3';

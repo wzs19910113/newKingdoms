@@ -193,7 +193,7 @@
                 <div class="unit-board option-wrap" v-if="state==1">
                     <a class="btn" v-if="selectingUnit.id==me.id" @click="onTapLogout()">销号</a>
                     <a class="btn" v-if="selectingUnit.rel<3" @click="onTapChallenge(selectingUnit)">单挑</a>
-                    <a class="btn" v-if="selectingUnit.rel<2&&selectingUnit.id!=1" @click="onTapHire(selectingUnit)">
+                    <a class="btn" v-if="selectingUnit.rel==1&&selectingUnit.id!=1" @click="onTapHire(selectingUnit)">
                         雇佣&nbsp;&nbsp;<b class="money" v-html="`${common.moneyFormat(selectingUnit.btd.price)} $`"></b>
                     </a>
                     <a class="btn" v-if="selectingUnit.rel==2" @click="onTapJoinTeam(selectingUnit)">入队</a>
@@ -349,6 +349,12 @@
                         【潜能】消耗体力时缓慢增长，一次性消耗所有潜能可临时提升自身的属性（仅当前战斗有效），增长率由“爆发”决定。<br/>
                         【存在感】被敌方命中的概率，由“隐蔽”和装备决定。<br/>
                         【心理防御】由“定力”决定，低于0时会进入奔溃状态：受到伤害增加，无法躲避和防御。<br/>
+                    </p>
+                </div>
+                <div class="guide-row">
+                    <label class="guide-title">缩写</label>
+                    <p class="guide-para">
+                        【X补】能力补正，意思是该能力越高，效果越强。如“力补”代表力量补正。<br/>
                     </p>
                 </div>
                 <div class="guide-row">
@@ -592,7 +598,7 @@ export default {
             let navis = [];
             let conqueredIDList = [];
             let conqueres = [];
-            // let conqueres = [101,102,103,104,105,106,107,108,109,110];
+            // conqueres = [101,102,103,104,105,106,107,108,109,110]; // @test
             // 获取已攻克地图的ID数组
             for(let map of this.game.mapList){
                 if(arrContains(map.flagMarks,0)==-1){
@@ -1798,12 +1804,14 @@ export default {
         },
         onTapBonfire(){ // 点击【营地】
             if(this.banReactive) return;
-            let playerTeamIds = Array.from(this.team,unit=>{
-                return unit.id;
+            this._confirm(`进入营地会消耗 5 点能源，是否进入？`,_=>{
+                let playerTeamIds = Array.from(this.team,unit=>{
+                    return unit.id;
+                });
+                this.map.battery[0] -= 5;
+                this.map.battery[0] = setInRange(this.map.battery[0],0,this.map.battery[1]);
+                this.goBattle({mode:4,playerTeamIds,});
             });
-            this.map.battery[0] -= 2;
-            this.map.battery[0] = setInRange(this.map.battery[0],0,this.map.battery[1]);
-            this.goBattle({mode:4,playerTeamIds,});
         },
         onTapBattery(){ // 点击【电池】
             if(this.banReactive) return;

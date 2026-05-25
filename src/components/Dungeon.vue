@@ -45,7 +45,7 @@
             <a class="btn btn-leave-tip" v-if="calcFlagCount()<(map.size-1)">找齐 {{map.size-1}}（{{calcFlagCount()}}） 个<b>路标</b>方可离开</a>
             <a class="btn btn-leave" v-else @click.stop="onTapLeave">返回龙虾村</a>
             <a class="btn btn-core" v-if="calcCoreShow()" @click.stop="onTapCore">进入核心</a>
-            <a class="btn btn-temple" v-if="calcTempleShow()" @click.stop="onTapTemple">参拜神庙</a>
+            <a class="btn btn-temple" v-if="1" @click.stop="onTapTemple">参拜神庙</a>
 
         </div>
     </div>
@@ -192,9 +192,9 @@ export default {
         justify-content: space-around;
         align-items: center;
         width: 95%;
-        padding-top: .6rem;
+        padding-top: .2rem;
         margin: 0 auto;
-        height: .84rem;
+        height: 1.26rem;
     }
 
     /* 电池 */
@@ -213,15 +213,16 @@ export default {
     }
     .battery-wrap .battery-value{
         display: block;
-        height: .42rem;
-        line-height: .42rem;
+        height: .62rem;
+        line-height: .62rem;
+        font-weight: bold;
     }
     .battery-wrap .battery-value-total,
     .battery-wrap .battery-value-remain{
         width: 85%;
-        height: .21rem;
+        height: .31rem;
         margin: 0 auto;
-        line-height: .21rem;
+        line-height: .31rem;
         font-size: .22rem;
     }
     .battery-wrap .battery-value-remain{
