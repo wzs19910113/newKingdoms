@@ -35,7 +35,7 @@
                         金币：<span class="money" v-html="common.moneyFormat(unit.btd.money)+' $'"></span>
                         <a class="btn btn-transfer" v-if="showTransferButton" @click.stop="_onTapTransferMoney">转</a>
                     </div>
-                    <div class="stat-row-r" v-if="mode==1&&team.length>1">
+                    <div class="stat-row-r" v-if="mode==1&&unit.rel==3&&team.length>1">
                         <a class="btn-leader" :class="`${isLeader()?`btn-leader-on`:``}`" @click.stop="_onTapLeader">{{isLeader()?`取消领队`:`设为领队`}}</a>
                     </div>
                 </div>

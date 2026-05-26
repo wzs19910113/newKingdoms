@@ -833,7 +833,7 @@ export default {
                 this.asynBartender();
             }
             // 第三天或者每隔十天，刷新酒馆客人
-            if(this.game.day==3||this.game.day%5==0){
+            if(this.game.day==3||this.game.day%10==0){
                 // 注册 3 个客人
                 let tempUnitList = [], tempEquipList = [], tempSkillList = [];
                 let newGuestCount ;
@@ -846,7 +846,7 @@ export default {
                 let pushGuests = _ =>{ // 向酒馆推送x个随机的客人
                     for(let i=2;i<(newGuestCount+2);i++){
                         let unit = common.genUnit({
-                            id: i,
+                            id: this.game.unitIndex++,
                             game: this.game,
                             level: 1,
                             nickname: `酒馆客人`,
@@ -876,6 +876,7 @@ export default {
                     removeUnitIdList.push(oUnit.id);
                 }
                 common.unregisterUnits({unitIdList:removeUnitIdList,game:this.game,}); // 移除原来的客人
+
                 pushGuests(); // 添加新的客人
                 if(removeUnitIdList.length>0){
                     this._alert(`酒馆走了一批客人`,7);

@@ -484,7 +484,15 @@ function calcSkillScore(action,isFleeing,){ // 计算技能行动的分数
         else if(t==2){ // 添加状态
             let { b, bl, } = d;
             let targetBuffList = target.btd.buffList;
-            if(dodgeRatio>.5){
+            let valid = false;
+            let canBuff = true;
+            if(target.btd.isPlayer!=caster.btd.isPlayer){
+                canBuff = target.btd.hp[0]<target.btd.hp[1];
+            }
+            if(dodgeRatio>.5&&canBuff){
+                valid = true;
+            }
+            if(valid){
                 for(let i=0;i<b.length;i++){ // 遍历每个buff
                     let buffLevelDiff = 0; // buff的等级差
                     let dupBuff = getMatchList(targetBuffList,[['id',b[i]]])[0];
