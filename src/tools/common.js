@@ -1165,7 +1165,7 @@ export function unregisterUnits({unitIdList,game,}){ // 根据ID注销单位数�
             unregisterSkills({skillIdList:oUnit.ss,game,});
         }
     }
-    gam.allUnits = newAllUnits;
+    game.allUnits = newAllUnits;
 }
 export function unregisterEquips({equipIdList,game,}){ // 根据ID注销装备数组
     let newAllEquips = [];

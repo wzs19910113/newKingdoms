@@ -800,6 +800,7 @@ export default {
         },
         dayPass(){ // 经历一天
             this.game.day++;
+            this._alert(`一天过去了...`);
             // 悬赏令状态更新
             for(let wanted of this.game.wantedList){
                 if(this.game.day>=wanted.e+1&&wanted.s!=3){ // 如果超过期限，则设为逾期
@@ -811,8 +812,8 @@ export default {
                 // 更新酒馆商品
                 common.unregisterEquips({equipIdList:this.game.allUnits[0].b,game:this.game}); // 注销商人背包的全部装备
                 this.game.allUnits[0].b = [];
-                let shopItemCount = 6+Math.floor(this.game.day/7);
-                let level = Math.ceil(this.game.day/5+.01);
+                let shopItemCount = 6+Math.floor(this.game.day/8);
+                let level = Math.ceil(this.game.day/10+.01);
                 if(shopItemCount>10){
                     shopItemCount = 10;
                 }
@@ -831,36 +832,60 @@ export default {
                 this.asynTeam();
                 this.asynBartender();
             }
-            this._alert(`一天过去了...`);
-            // 第二天
-            if(this.game.day==3){
+            // 第三天或者每隔十天，刷新酒馆客人
+            if(this.game.day==3||this.game.day%10==0){
                 // 注册 3 个客人
                 let tempUnitList = [], tempEquipList = [], tempSkillList = [];
-                for(let i=2;i<5;i++){
-                    let unit = common.genUnit({
-                        id: i,
-                        game: this.game,
-                        level: 1,
-                        nickname: `酒馆客人`,
-                        equipList: tempEquipList,
-                        skillList: tempSkillList,
-                        rel: 1,
-                    });
-                    unit.g = 0;
-                    unit.b = [];
-                    unit.es = [unit.es[0],0,0,0,0,0,0,];
-                    tempUnitList.push(unit);
+                let newGuestCount ;
+                if(this.game.day==3){
+                    newGuestCount = 3;
                 }
-                for(let unit of tempUnitList){
-                    let newUnit = common.registerUnit({
-                        unit,
-                        game: this.game,
-                        equipList: tempEquipList,
-                        skillList: tempSkillList,
-                    });
-                    common.recoverUnit(newUnit,this.game);
+                else{
+                    newGuestCount = r(2,5);
                 }
-                this._alert(`酒馆里来了新的客人`,7);
+                let pushAGuest = _ =>{ // 向酒馆推送x个随机的客人
+                    for(let i=2;i<(newGuestCount+2);i++){
+                        let unit = common.genUnit({
+                            id: i,
+                            game: this.game,
+                            level: 1,
+                            nickname: `酒馆客人`,
+                            equipList: tempEquipList,
+                            skillList: tempSkillList,
+                            rel: 1,
+                        });
+                        unit.g = 0;
+                        unit.b = [];
+                        unit.es = [unit.es[0],0,0,0,0,0,0,];
+                        tempUnitList.push(unit);
+                    }
+                    for(let unit of tempUnitList){
+                        let newUnit = common.registerUnit({
+                            unit,
+                            game: this.game,
+                            equipList: tempEquipList,
+                            skillList: tempSkillList,
+                        });
+                        common.recoverUnit(newUnit,this.game);
+                    }
+                }
+                // 清空原来的酒馆客人（ID范围为2-50）
+                let removeUnitIdList = [];
+                for(let i=2;i<51;i++){
+                    let oUnit = getMatchList(this.game.allUnits,[['id',i]])[0];
+                    if(oUnit){
+                        removeUnitIdList.push(i);
+                    }
+                }
+                common.unregisterUnits({unitIdList:removeUnitIdList,game:this.game,}); // 移除原来的客人
+                pushAGuest(); // 添加新的客人
+                if(removeUnitIdList.length>0){
+                    this._alert(`酒馆走了一批客人`,7);
+                }
+                this._alert(`酒馆里来了 ${newGuestCount} 个新的客人`,7);
+
+                this.asynTeam();
+                this.asynInmates();
             }
         },
         goBattle({mode=1,playerTeamIds=[],enemyTeamIds=[],game=cloneObj(this.game)}){ // 进入战斗
