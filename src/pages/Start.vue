@@ -185,7 +185,6 @@ export default {
                 age: this.age,
                 tms: 1,
                 rel: 3,
-                icon: r(1,3),
             });
             let skill1Consume = 5+r(0,3);
             let skill2Consume = 10+r(0,6);

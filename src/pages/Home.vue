@@ -129,7 +129,7 @@
                                 <div class="temple-item" v-for="(equip,index) of temple.equipList">
                                     <Equip class="temple-equip" v-if="temple.baseEquip&&(temple.baseEquip.t==equip.t)" :compare="temple.baseEquip" :colorReverse="true" :equip="equip" :key="index" @onTap="onTapEquip" />
                                     <Equip class="temple-equip" v-else :equip="equip" :key="index" @onTap="onTapEquip" />
-                                    <a class="temple-item-btn" @click="onTapTempleEquip(equip)">
+                                    <a class="temple-item-btn" @click="onTapTempleEquip(equip,map.level)">
                                         <span v-html="!temple.baseEquip?`加入<br/>熔炉`:`融合`"></span>
                                     </a>
                                 </div>
@@ -720,10 +720,11 @@ export default {
             }
         },
         asynTemple(){ // 同步神庙数据
-            let { b, ss, } = this.viewingUnit;
+            let { b, es, ss, } = this.viewingUnit;
             let skillList = [], equipList = [];
             let baseEquip = this.temple.baseEquip;
-            for(let equipId of b){
+            let combinedEquipIdList = [...b,];
+            for(let equipId of combinedEquipIdList){
                 let oEquip = getMatchList(this.game.allEquips,[['id',equipId]])[0];
                 if(oEquip){
                     let showEquip = false;
@@ -1732,18 +1733,34 @@ export default {
                         skillList: tempGame.allSkills,
                     });
                     // 设置金币
-                    let gold = this.map.floors[inten].award*10;
-                    gold = cl(gold+r(0,gold*.33));
+                    let gold = this.map.floors[inten].award*20;
+                    gold = cl(gold+r(0,gold*.5));
                     enemy.g = gold;
                     // 属性调整
+                    if(inten==0){ // 白名没有技能
+                        enemy.ss = [];
+                    }
                     if(this.map.level==1){ // 1级地图
                         if(inten==0){ // 流浪者没有装备和技能
                             enemy.b = [];
                             enemy.es = [];
+                        }
+                        else if(inten==1){ // 盗墓贼没有技能、头盔、衣服和鞋子
+                            enemy.es[4] = 0;
+                            enemy.es[5] = 0;
+                            enemy.es[6] = 0;
                             enemy.ss = [];
                         }
-                        else if(inten==1){ // 盗墓贼没有技能
-                            enemy.ss = [];
+                    }
+                    else if(this.map.level==2){ // 2级地图
+                        if(inten==0){ // 混混没有头盔、衣服和鞋子
+                            enemy.es[4] = 0;
+                            enemy.es[5] = 0;
+                            enemy.es[6] = 0;
+                        }
+                        else if(inten==1){ // 悍匪没有头盔和鞋子
+                            enemy.es[5] = 0;
+                            enemy.es[6] = 0;
                         }
                     }
                     enemyList.push(enemy);
@@ -1815,7 +1832,7 @@ export default {
         },
         onTapBattery(){ // 点击【电池】
             if(this.banReactive) return;
-            this._alert(`每次行动都会消耗能源储备，能源枯竭后自动判定全队战败`,10);
+            this._alert(`每次行动都会消耗1点能源储备（技能额外+1），能源枯竭后自动判定全队战败`,10);
         },
         onTapTemple(){ // 点击【神庙】
             if(this.banReactive) return;
@@ -1840,7 +1857,7 @@ export default {
             this.temple.baseEquip = null;
             this.asynTemple();
         },
-        onTapTempleEquip(equip){ // 点击【神庙-装备】
+        onTapTempleEquip(equip,level){ // 点击【神庙-装备】
             if(this.banReactive) return;
             if(!this.temple.baseEquip){ // 加入熔炉
                 this.temple.equipList = [];
@@ -1868,14 +1885,20 @@ export default {
             else{ // 融合
                 this._confirm(`确定要融合 ${equip.n} 的属性到 ${this.temple.baseEquip.n} 上吗（消耗警戒值50）？`,_=>{
                     if(this.map.guard>=50){
-                        common.fuseEquip({baseEquip:this.temple.baseEquip,equip,unit:this.viewingUnit,game:this.game,});
-                        this.map.guard -= 50;
-                        this.map.guard = setInRange(this.map.guard,0,100);
-                        this._alert(`融合成功！`);
-                        this.asynTeam();
-                        this.$nextTick(_=>{
-                            this.initTemple();
-                        });
+                        let res = common.fuseEquip({baseEquip:this.temple.baseEquip,equip,unit:this.viewingUnit,game:this.game,level,});
+                        if(res.valid){
+                            this.map.guard -= 50;
+                            this.map.guard = setInRange(this.map.guard,0,100);
+                            this._alert(`融合成功！`,5);
+                            this._alert(`${this.temple.baseEquip.n} 的可塑性-${common.awaFormat(res.figureConsume)}%`,5);
+                            this.asynTeam();
+                            this.$nextTick(_=>{
+                                this.initTemple();
+                            });
+                        }
+                        else{
+                            this._alert(res.tip,10);
+                        }
                     }
                     else{
                         this._alert(`警戒值不足`);

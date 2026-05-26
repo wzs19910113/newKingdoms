@@ -438,6 +438,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
         hl: 0,
         a: [],
         d: 25,
+        fg: 10000,
         v: 0,
     };
     let aRange = []; // 必加成的属性范围 [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
@@ -822,7 +823,6 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
         if(type==1){ // 攻击
             melee = data.r1>=data.r2;
             let r1Ratio = 0, r2Ratio = 0;
-            let r1 = 0, r2 = 0;
             if(melee==1){ // 近战
                 if(data.r2==0){ // 纯近战
                     r1Ratio = 1;
@@ -843,16 +843,10 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
                     r2Ratio = .9;
                 }
             }
-            if(data.r1){
-                r1 = cl(CONFIG.rxRangeMap[level+4][1]*r1Ratio);
-            }
-            if(data.r2){
-                r2 = cl(CONFIG.rxRangeMap[level+4][1]*r2Ratio);
-            }
             maxEl[0] = {
                 d: CONFIG.skillAtkRangeMap[level-1][1],
-                r1,
-                r2,
+                r1: cl(CONFIG.rxRangeMap[level+4][1]*r1Ratio),
+                r2: cl(CONFIG.rxRangeMap[level+4][1]*r2Ratio),
             };
         }
         else if(type==2){ // 添加状态 { b:[0,0,0,], bl:[0,0,0,],}
@@ -902,8 +896,12 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
         let type = e.t;
         if(type==1){ // 攻击
             e.d.d = getAvg(e.d.d,maxEl[0].d);
-            e.d.r1 = getAvg(e.d.r1,maxEl[0].r1);
-            e.d.r2 = getAvg(e.d.r2,maxEl[0].r2);
+            if(e.d.r1){
+                e.d.r1 = getAvg(e.d.r1,maxEl[0].r1);
+            }
+            if(e.d.r2){
+                e.d.r2 = getAvg(e.d.r2,maxEl[0].r2);
+            }
         }
         else if(type==2){ // 添加状态 { b:[0,0,0,], bl:[0,0,0,],}
             for(let i=0;i<e.d.b.length;i++){
@@ -918,26 +916,30 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
         }
         else if(type==5){ // 治疗 { h:0, rx:0, }
             e.d.h = getAvg(e.d.h,maxEl[4].h);
-            e.d.rx = getAvg(e.d.rx,maxEl[4].rx);
+            if(e.d.rx){
+                e.d.rx = getAvg(e.d.rx,maxEl[4].rx);
+            }
         }
         else if(type==7){ // 潜能 { d:0, rx:0, }
             e.d.d = getAvg(e.d.d,maxEl[6].d);
-            e.d.rx = getAvg(e.d.rx,maxEl[6].rx);
+            if(e.d.rx){
+                e.d.rx = getAvg(e.d.rx,maxEl[6].rx);
+            }
         }
         else if(type==8){ // 心防（固定修改值和定力、智力补正） { d:0, rx1:0, rx2:0, }
             e.d.d = getAvg(e.d.d,maxEl[7].d);
-            if(beniFact==1){ // 强化心理防御
+            if(beniFact==1&&e.d.rx1){ // 强化心理防御
                 e.d.rx1 = getAvg(e.d.rx1,maxEl[7].rx1);
             }
-            else if(beniFact==-1){ // 造成心理伤害
+            else if(beniFact==-1&&e.d.rx2){ // 造成心理伤害
                 e.d.rx2 = getAvg(e.d.rx2,maxEl[7].rx2);
             }
         }
         else if(type==9){ // 存在感 { d:0, rx:0, }
-            if(beniFact==1){ // 增益效果，设置隐蔽补正
+            if(beniFact==1&&e.d.rx){ // 增益效果，设置隐蔽补正
                 e.d.rx = getAvg(e.d.rx,maxEl[8].rx);
             }
-            else{ // 减益效果，设置存在感提升值
+            else if(e.d.d){ // 减益效果，设置存在感提升值
                 e.d.d = getAvg(e.d.d,maxEl[8].d);
             }
         }
@@ -970,7 +972,11 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
 
     return res;
 }
-export function fuseEquip({baseEquip,equip,unit,game,}){ // 融合装备
+export function fuseEquip({baseEquip,equip,unit,game,level=1,}){ // 融合装备
+    let res = {
+        valid: true,
+        figureConsume: 0,
+    };
     let newEquip = cloneObj(baseEquip);
     let newA = [];
     let getAttrByIndex = (equip,attrIndex) =>{ // 根据 attr下标（0-10） 获取 装备的 attr 数据 :[x,y]
@@ -980,26 +986,51 @@ export function fuseEquip({baseEquip,equip,unit,game,}){ // 融合装备
         }
         return [0,0,];
     }
-    for(let i=0;i<11;i++){
-        let attr = 0;
-        let newEquipAttr = getAttrByIndex(newEquip,i);
-        let oldEquipAttr = getAttrByIndex(equip,i);
-        attr = Math.max(newEquipAttr[1],oldEquipAttr[1]);
-        if(attr>0){
-            newA.push([i,attr]);
+    // 检查合法性
+    let figureConsume = CONFIG.figureConsumeMap[level-1];
+    res.figureConsume = figureConsume;
+    if(newEquip.fg<figureConsume){
+        res.valid = false;
+        res.tip = `熔炉装备可塑性过低（需要至少${awaFormat(figureConsume)}%）`;
+    }
+    else if(equip.fg<figureConsume){
+        res.valid = false;
+        res.tip = `进行融合的装备可塑性过低（需要至少${awaFormat(figureConsume)}%）`;
+    }
+    // 合法
+    if(res.valid){
+        // 每个属性取高合并
+        for(let i=0;i<11;i++){
+            let attr = 0;
+            let newEquipAttr = getAttrByIndex(newEquip,i);
+            let oldEquipAttr = getAttrByIndex(equip,i);
+            attr = Math.max(newEquipAttr[1],oldEquipAttr[1]);
+            if(attr>0){
+                newA.push([i,attr]);
+            }
+        }
+        newEquip.a = newA;
+        // 可塑性
+        let baseFigure = Math.min(newEquip.fg,equip.fg); // 基础可塑性 = 两个融合装备中的可塑性最低值
+        newEquip.fg = baseFigure-figureConsume;
+        newEquip.fg = setInRange(newEquip.fg,0,10000);
+        // 赋值到 game
+        for(let i=0;i<game.allEquips.length;i++){
+            if(game.allEquips[i].id==baseEquip.id){
+                game.allEquips[i] = newEquip;
+            }
+        }
+        // 删除被溶解的equip
+        unregisterEquips({equipIdList:[equip.id],game,});
+        let oUnit = getMatchList(game.allUnits,[['id',unit.id]])[0];
+        oUnit.b = removeFromNumberList(equip.id,oUnit.b); // 从背包中移除ID
+        for(let i=0;i<oUnit.es.length;i++){ // 从装备栏中移除ID
+            if(oUnit.es[i]==equip.id){
+                ounit.es[i] = 0;
+            }
         }
     }
-    newEquip.a = newA;
-    // 赋值到 game
-    for(let i=0;i<game.allEquips.length;i++){
-        if(game.allEquips[i].id==baseEquip.id){
-            game.allEquips[i] = newEquip;
-        }
-    }
-    // 删除被溶解的equip
-    unregisterEquips({equipIdList:[equip.id],game,});
-    let oUnit = getMatchList(game.allUnits,[['id',unit.id]])[0];
-    oUnit.b = removeFromNumberList(equip.id,oUnit.b);
+    return res;
 }
 
 export function genUnit({id,level=1,inten=0,rel,game,nickname='',equipList,skillList,isBoss=false,}){ // 生成一个完整的单位数据（带装备、背包和技能）
@@ -1274,7 +1305,9 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
 
     btd.mov = 0; // 行动
     btd.mdef = btd.attrs[8]*25+250; // 心理防御
-    // btd.mdef = btd.attrs[8]-100; // 心理防御
+    if(unit.rel==0&&(unit.id>=51&&unit.id<100)){ // BOSS心理防御增强
+        btd.mdef += Math.pow(5,unit.l+1);
+    }
     btd.ptc = btd.attrs[10]*5; // 潜能
     btd.out = 0; // 出局状态
     btd.teamSeq = _unit.tms;
@@ -1812,7 +1845,7 @@ export function calcPain({unit,dmg,}){ // 计算def和hp各自承受的伤害，
     }
 
     // 破绽状态增伤
-    if(unit.btd.mov>=9000&&unit.btd.mov<9500){
+    if(unit.btd.mov>=8950&&unit.btd.mov<9500){
         dmg = cl(dmg*CONFIG.leakDmgRatio1);
     }
     else if(unit.btd.mov>=9500){

@@ -4,8 +4,12 @@
         <div class="row">
             <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
             <span class="name">{{equip.n}}</span>
-            <span class="awa" v-if="mode==1&&!compare">存在感 {{common.awaFormat(equip.d)}}%</span>
             <span class="awa" v-if="mode==1&&compare">存{{common.awaFormat(equip.d)}}%</span>
+            <span class="figure" v-if="mode==1&&compare">塑{{common.awaFormat(equip.fg)}}%</span>
+        </div>
+        <div class="row row-sub" v-if="mode==1&&!compare">
+            <span class="awa">存在感 {{common.awaFormat(equip.d)}}%</span>
+            <span class="figure">可塑性{{common.awaFormat(equip.fg)}}%</span>
         </div>
         <div class="row" v-if="mode==1&&attrList.length>0&&compare">
             <!-- {{compareAttrList}} -->
@@ -156,6 +160,10 @@ export default {
     .row:last-child{
         margin-bottom: 0;
     }
+    .row-sub{
+        height: .4rem;
+        line-height: .4rem;
+    }
     .money{
         color: gold;
     }
@@ -260,9 +268,9 @@ export default {
     .attr-val{
 
     }
-    .row .awa{
+    .row .awa,
+    .row .figure{
         display: inline-block;
-        background-color: #DAA520;
         padding: 0 .06rem;
         height: .3rem;
         line-height: .3rem;
@@ -273,6 +281,12 @@ export default {
         text-shadow: none;
         white-space: nowrap;
         word-break: keep-all;
+    }
+    .row .awa{
+        background-color: #DAA520;
+    }
+    .row .figure{
+        background-color: #40B5ED;
     }
     /* 攻击方式 */
     .row-clm{

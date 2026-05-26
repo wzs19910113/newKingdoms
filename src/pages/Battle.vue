@@ -950,10 +950,6 @@ export default {
         },
         roundEnd(){ // 回合结束（动画播放完毕，且buff编辑完毕）
             let curUnit = this.curUnitList[this.curUnitListIndex];
-            if(this.mode!=3&&curUnit.btd.isPlayer){
-                this.battle.map.battery[0] -= 1; // 电池消耗
-                this.battle.map.battery[0] = setInRange(this.battle.map.battery[0],0,this.battle.map.battery[1]);
-            }
             // 检查是否满足结束条件
             let checkEndResult = this.checkEnd();
             if(checkEndResult){ // 战斗结束
@@ -1571,6 +1567,12 @@ export default {
                 for(let target of targetUnitList){
                     oTargetUnitList.push(this.getUnit(target.id));
                 }
+            }
+            // 消耗能源
+            if(this.mode!=3&&oCaster.btd.isPlayer){
+                let batteryConsume = type==2?2:1;
+                this.battle.map.battery[0] -= batteryConsume;
+                this.battle.map.battery[0] = setInRange(this.battle.map.battery[0],0,this.battle.map.battery[1]);
             }
             switch(type){
                 case 1: // 进行攻击
