@@ -833,7 +833,7 @@ export default {
                 this.asynBartender();
             }
             // 第三天或者每隔十天，刷新酒馆客人
-            if(this.game.day==3||this.game.day%10==0){
+            if(this.game.day==3||this.game.day%5==0){
                 // 注册 3 个客人
                 let tempUnitList = [], tempEquipList = [], tempSkillList = [];
                 let newGuestCount ;
@@ -843,7 +843,7 @@ export default {
                 else{
                     newGuestCount = r(2,5);
                 }
-                let pushAGuest = _ =>{ // 向酒馆推送x个随机的客人
+                let pushGuests = _ =>{ // 向酒馆推送x个随机的客人
                     for(let i=2;i<(newGuestCount+2);i++){
                         let unit = common.genUnit({
                             id: i,
@@ -871,14 +871,12 @@ export default {
                 }
                 // 清空原来的酒馆客人（ID范围为2-50）
                 let removeUnitIdList = [];
-                for(let i=2;i<51;i++){
-                    let oUnit = getMatchList(this.game.allUnits,[['id',i]])[0];
-                    if(oUnit){
-                        removeUnitIdList.push(i);
-                    }
+                let oUnitList = getMatchList(this.game.allUnits,[['nk','酒馆客人'],['rel',1]]);
+                for(let oUnit of oUnitList){
+                    removeUnitIdList.push(oUnit.id);
                 }
                 common.unregisterUnits({unitIdList:removeUnitIdList,game:this.game,}); // 移除原来的客人
-                pushAGuest(); // 添加新的客人
+                pushGuests(); // 添加新的客人
                 if(removeUnitIdList.length>0){
                     this._alert(`酒馆走了一批客人`,7);
                 }
@@ -1226,18 +1224,21 @@ export default {
                 this._alert(text);
             }
             else if(flag==4){ // 学习技能
-                console.log(`学习技能`,skill);
                 this._confirm(`确定要复制技能 “${skill.n}” 吗？`,_=>{
                     if(this.game.xp>0){
                         let oMe = getMatchList(this.game.allUnits,[['id',this.me.id]])[0];
-                        oMe.ss.push(skill.id);
+                        let oSkill = getMatchList(this.game.allSkills,[['id',skill.id]])[0];
+                        let newSkill = cloneObj(oSkill);
+                        newSkill.id = this.game.skillIndex++;
+                        this.game.allSkills.push(newSkill);
+                        oMe.ss.push(newSkill.id);
                         this.game.xp -= 1;
                         if(this.game.xp<=0){
                             this.showSkillCopy = false;
                         }
                         this.asynTeam();
                         this.asynInmates();
-                        this._alert(`${this.me.nm} 复制了技能 “${skill.n}”`,5);
+                        this._alert(`${this.me.nm} 复制了技能 “${newSkill.n}”`,5);
                     }
                     else{
                         this._alert(`灵感点数不够`);
@@ -1973,10 +1974,10 @@ export default {
 
         onTapCheat(){ // 点击【作弊】按钮
             let me = this.game.allUnits[1];
-            me.g += 11123;
+            me.g += 51123;
             this.map.guard += 50;
             this.map.guard = setInRange(this.map.guard,0,100);
-            // common.skillXIncrease(55000,this.game);
+            common.skillXIncrease(7300,this.game);
             // for(let map of this.game.mapList){
             //     map.flagMarks = Array.from(map.flagMarks,_=>{
             //         return 1;
