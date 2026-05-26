@@ -718,7 +718,7 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
             break;
             case 8: // 改变心防
                 newEffect.d = { d:0, rx1:0, rx2:0,};
-                newEffect.d.d = cl((10+exptr(10,level*25,1))*fact);
+                newEffect.d.d = cl((10+exptr(10,level*125,1))*fact);
                 if(beni&&level>=r(4,6)){ // 目标单位的定力补正
                     newEffect.d.rx1 = genRx(level+5,3);
                 }
@@ -1600,7 +1600,7 @@ export function calcSkillValue(skill){ // 计算技能价值
                 }
             break;
             case 8: // 改变心防
-                res += cl(pow(Math.abs(d.d),1.39)*12); // 固定值
+                res += cl(pow(Math.abs(d.d),1.39)*3); // 固定值
                 if(d.rx1){ // 技能倾向为利好
                     res += cl(pow(Math.abs(d.rx1),1.44)*13); // 定力补正
                 }
