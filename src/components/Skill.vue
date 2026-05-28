@@ -1,11 +1,11 @@
 <template>
     <a class="skill" :class="`mode-${mode} ${isOption?'isoption':''} ${ban?'skill-ban':''}`" @click.stop="_onTap">
-        <div class="skill-mode" :class="`${skill.t==3?'harm':'beni'}`" v-if="mode==1">
+        <div class="skill-mode" :class="`${skill.t>2?'harm':'beni'}`" v-if="mode==1">
             <!-- <span class="value money" v-if="!isOption" v-html="common.moneyFormat(skill.v,1)"></span> -->
             <div class="row">
                 <span class="name">{{skill.n}}</span>
                 <a class="consume">（{{common.calcConsume({type:2,data:skill,unit})}}）</a>
-                <span class="awa" v-if="skill.t==3">存在感 {{common.awaFormat(skill.d)}}%</span>
+                <span class="awa" v-if="skill.t>2">存在感 {{common.awaFormat(skill.d)}}%</span>
             </div>
             <div class="row row-desc">
                 <span class="desc" v-html="getSkillTip()"></span>
@@ -24,7 +24,7 @@
             </div>
             <a class="btn btn-copy" v-if="checkCopyBtn()" @click.stop="_onTapCopy">复制( <b class="x">{{x}}</b> )</a>
         </div>
-        <div class="skill-mode" :class="`${skill.t==3?'harm':'beni'}`" v-if="mode==2">
+        <div class="skill-mode" :class="`${skill.t>2?'harm':'beni'}`" v-if="mode==2">
             <div class="row">
                 <span class="name">{{skill.n}}</span>
                 <span class="consume">（{{common.calcConsume({type:2,data:skill,unit})}}）</span>
@@ -110,7 +110,7 @@ export default {
         },
         getSkillTip(){ // 获取技能描述
             let effectTip = ``;
-            effectTip += `令${['自己','友方','敌方'][this.skill.t-1]}：`;
+            effectTip += `${['自己','友方','敌人','敌方全体',][this.skill.t-1]}：`;
             for(let i=0;i<this.skill.el.length;i++){
                 let { t, d, } = this.skill.el[i];
                 switch(t){

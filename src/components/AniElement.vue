@@ -782,7 +782,7 @@ export default {
       // }
 
       // ========== 第三层：火星溅射（细小颗粒）==========
-      const sparkCount = 150;
+      const sparkCount = 50;
       for (let i = 0; i < sparkCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         const distance = 5 + 185 * easeIn * Math.random();
@@ -968,7 +968,7 @@ export default {
       ctx.shadowColor = "rgba(100, 0, 0, 0.4)";
 
       // ========== 第一层：大血滴粒子（主要喷溅，带重力下坠）==========
-      const largeDropCount = 30; // 50
+      const largeDropCount = 10; // 50
       for (let i = 0; i < largeDropCount; i++) {
         // 粒子角度（向四周扩散，主要向前上方和侧方）
         let angle;
@@ -1018,7 +1018,7 @@ export default {
       }
 
       // ========== 第二层：中血滴粒子（中等大小，受重力影响较大）==========
-      const mediumDropCount = 80; // 80
+      const mediumDropCount = 20; // 80
       for (let i = 0; i < mediumDropCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         // 水平方向随机
@@ -1043,7 +1043,7 @@ export default {
       }
 
       // ========== 第三层：血雾/血丝（细小颗粒，漂浮感）==========
-      const mistCount = 130; // 130
+      const mistCount = 30; // 130
       for (let i = 0; i < mistCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         const horizontalDist = 2 + 70 * easeOut * Math.random();
@@ -1974,7 +1974,7 @@ export default {
       ctx.fill();
 
       // ========== 闪电周围电弧粒子 ==========
-      const particleCount = 35;
+      const particleCount = 15;
       for (let i = 0; i < particleCount; i++) {
         // 沿着主闪电路径分布粒子
         const segmentIndex = Math.floor(Math.random() * (mainPoints.length - 1));
@@ -2000,7 +2000,7 @@ export default {
       }
 
       // ========== 散逸电火花（细小粒子） ==========
-      const sparkCount = 50;
+      const sparkCount = 20;
       for (let i = 0; i < sparkCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         const distance = 10 + Math.random() * 40 * (1 - t * 0.5);

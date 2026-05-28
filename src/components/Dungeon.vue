@@ -37,7 +37,7 @@
                     </span>
                     <span class="ele enemy" v-if="cell.enemy&&cell.show"></span>
                     <div class="brick" :class="`${cell.show?`brick-flip`:``}`"></div>
-                    <!-- <div :style="{position:'absolute',zIndex:'100',color:'#f43',fontWeight:'bold',fontSize:'.32rem'}">{{cell.enemy}}</div> -->
+                    <div v-if="DEBUG" :style="{position:'absolute',zIndex:'100',color:'#f43',fontWeight:'bold',fontSize:'.32rem'}">{{cell.enemy}}</div>
                 </a>
             </div>
         </div>

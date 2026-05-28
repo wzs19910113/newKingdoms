@@ -13,7 +13,7 @@ const BUFF_LIST = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
 const BENI_SKILL_EFFECT_LIST = [2,5,7,8,9,];
 const HARM_SKILL_EFFECT_LIST = [1,2,7,8,9,];
 const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添加状态 3减弱增益状态 4减弱减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感 】
-    3, // 攻击
+    5, // 攻击
     5, // 添加状态
     1, // 减弱增益状态
     1, // 减弱负面状态
@@ -233,13 +233,13 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
         rAllRatio = .75;
     }
     if(melee==1){ // 近战
-        if(r(1,10)<=3){ // 纯近战
+        if(r(1,10)<=7){ // 纯近战
             r1Ratio = 1;
             r2Ratio = 0;
         }
         else{
             r1Ratio = .9;
-            r2Ratio = .7;
+            r2Ratio = .4;
         }
         aniType = [1,2,][r(0,1)];
         spRange = [1,2,3,4,];
@@ -250,7 +250,7 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
             r2Ratio = 1;
         }
         else{
-            r1Ratio = .7;
+            r1Ratio = .3;
             r2Ratio = .9;
         }
         aniType = [3,4,5,6,][r(0,3)];
@@ -586,7 +586,7 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
 	/*id: 11,
 	l: 1,
 	n: '治愈术',
-	t: 1, // 1自己 2我方单体 3敌方单体
+	t: 1, // 1自己 2我方单体 3敌方单体 4敌方全体
 	el: [{ // 技能效果数组
         t: 3, // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
         d: 7, // 攻击方式{d:5,r1:24,r2:17}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，固疗和百分疗 { h:100, rx:35},心防固伤和智力补正 { d:100, rx:35 }
@@ -633,7 +633,12 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
         res.n = genSkillName({level,beni:1});
     }
     else{ // 伤害和弱化
-        res.t = 3;
+        if(level<3){
+            res.t = 3;
+        }
+        else{
+            res.t = [3,3,3,4,4,][r(0,4)];
+        }
         sfdBuffs = shuffle(CONFIG.badBuffs);
         fact = -1;
         skillEffectList = HARM_SKILL_EFFECT_LIST;
@@ -682,7 +687,11 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
         }
         switch(sfdSkillEffectList[i]){ // 1攻击 2添加状态 3减弱增益状态 4减弱减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感
             case 1: // 攻击
-                let newAttack = genAttackData({level,melee,skillId:res.id});
+                let attackLevel = level;
+                if(res.t==4){ // 全体伤害的伤害值下降一个等级
+                    attackLevel = level-1;
+                }
+                let newAttack = genAttackData({level:attackLevel,melee,skillId:res.id});
                 newEffect.d = newAttack;
                 hasAttack = 1;
             break;
@@ -1552,7 +1561,7 @@ export function calcSkillValue(skill){ // 计算技能价值
     /*id: 11,
 	l: 1,
 	n: '治愈术',
-	t: 1, // 1自己 2我方单体 3敌方单体
+	t: 1, // 1自己 2我方单体 3敌方单体 4敌方全体
 	el: [{
         t: 3, // 技能效果数组【 1攻击 2添加状态 3减弱正面状态 4减弱负面状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感 】
         d: 7, // 攻击方式{d:5,r1:24,r2:17}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，固疗和百分疗 { h:100, rx:35},心防固伤和智力补正 { d:100, rx:35 }
@@ -1564,15 +1573,21 @@ export function calcSkillValue(skill){ // 计算技能价值
     */
     let res = 0;
     let level = skill.l;
-    let beni = skill.t!=3;
+    let beni = skill.t<3;
     for(let i=0;i<skill.el.length;i++){ // 遍历每个效果
         let effect = skill.el[i];
         let { t, d, } = effect;
         switch(t){ // 【 1攻击 2添加状态 3减弱一个状态 4恢复生命 5改变护甲 6改变潜能 7改变心防 8改变存在感 】
             case 1: // 攻击
-                res += cl(pow(d.d,1.15))*26;
-                res += cl(pow(d.r1,1.15))*22;
-                res += cl(pow(d.r2,1.15))*22;
+                if(d.d){
+                    res += cl(pow(d.d,1.15))*26;
+                }
+                if(d.r1){
+                    res += cl(pow(d.r1,1.15))*22;
+                }
+                if(d.r2){
+                    res += cl(pow(d.r2,1.15))*22;
+                }
             break;
             case 2: // 添加状态
                 for(let j=0;j<d.bl.length;j++){
@@ -1619,8 +1634,11 @@ export function calcSkillValue(skill){ // 计算技能价值
             break;
         }
     }
+    if(skill.t==4){ // 敌方全体
+        res *= 2.5;
+    }
     if(!beni){
-        res -= cl(skill.d/(12-level));
+        res -= skill.d/(12-level);
     }
     res = cl(res);
     res = setInRange(res,10,Infinity);
@@ -1819,8 +1837,9 @@ export function calcAttackDmg({caster,attack,isSkill=false}){ // 计算攻击的
         acrRx = cl(acrRx*buff.construction[buff.level-1]);
     }
 
-    let strDmg = cl(strRx*attack.r1/100);
-    let acrDmg = cl(acrRx*attack.r2/100);
+    let strDmg = cl(strRx*(attack.r1||0)/100);
+    let acrDmg = cl(acrRx*(attack.r2||0)/100);
+
     res = attack.d + strDmg + acrDmg;
     res = setInRange(res,1,Infinity);
     return res;
@@ -1863,6 +1882,7 @@ export function calcPain({unit,dmg,}){ // 计算def和hp各自承受的伤害，
         defPain = dmg;
     }
     res = { defPain, hpPain, };
+
     return res;
 }
 export function calcCure({caster,target,data,}){ // 计算治疗值 data={h:100,rx:35}

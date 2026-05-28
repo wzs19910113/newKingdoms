@@ -1,5 +1,5 @@
 <template>
-    <a class="btn-unit" :class="`${!unit.out?'':'unit-dim'} ${aniStyle}`" @click.stop="_onTap">
+    <a class="btn-unit" :class="`${!unit.out?'':'unit-dim'} ${aniStyle}`" :style="`opacity:${calcOpacity()}%`" @click.stop="_onTap">
         <div class="avatar-wrap" :class="`${unit.btd.out?'out':''}`">
 
             <div class="cur" v-if="unit.btd.cur&&!unit.btd.out"></div>
@@ -96,8 +96,8 @@ export default {
         },
         calcOpacity(){ // 计算透明度
             let res, dodge = this.unit.btd.dge;
-            // res = 80 + Math.round(common.awaFormat(dodge)/5);
-            res = 100;
+            res = 20 + Math.round(common.awaFormat(dodge)*.8);
+            // res = 100;
             return res;
         },
         _onTap(){

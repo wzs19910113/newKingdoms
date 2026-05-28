@@ -213,6 +213,7 @@ export default {
                 skill2Attack = {
         			n: '射击',
         			d: 2+Math.ceil(skill2Consume*2.1), // 基础伤害
+        			// d: 33, // 基础伤害
         			r1: 0, // 力量补正
         			r2: 0, // 精准补正
         			b: [], // buff制造表（buff id）
@@ -246,7 +247,7 @@ export default {
             let skill2 = {
                 id: this.game.skillIndex++,
             	l: 1,
-            	n: melee?'龙虾斩':'以太箭',
+            	n: melee?'龙虾斩':'流水箭',
             	t: 3, // 3敌方单体
             	el: [{
                     t: 1,
@@ -321,11 +322,11 @@ export default {
                 this.game.allUnits.push(newUnit);
             }
             // 载入预设技能
-            for(let unit of PRESETS.skillList){
-
+            for(let skill of PRESETS.skillList){
+                this.game.allSkills.push(skill);
             }
             // 载入预设装备
-            for(let unit of PRESETS.equipList){
+            for(let equip of PRESETS.equipList){
 
             }
             // 生成初始随机装备

@@ -27,8 +27,12 @@
                             <i class="flashing-skill">{{boardSkill.n}}</i>
                             <i class="flashing flashing-right">{{boardSkill.n}}</i>
                         </div>
-                        <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊2</a>
-                        <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊1</a>
+                        <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊1</a>
+                        <!-- <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊2</a> -->
+                        <!-- <a class="btn btn-code" @click="onTapMenuCode" v-if="battle.map.tempGame.codeList.length>0"><b>作弊码</b></a> -->
+                        <a class="btn btn-code" @click="onTapMenuCode" v-if="menuData.state>0">
+                            <b>作弊码</b>
+                        </a>
                         <div class="battery-wrap" v-if="battle.map.battery">
                             能源：{{battle.map.battery[0]}}
                         </div>
@@ -127,6 +131,15 @@
                     <label class="ops-name">行动条模式：{{tickMode==1?`显示`:`跳过`}}动画</label>
                     <a class="ops-btn" @click="onTapSwitchTickMode">切换</a>
                 </div>
+            </div>
+        </Pop>
+        <Pop v-if="showCodePop" @onTapClose="onTapPop">
+            <div class="code-wrap" v-if="codeList.length>0">
+                <a class="btn-code" @click.stop="onTapCode(code)" v-for="code in codeList">
+                    <span class="code-name">[ {{code.name}} ]</span>
+                    <span class="code-desc">{{code.desc}}</span>
+                    <span class="code-count"><span class="code-count-inner" v-if="code.count[0]>1">剩余 {{code.count[0]}}</span></span>
+                </a>
             </div>
         </Pop>
         <!-- alert -->
@@ -242,6 +255,8 @@ export default {
 
             viewingUnit: null, // 正在查看的单位
 
+            showCodePop: false, // 显示作弊码弹窗
+            codeList: [], // 作弊码数组
             showMenuGuide: 0, // 显示操作菜单指导
             menuGuids: [
                 {name:'防御',desc:'恢复防御力到满值'},
@@ -556,6 +571,9 @@ export default {
             // this.itv = setInterval(_=>{
             //     this.forceUpdatePage();
             // },500);
+            // let _s = getMatchList(this.battle.map.tempGame.allSkills,[['n','龙虾斩']])[0];
+            // let _sv = common.calcSkillValue(_s);
+            // console.log(_sv);
         },
         goPageState(flag){ // 切换页面
             let allUnits;
@@ -1743,13 +1761,13 @@ export default {
                             target.btd.changes.ptc += ptcAlt;
                             this.registerAniEffect(103,target);
                             this.registerAniEffect(ptcAlt>0?8:10,target);
-                            target.btd.changes.domAni = skill.t==3?'shake':'strand';
+                            target.btd.changes.domAni = skill.t>2?'shake':'strand';
                         }
                         else if(t==8){ // 改变心理防御
                             let mentalAlt = common.calcMentalAlteration({caster,target,data:d,});
                             this.mentalAttackAction({unit:target,dmg:-mentalAlt});
                             this.registerAniEffect(mentalAlt>0?8:10,target);
-                            target.btd.changes.domAni = skill.t==3?'shake':'strand';
+                            target.btd.changes.domAni = skill.t>2?'shake':'strand';
                         }
                     }
                     if(target.btd.isPlayer&&this.isFleeing){
@@ -1765,7 +1783,7 @@ export default {
                         target.btd.changes.dge += dodgeAlt;
                         this.registerAniEffect(104,target);
                         this.registerAniEffect(dodgeAlt<0?8:10,target);
-                        target.btd.changes.domAni = skill.t==3?'':'strand';
+                        target.btd.changes.domAni = skill.t>2?'':'strand';
                     }
                 }
             }
@@ -1948,6 +1966,8 @@ export default {
         onTapPop(){ // 点击【弹窗-关闭】
             this.viewingUnit = null;
             this.showMenuGuide = 0;
+            this.showCodePop = false;
+            this.codeList = [];
         },
         onTapEditBuff(buff){ // 点击【弹窗-状态编辑弹窗-状态按钮】
             this._alert(`将 ${this.editBuffUnitList[this.editBuffUnitIndex].btd.name} 的 ${buff.name} 状态削减 ${this.editLevel} 层。`,5);
@@ -1968,6 +1988,22 @@ export default {
         },
         onTapMenuGuide(){ // 点击【菜单-帮助】
             this.showMenuGuide = !this.showMenuGuide;
+        },
+        onTapMenuCode(){ // 点击【菜单-作弊码】
+            let _codeList = this.battle.map.tempGame.codeList;
+            let codeList = []
+            for(let code of _codeList){
+                let codeConfig = CONFIG.codeConfigs[code.id-1];
+                codeList.push({
+                    count: code.c,
+                    ...codeConfig,
+                });
+            }
+            this.codeList = codeList;
+            this.showCodePop = !this.showCodePop;
+        },
+        onTapCode(code){ // 点击【作弊码】
+            console.log(`点击【作弊码】`,code);
         },
         onTapMenuAttack({flag,data,ban,buffId,buffLevel,sp,spLevel}){ // 点击【菜单-攻击】
             if(flag==1){ // 点击attack图标
@@ -2077,10 +2113,13 @@ export default {
                     this.menuData.unitOptionData = skill;
                     this.goMenuState(4,{type:2,caster:curUnit});
                 }
-                else if(target==3){ // 敌方，则选择目标
+                else if(target==3){ // 敌方单体，则选择目标
                     this.menuData.unitOptionType = 2; // 以单位为目标的行动类型：技能施放
                     this.menuData.unitOptionData = skill;
                     this.goMenuState(4,{type:1,caster:curUnit});
+                }
+                else if(target==4){ // 敌方全体
+                    this.unitAction({caster:curUnit,type:2,skill,targetUnitList:this.enemyTeam});
                 }
             }
         },
@@ -2094,7 +2133,6 @@ export default {
                 console.error(err);
             }
         },
-
 
         /* 其他 */
         _alert(text,time){ // 显示提示
@@ -2362,18 +2400,24 @@ export default {
             transform: scale(1.05);
         }
     }
-    .board-container .btn-cheat{
+    .board-container .btn-cheat,
+    .board-container .btn-code{
         position: absolute;
-        right: .25rem;
-        width: 1rem;
+        right: -.33rem;
+        width: 1.2rem;
         height: .5rem;
         line-height: .5rem;
+        text-align: left;
+        padding-left: .06rem;
     }
     .btn-cheat-1{
-        top: 0;
-    }
-    .btn-cheat-2{
         top: .6rem;
+    }
+    /* .btn-cheat-2{
+        top: .6rem;
+    } */
+    .btn-code{
+        top: 0;
     }
 
     /* time */
@@ -2678,5 +2722,72 @@ export default {
         z-index: 100;
         border: .02rem solid #fff;
         background-image: linear-gradient(to bottom, rgba(5,5,65,1) 0%, rgba(45,45,194,.8) 100%);
+    }
+
+    /* 作弊码弹窗 */
+    /* <div class="code-wrap" v-if="codeList.length>0">
+        <a class="btn-code" @click.stop="onTapCode(code)" v-for="code in codeList">
+            <span class="code-name">{{code.name}}</span>
+            <span class="code-desc">{{code.desc}}</span>
+            <span class="code-count">{{code.count}}</span>
+        </a>
+    </div> */
+    .code-wrap{
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex-direction: column;
+        padding: .06rem;
+        padding-top: .12rem;
+    }
+    .code-wrap .btn-code{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: nowrap;
+        width: 100%;
+        border: .02rem solid orangeRed;
+        border-radius: .06rem;
+        height: 1rem;
+        line-height: .5rem;
+        padding-right: .08rem;
+        margin-bottom: .16rem;
+    }
+    .code-wrap .btn-code .code-name,
+    .code-wrap .btn-code .code-desc,
+    .code-wrap .btn-code .code-count{
+        height: .66rem;
+        display: block;
+    }
+    .code-wrap .btn-code .code-name{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 30%;
+        font-weight: bold;
+        font-size: .25rem;
+        white-space: nowrap;
+        word-break: keep-all;
+        line-height: .6rem;
+    }
+    .code-wrap .btn-code .code-desc{
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        width: 50%;
+        text-align: left;
+        line-height: .3rem;
+        color: #ccc;
+        padding: 0 .08rem;
+    }
+    .code-wrap .btn-code .code-count{
+        width: 1rem;
+        height: .4rem;
+        line-height: .4rem;
+    }
+    .code-wrap .btn-code .code-count-inner{
+        display: block;
+        border-radius: .2rem;
+        border-right: .02rem solid #fff;
     }
 </style>

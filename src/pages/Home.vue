@@ -841,7 +841,7 @@ export default {
                     newGuestCount = 3;
                 }
                 else{
-                    newGuestCount = r(2,5);
+                    newGuestCount = r(3,6);
                 }
                 let pushGuests = _ =>{ // 向酒馆推送x个随机的客人
                     for(let i=2;i<(newGuestCount+2);i++){
@@ -1348,7 +1348,7 @@ export default {
                 cellList.push(newCell);
             }
             // 生成敌人配置
-            let enemyCount = cellCount/2+r(0,size);
+            let enemyCount = Math.floor(cellCount/2);
             let enemyDistributionList = [];
             for(let i=0;i<cellCount;i++){
                 enemyDistributionList.push(i);
@@ -1362,6 +1362,10 @@ export default {
             // 配备电池
             let battery = cellCount*15;
             map.battery = [battery,battery]
+            // 配置作弊码
+            for(let i=0;i<this.game.codeList;i++){
+                this.game.codeList[i].c[0] = this.game.codeList[i].c[1];
+            }
 
             map.cellList = cellList;
             map.guard = CONFIG.initGuard;
@@ -1766,9 +1770,10 @@ export default {
                     // 属性调整
                     if(inten==0){ // 白名没有技能
                         enemy.ss = [];
+                        // enemy.ss = this.me.ss;
                     }
                     if(this.map.level==1){ // 1级地图
-                        if(inten==0){ // 流浪者没有装备和技能
+                        if(inten==0){ // 流浪者没有装备和背包
                             enemy.b = [];
                             enemy.es = [];
                         }

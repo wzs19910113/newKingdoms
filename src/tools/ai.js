@@ -65,7 +65,7 @@ export function genAction({unit,meTeam,youTeam,isFleeing,mode,}){ // 生成 AI �
             let consumeRate = c/(btd.eng[0]+btd.phy[0]);
             if(effect){
                 let dmgRate = effect.d.d/10000*.25;
-                if(t==3&&effect&&consumeRate<dmgRate){
+                if(t>2&&effect&&consumeRate<dmgRate){
                     traceSkillActionList.push(action);
                 }
             }
@@ -100,12 +100,12 @@ export function genAction({unit,meTeam,youTeam,isFleeing,mode,}){ // 生成 AI �
     // console.log(actionList);
     // console.log(res,attackActionList);
     // let actionDesc = getActionDesc(res);
-    // if(unit.id==14){
+    if(DEBUG){
         for(let action of actionList){
             console.log(getActionDesc(action));
         }
         console.log(`============================================================================`);
-    // }
+    }
     // console.log(unit.nm,res);
     return res;
 }
@@ -159,14 +159,20 @@ function getActionList({copyUnit,copyAliveMeTeam,copyAliveYouTeam,banAttackSkill
                     }
                 }
             }
-            else if(skill.t==3){ // 目标为敌方单体
+            else if(skill.t>2){ // 目标为敌方或敌方全体
                 let attackEffect = getMatchList(skill.el,[['t',1]])[0];
                 if(attackEffect&&banAttackSkill){ // 禁止带有攻击性质的技能
 
                 }
                 else{
-                    for(let youUnit of copyAliveYouTeam){
-                        let newSkillAction = { caster:copyUnit, type:2, targetUnitList:[youUnit], skill, score:0, consume, };
+                    if(skill.t==3){ // 敌方单体
+                        for(let youUnit of copyAliveYouTeam){
+                            let newSkillAction = { caster:copyUnit, type:2, targetUnitList: [youUnit], skill, score:0, consume, };
+                            skillActionList.push(newSkillAction);
+                        }
+                    }
+                    else{ // 敌方全体
+                        let newSkillAction = { caster:copyUnit, type:2, targetUnitList: copyAliveYouTeam, skill, score:0, consume, };
                         skillActionList.push(newSkillAction);
                     }
                 }
@@ -283,7 +289,6 @@ function calcActionScore({action,isFleeing,copyAliveYouTeam,}){ // 计算一个 
         let hpRatio = btd.hp[0]/btd.hp[1];
         let dodgeReduction = common.calcDodge({caster,});
         dodgeReduction = setInRange(dodgeReduction,0,btd.dge);
-
         score = (dodgeReduction/10000)*(1.2-hpRatio)*scoreFactor(caster)*5;
     }
     else if(action.type==5){ // 追踪
@@ -452,7 +457,7 @@ function calcAttackScore(action,isFleeing,){ // 计算攻击行动的分数
 function calcSkillScore(action,isFleeing,){ // 计算技能行动的分数
     let score = 0;
     let { caster, targetUnitList, skill, consume, } = action;
-    let target = targetUnitList[0];
+    let target = targetUnitList[r(0,targetUnitList.length-1)];
     let dodgeRatio = hitRate(target); // 0-1
     let consumeFactor = 1-consume/(caster.btd.phy[0]+caster.btd.eng[0]);
 
