@@ -1,9 +1,12 @@
 <template>
-    <a class="equip" :class="`equip-${equip.t} equip-mode-${mode} ${(mode==1&&equip.hl)?'equip-hl':''}`" @click="_onTap">
+    <a class="equip" :class="`equip-${equip.t} equip-mode-${mode} ${(mode==1&&equip.hl)?'equip-hl':''} ${onEquip?'row-on':''}`" @click="_onTap">
         <span class="value money" v-if="mode==1&&!compare" v-html="common.moneyFormat(equip.v,1)"></span>
-        <div class="row">
+        <div class="row" :class="``">
             <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
-            <span class="name">{{equip.n}}</span>
+            <span class="name">
+                {{equip.n}}
+                <span v-if="onEquip">（装备中）</span>
+            </span>
             <span class="awa" v-if="mode==1&&compare">存{{common.awaFormat(equip.d)}}%</span>
             <span class="figure" v-if="mode==1&&compare">塑{{common.awaFormat(equip.fg)}}%</span>
         </div>
@@ -51,6 +54,10 @@ export default {
         equip: Object, // 原装备
         compare: Object, // 对比装备
         colorReverse: { // 对比色反转
+            type: Boolean,
+            default: false,
+        },
+        onEquip: { // 是否显示为已着装备
             type: Boolean,
             default: false,
         },
@@ -191,6 +198,12 @@ export default {
         margin-right: .06rem;
         text-shadow: .02rem .02rem .12rem #000;
     }
+    .row-on{ /* 衣着装备 */
+        
+    }
+    .row-on .name{
+        text-shadow: none;
+    }
     .row .awa{
         line-height: .3rem;
         font-size: .24rem;
@@ -204,6 +217,7 @@ export default {
         line-height: .34rem;
         background-color: rgba(24,24,24,.98);
         /* border-top-left-radius: .06rem; */
+        z-index: 10;
         border-bottom-left-radius: .16rem;
     }
 

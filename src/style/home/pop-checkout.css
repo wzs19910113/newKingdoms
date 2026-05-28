@@ -6,12 +6,20 @@
         <label class="title">获得金币：</label>
         <span class="value money" v-html="`${common.moneyFormat(award.gold)} $`"></span>
     </div>
+    <div class="row row-battery" v-if="award.battery">
+        <label class="title">获得能量：</label>
+        <span class="value battery">{{award.battery}}</span>
+    </div>
     <div class="row row-equips">
         <label class="title">获得装备：</label>
         <div class="equip" :class="`${equip.t==1?'weapon':''}`" v-for="equip of award.equipList">
             <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
             <span class="name">{{equip.n}}</span>
         </div>
+    </div>
+    <div class="row row-guard" v-if="award.guard">
+        <label class="title">警戒值提升：</label>
+        <span class="value guard">{{award.guard}}</span>
     </div>
 </div> */
 .pop-checkout{
@@ -86,7 +94,8 @@
 }
 
 .pop-checkout .row-money,
-.pop-checkout .row-battery{
+.pop-checkout .row-battery,
+.pop-checkout .row-guard{
     padding-left: .1rem;
     height: .6rem;
     line-height: .6rem;
@@ -137,6 +146,10 @@
 }
 .pop-checkout .row-equips .weapon{
     background-image: linear-gradient(to right, rgba(44,16,105,1) 0%, rgba(44,16,105,1) 90%, rgba(255,255,255,0) 100% );
+}
+.pop-checkout .row-guard .guard{
+    color: #CD812C;
+    font-weight: bold;
 }
 
 .checkout-shadow{

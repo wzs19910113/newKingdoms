@@ -260,6 +260,9 @@ export default {
         width: 50%;
         text-align: right;
     }
+    .stat-row-l .money{
+        font-weight: bold;
+    }
     .btn-leader{
         display: inline-block;
         text-align: center;

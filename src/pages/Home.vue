@@ -126,9 +126,9 @@
                             </div>
                             <div class="temple-tab-list-wrap">
                                 <div class="temple-tab-tip">可融合的装备（{{temple.equipList.length}}）：</div>
-                                <div class="temple-item" v-for="(equip,index) of temple.equipList">
-                                    <Equip class="temple-equip" v-if="temple.baseEquip&&(temple.baseEquip.t==equip.t)" :compare="temple.baseEquip" :colorReverse="true" :equip="equip" :key="index" @onTap="onTapEquip" />
-                                    <Equip class="temple-equip" v-else :equip="equip" :key="index" @onTap="onTapEquip" />
+                                <div class="temple-item" :class="`${index<temple.onEquipCount?'temple-item-on':''}`" v-for="(equip,index) of temple.equipList">
+                                    <Equip class="temple-equip" v-if="temple.baseEquip&&(temple.baseEquip.t==equip.t)" :compare="temple.baseEquip" :colorReverse="true" :onEquip="index<temple.onEquipCount" :equip="equip" :key="index" @onTap="onTapEquip" />
+                                    <Equip class="temple-equip" v-else :equip="equip" :onEquip="index<temple.onEquipCount" :key="index" @onTap="onTapEquip" />
                                     <a class="temple-item-btn" @click="onTapTempleEquip(equip,map.level)">
                                         <span v-html="!temple.baseEquip?`加入<br/>熔炉`:`融合`"></span>
                                     </a>
@@ -264,6 +264,10 @@
                 <label class="title">获得金币：</label>
                 <span class="value money" v-html="`${common.moneyFormat(award.gold)} $`"></span>
             </div>
+            <div class="row row-guard" v-if="award.guard">
+                <label class="title">警戒值：</label>
+                <span class="value guard">+{{award.guard}}</span>
+            </div>
             <div class="row row-battery" v-if="award.battery">
                 <label class="title">获得能量：</label>
                 <span class="value battery">{{award.battery}}</span>
@@ -278,6 +282,21 @@
                 </div>
             </div>
         </div>
+        <!-- 作弊码选择遮罩 -->
+        <Cover class="code-picker-cover" v-if="showCodePickerCover&&award.codeList.length>0" :tip="`选择 ${award.codePickingCount} 个作弊码：`">
+            <div class="pop-code-picker-wrap">
+                <div class="pop-code-picker-tip">作弊码是游戏系统以外的功能。<br/>每条作弊码的使用次数会在每次进入地牢时自动充满。</div>
+                <div class="pop-code-list">
+                    <a class="btn-code" @click.stop="onTapPickCode(code)" v-for="code in award.codeList">
+                        <span class="code-name">
+                            [ {{code.name}} ]
+                            <span class="code-count" v-if="code.c&&code.c[1]>0">已拥有 {{code.c[1]}}</span>
+                        </span>
+                        <span class="code-desc">{{code.desc}}</span>
+                    </a>
+                </div>
+            </div>
+        </Cover>
         <!-- 金币转移遮罩 -->
         <Cover v-if="showMoneyTrasferCover" @onTap="onTapCover" tip="选取并转移金币给目标：">
             <div class="pop-money-transfer-wrap">
@@ -432,9 +451,11 @@ export default {
                 battery: 0,
                 x: 0, // 技能经验
                 equipList: [],
+                codeList: [],
+                codePickingCount: 0,
                 // show: true,
                 // gold: 47864,
-                // guard: 0,
+                // guard: 8,
                 // battery: 15,
                 // x: 0,
                 // equipList: [
@@ -455,6 +476,7 @@ export default {
                 tag: 1, // 1装备融合 2技能强化
                 skillList: [],
                 equipList: [],
+                onEquipCount: 0,
                 baseEquip: null,
                 previewSkill: null,
             },
@@ -479,6 +501,7 @@ export default {
             viewingAvatar: null, // 正在浏览的头像数据
             showBankCover: false, // 显示金库弹窗
             showTemple: false, // 显示神庙
+            showCodePickerCover: false, // 显示作弊码选择弹窗
 
             coverTip: '', // 阴影遮罩文本
             confirmTip: '', // 确认弹窗的文本
@@ -598,7 +621,7 @@ export default {
             let navis = [];
             let conqueredIDList = [];
             let conqueres = [];
-            // conqueres = [101,102,103,104,105,106,107,108,109,110]; // @test
+            if(DEBUG) conqueres = [101,102,103,104,105,106,107,108,109,110]; // @test
             // 获取已攻克地图的ID数组
             for(let map of this.game.mapList){
                 if(arrContains(map.flagMarks,0)==-1){
@@ -723,7 +746,13 @@ export default {
             let { b, es, ss, } = this.viewingUnit;
             let skillList = [], equipList = [];
             let baseEquip = this.temple.baseEquip;
-            let combinedEquipIdList = [...b,];
+            let combinedEquipIdList = [...es,...b,];
+            let onEquipCount = 0;
+            for(let i=0;i<es.length;i++){
+                if(es[i]){
+                    onEquipCount++;
+                }
+            }
             for(let equipId of combinedEquipIdList){
                 let oEquip = getMatchList(this.game.allEquips,[['id',equipId]])[0];
                 if(oEquip){
@@ -745,6 +774,7 @@ export default {
             }
             this.temple.skillList = skillList;
             this.temple.equipList = equipList;
+            this.temple.onEquipCount = onEquipCount;
         },
         initTemple(){ // 初始化神庙数据
             this.temple.baseEquip = null;
@@ -972,6 +1002,7 @@ export default {
                         battery: 0,
                         x: 0,
                         equipList: [],
+                        codeList: [],
                     }
 
                     // 普通对战
@@ -1004,7 +1035,7 @@ export default {
                         }
                     }
 
-                    // BOSS战
+                    // 1-8级BOSS战
                     if(mode==2){
                         // 改变地图
                         let oMap = getMatchList(this.game.mapList,[['id',this.map.id]])[0];
@@ -1015,28 +1046,54 @@ export default {
                             cell.enemy = 0;
                             delete cell.core;
                         }
-                        for(let enemyUnit of enemyTeam){
-                            // 改变 wanted
-                            let wanted = getMatchList(this.game.wantedList,[['id',enemyUnit.id]])[0];
-                            if(wanted&&(wanted.s==1||wanted.s==0)){ // 若悬赏中，则设置为已领取
-                                wanted.s = 3;
+                        if(this.map.level<9){ // 非最终BOSS战
+                            for(let enemyUnit of enemyTeam){
+                                // 改变 wanted
+                                let wanted = getMatchList(this.game.wantedList,[['id',enemyUnit.id]])[0];
+                                if(wanted&&(wanted.s==1||wanted.s==0)){ // 若悬赏中，则设置为已领取
+                                    wanted.s = 3;
+                                }
+                                // 灵感指数
+                                award.x += Math.ceil(enemyUnit.btd.score*.05);
+                                // 服饰装备
+                                for(let i=0;i<3;i++){
+                                    let newEquip = common.genEquipData({game:this.game,level:enemyUnit.l+1,type:r(2,5),});
+                                    common.registerEquip({equip:newEquip,game:this.game,});
+                                    award.equipList.push(newEquip);
+                                }
+                                // 武器
+                                let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.l+1,type:1,});
+                                common.registerEquip({equip:newWeapon,game:this.game,});
+                                award.equipList.push(newWeapon);
                             }
-                            // 警戒值
-                            award.guard = -this.map.guard;
-                            // 灵感指数
-                            award.x += Math.ceil(enemyUnit.btd.score*.05);
-                            // 服饰装备
-                            for(let i=0;i<3;i++){
-                                let newEquip = common.genEquipData({game:this.game,level:enemyUnit.l+1,type:r(2,5),});
-                                common.registerEquip({equip:newEquip,game:this.game,});
-                                award.equipList.push(newEquip);
+                            // 生存可选的作弊码
+                            let codeList = [];
+                            for(let codeConfig of CONFIG.codeConfigs){
+                                let newCode;
+                                if(codeConfig.level<=this.map.level){
+                                    newCode = cloneObj(codeConfig);
+                                }
+                                if(newCode){
+                                    let count = 0;
+                                    let oCode = getMatchList(this.game.codeList,[['id',codeConfig.id]])[0];
+                                    if(oCode){
+                                        newCode.c = oCode.c;
+                                    }
+                                    else{
+                                        newCode.c = [0,0,];
+                                    }
+                                    codeList.push(newCode);
+                                }
                             }
-                            // 武器
-                            let newWeapon = common.genEquipData({game:this.game,level:enemyUnit.l+1,type:1,});
-                            common.registerEquip({equip:newWeapon,game:this.game,});
-                            award.equipList.push(newWeapon);
+                            award.codeList = codeList;
+                            award.codePickingCount = enemyTeam.length;
+                            award.guard = 0;
+                            award.title = `击败核心`;
                         }
-                        award.title = `击败核心`;
+                        else if(this.map.level==9){ // 最终BOSS战
+                            award.guard = 0;
+                            award.title = `通关`;
+                        }
                     }
 
                     // 屈服的敌人加入酒馆
@@ -1074,6 +1131,10 @@ export default {
                     common.skillXIncrease(award.x,this.game);
                     for(let equip of award.equipList){
                         oLeader.b.push(equip.id);
+                    }
+
+                    if(award.codeList.length>0){
+                        this.showCodePickerCover = true;
                     }
 
                     this.award = award;
@@ -1655,6 +1716,38 @@ export default {
             if(this.banReactive) return;
             this._alert(`每次战斗后积累，槽满后可复制非敌对角色的一个技能`,5);
         },
+        onTapPickCode(code){ // 点击【选择作弊码】
+            this._confirm(`确定选择 ${code.name} 吗？`,_=>{
+                let myCode;
+                for(let i=0;i<this.game.codeList.length;i++){
+                    if(this.game.codeList[i].id==code.id){
+                        myCode = this.game.codeList[i];
+                        this.game.codeList[i].c[1]++;
+                        this.game.codeList[i].c[0] = this.game.codeList[i].c[1];
+                    }
+                }
+                if(!myCode){
+                    this.game.codeList.push({
+                        id: code.id,
+                        c: [1,1,],
+                    });
+                }
+                this._alert(`${code.name} 使用次数+1`,3);
+                // 同步 award
+                this.award.codePickingCount--;
+                for(let i=0;i<this.award.codeList.length;i++){
+                    let gameCode = getMatchList(this.game.codeList,[['id',this.award.codeList[i].id]])[0];
+                    if(gameCode){
+                        this.award.codeList[i].c = gameCode.c;
+                    }
+                }
+
+                if(this.award.codePickingCount==0){
+                    this.showCodePickerCover = false;
+                }
+                this.asynTeam();
+            });
+        },
         onTapClosePop(){ // 点击【弹窗-关闭】
             if(this.banReactive) return;
             this.resetViewingUnitPopData();
@@ -1664,6 +1757,8 @@ export default {
                 gold: 0,
                 guard: 0,
                 equipList: [],
+                codeList: [],
+                codePickingCount: 0,
             }
         },
 
@@ -1880,6 +1975,7 @@ export default {
                 tag: 1,
                 skillList: [],
                 equipList: [],
+                onEquipCount: 0,
                 baseEquip: null,
                 previewSkill: null,
             };
@@ -2026,4 +2122,5 @@ export default {
     @import '../style/home/pop-equip.css';
     @import '../style/home/pop-skill.css';
     @import '../style/home/pop-checkout.css';
+    @import '../style/home/pop-code-picker.css';
 </style>

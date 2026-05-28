@@ -1033,9 +1033,9 @@ export function fuseEquip({baseEquip,equip,unit,game,level=1,}){ // 融合装备
         unregisterEquips({equipIdList:[equip.id],game,});
         let oUnit = getMatchList(game.allUnits,[['id',unit.id]])[0];
         oUnit.b = removeFromNumberList(equip.id,oUnit.b); // 从背包中移除ID
-        for(let i=0;i<oUnit.es.length;i++){ // 从装备栏中移除ID
+        for(let i=0;i<oUnit.es.length;i++){ // 从装备栏中移除ID 
             if(oUnit.es[i]==equip.id){
-                ounit.es[i] = 0;
+                oUnit.es[i] = 0;
             }
         }
     }

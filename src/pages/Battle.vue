@@ -29,10 +29,10 @@
                         </div>
                         <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊1</a>
                         <!-- <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊2</a> -->
-                        <!-- <a class="btn btn-code" @click="onTapMenuCode" v-if="battle.map.tempGame.codeList.length>0"><b>作弊码</b></a> -->
-                        <a class="btn btn-code" @click="onTapMenuCode" v-if="menuData.state>0">
+                        <a class="btn btn-code" @click="onTapMenuCode" v-if="menuData.state>0&&battle.map.tempGame.codeList.length>0"><b>作弊码</b></a>
+                        <!-- <a class="btn btn-code" @click="onTapMenuCode" v-if="menuData.state>0">
                             <b>作弊码</b>
-                        </a>
+                        </a> -->
                         <div class="battery-wrap" v-if="battle.map.battery">
                             能源：{{battle.map.battery[0]}}
                         </div>
@@ -1999,6 +1999,7 @@ export default {
                     ...codeConfig,
                 });
             }
+            console.log(`点击【菜单-作弊码】`,codeList);
             this.codeList = codeList;
             this.showCodePop = !this.showCodePop;
         },
@@ -2391,7 +2392,6 @@ export default {
         font-size: .4rem;
         font-weight: bold;
         color: #8ae4f1;
-        z-index: 15;
         box-shadow: 0 0 .5rem .2rem #2F4F4F inset;
         animation: startBtn 1.33s ease-in-out infinite alternate;
     }
@@ -2409,6 +2409,7 @@ export default {
         line-height: .5rem;
         text-align: left;
         padding-left: .06rem;
+        z-index: 15;
     }
     .btn-cheat-1{
         top: .6rem;
@@ -2733,8 +2734,9 @@ export default {
         </a>
     </div> */
     .code-wrap{
+        height: 100%;
         display: flex;
-        justify-content: flex-start;
+        justify-content: center;
         align-items: center;
         flex-direction: column;
         padding: .06rem;

@@ -29,11 +29,9 @@
                 <a class="btn-cell" :class="`${cell.show?'':'btn-cell-hide'}`" :style="calcCellPosition(cell,index)" v-for="(cell,index) of map.cellList" @click.stop="onTapCell(cell,index)">
                     <span class="ele flag" v-if="cell.flag&&(cell.show||cell.marked)">
                         <b>标</b>
-                        <!-- <img :src="require(`../assets/icon-flag.png`)" /> -->
                     </span>
                     <span class="ele core" v-if="cell.core&&(cell.show||cell.marked)">
                         <b>核</b>
-                        <!-- <img :src="require(`../assets/icon-core.png`)" /> -->
                     </span>
                     <span class="ele enemy" v-if="cell.enemy&&cell.show"></span>
                     <div class="brick" :class="`${cell.show?`brick-flip`:``}`"></div>
@@ -44,10 +42,8 @@
         <div class="dungeon-ops">
             <a class="btn btn-leave-tip" v-if="calcFlagCount()<(map.size-1)">找齐 {{map.size-1}}（{{calcFlagCount()}}） 个<b>路标</b>方可离开</a>
             <a class="btn btn-leave" v-else @click.stop="onTapLeave">返回龙虾村</a>
-            <a class="btn btn-core" v-if="calcCoreShow()" @click.stop="onTapCore">进入核心</a>
-            <a class="btn btn-temple" v-if="calcTempleShow()" @click.stop="onTapTemple">参拜神庙</a>
-            <!-- <a class="btn btn-temple" v-if="1" @click.stop="onTapTemple">参拜神庙</a> -->
-
+            <a class="btn btn-core" v-if="calcCoreShow()||DEBUG" @click.stop="onTapCore">进入核心</a>
+            <a class="btn btn-temple" v-if="calcTempleShow()||DEBUG" @click.stop="onTapTemple">参拜神庙</a>
         </div>
     </div>
 </template>

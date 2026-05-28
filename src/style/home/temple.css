@@ -108,6 +108,10 @@
     align-items: flex-start;
     margin-bottom: .1rem;
 }
+.temple-item-on{
+    padding: .08rem .3rem;
+    background-color: rgba(42,42,82,1);
+}
 .temple-equip{
     width: 5.8rem;
 }
@@ -125,6 +129,7 @@
     font-size: .3rem;
     line-height: .32rem;
     margin-left: .1rem;
+    background-color: #131313;
 }
 .temple-base-btn{
     background-color: #244;

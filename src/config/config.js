@@ -1,5 +1,5 @@
 module.exports = {
-	DEBUG: 0,
+	DEBUG: 1,
 	CACHE: {
 		sto: '_DS_RWD_L',
 		tm: '_DS_RWD_T',
@@ -59,11 +59,7 @@ module.exports = {
 			xp: 0, // 主角技能复制点数
 			bank: 0, // 金库金币
 			leaderIndex: 0, // 小队的领队下标
-			codeList: [ // @test
-				{ id: 1, c: [1,1,], },
-				{ id: 2, c: [3,3,], },
-				{ id: 3, c: [1,1,], },
-			], // 作弊码ID数组
+			codeList: [], // 作弊码ID数组
 
 			allUnits: [], // 角色
 			unitIndex: 101, // 角色 ID 索引
@@ -458,7 +454,7 @@ module.exports = {
 					{title:`盗墓贼`,thresGuard:50,guard:10,award:50,},
 				],
 				bosses:[{
-					title: `祭品盗贼`, id: 51, inten: 4, expired: 30, gold: 5000,
+					title: `祭品盗贼`, id: 51, inten: 4, expired: 30, gold: 10000,
 				}],
 			},
 			{
@@ -469,7 +465,7 @@ module.exports = {
 					{title:`头目`,thresGuard:70,guard:10,award:200,},
 				],
 				bosses:[{
-					title: `渡鸦`, id: 52, inten: 5, expired: 50, gold: 15000,
+					title: `渡鸦`, id: 52, inten: 5, expired: 50, gold: 20000,
 				}],
 			},
 			{
@@ -480,8 +476,8 @@ module.exports = {
 					{title:`铸剑师`,thresGuard:70,guard:10,award:500,},
 				],
 				bosses:[
-					{ title: `舞女剑`, id: 53, inten: 4, expired: 70, gold: 20000, },
-					{ title: `练星刀`, id: 54, inten: 4, expired: 70, gold: 20000, },
+					{ title: `舞女剑`, id: 53, inten: 4, expired: 70, gold: 30000, },
+					{ title: `练星刀`, id: 54, inten: 4, expired: 70, gold: 30000, },
 				],
 			},
 			{
@@ -492,7 +488,7 @@ module.exports = {
 					{title:`船长`,thresGuard:70,guard:10,award:800,},
 				],
 				bosses:[{
-					title: `寒冰魅影`, id: 55, inten: 5, expired: 90, gold: 50000,
+					title: `寒冰鬼影`, id: 55, inten: 5, expired: 90, gold: 50000,
 				}],
 			},
 			{
@@ -504,7 +500,7 @@ module.exports = {
 					{title:`大将`,thresGuard:90,guard:20,award:2000,},
 				],
 				bosses:[{
-					title: `镇压官`, id: 56, inten: 5, expired: 110, gold: 80000,
+					title: `主城太守`, id: 56, inten: 5, expired: 110, gold: 80000,
 				}],
 			},
 			{
