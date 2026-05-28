@@ -1,5 +1,5 @@
 module.exports = {
-	DEBUG: 1,
+	DEBUG: 0,
 	CACHE: {
 		sto: '_DS_RWD_L',
 		tm: '_DS_RWD_T',
