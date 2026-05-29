@@ -1033,7 +1033,7 @@ export function fuseEquip({baseEquip,equip,unit,game,level=1,}){ // 融合装备
         unregisterEquips({equipIdList:[equip.id],game,});
         let oUnit = getMatchList(game.allUnits,[['id',unit.id]])[0];
         oUnit.b = removeFromNumberList(equip.id,oUnit.b); // 从背包中移除ID
-        for(let i=0;i<oUnit.es.length;i++){ // 从装备栏中移除ID 
+        for(let i=0;i<oUnit.es.length;i++){ // 从装备栏中移除ID
             if(oUnit.es[i]==equip.id){
                 oUnit.es[i] = 0;
             }
@@ -1302,12 +1302,11 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     let maxEng = btd.attrs[1]+unit.ba[1];
     curHp = setInRange(curHp,0,maxHp);
     curEng = setInRange(curEng,0,maxEng);
-    // if(unit.nk=='祭品盗贼')console.log(`${curHp}=${unit.st[0]}+${unit.ba[0]}（${btd.attrs[0]}）`);
 
     btd.hp = [curHp,maxHp,]; // 血
-    btd.def = [btd.attrs[3],btd.attrs[3],], // 护甲
+    btd.def = [btd.attrs[3],btd.attrs[3],]; // 护甲
     btd.eng = [curEng,maxEng,], // 精力
-    btd.phy = [btd.attrs[2],btd.attrs[2],], // 体力
+    btd.phy = [btd.attrs[2],btd.attrs[2],]; // 体力
 
     btd.fixAwa = 10000+awa;
     btd.dge = cl(btd.fixAwa-btd.attrs[9]*100); // 隐蔽

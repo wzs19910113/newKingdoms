@@ -29,7 +29,7 @@
                         </div>
                         <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊1</a>
                         <!-- <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊2</a> -->
-                        <a class="btn btn-code" @click="onTapMenuCode" v-if="menuData.state>0&&battle.map.tempGame.codeList.length>0"><b>作弊码</b></a>
+                        <a class="btn btn-code" @click="onTapMenuCode" v-if="(mode==1||mode==2)&&menuData.state>0&&battle.map.tempGame.codeList.length>0"><b>作弊码</b></a>
                         <!-- <a class="btn btn-code" @click="onTapMenuCode" v-if="menuData.state>0">
                             <b>作弊码</b>
                         </a> -->
@@ -49,7 +49,7 @@
                     <div class="menu">
                         <p class="menu-tip">
                             <a class="btn btn-guide" @click="onTapMenuGuide"><b>?</b></a>
-                            {{menuData.tip}} {{menuData.extip}}：
+                            {{menuData.tip}} <span v-html="menuData.extip"></span>：
                         </p>
                         <div class="menu-tag" v-if="menuData.state==1">
                             <a class="btn menu-block menu-btn menu-btn-1" @click="onTapMenu({flag:1})">攻击</a>
@@ -72,6 +72,7 @@
                                 <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${mode==4?0:CONFIG.baseConsumeList[7]} ${checkMenuButtonBan({flag:8,})?'btn-ban':''}`" @click="onTapMenu({flag:10,ban:checkMenuButtonBan({flag:8,}),})">{{mode==4?`离开`:`撤离`}}</a>
                             </div>
                         </div>
+                        <!-- 选择攻击 -->
                         <div class="menu-tag" v-if="menuData.state==2">
                             <div class="menu-sub-wrap menu-attack-wrap">
                                 <div class="menu-weapon" v-for="(weapon,index) in curUnitList[curUnitListIndex].btd.weaponList" :key="index">
@@ -82,16 +83,19 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- 选择技能 -->
                         <div class="menu-tag" v-if="menuData.state==3">
                             <div class="menu-sub-wrap menu-skill-wrap">
                                 <Skill class="btn" :class="menuData.expand?'menu-skill-expand':'menu-skill-shrink'" v-for="(skill,index) in curUnitList[curUnitListIndex].btd.skillList" :key="index" :unit="curUnitList[curUnitListIndex]" :ban="checkSubMenuButtonBan({unit:curUnitList[curUnitListIndex],data:skill,})" :skill="skill" :mode="menuData.expand?1:2" :isOption="true" @onTap="onTapMenuSkill" />
                             </div>
                         </div>
-                        <div class="menu-tag" v-if="menuData.state==4">
+                        <!-- 选择单位 -->
+                        <div class="menu-tag" v-if="menuData.state==4||menuData.state==6">
                             <div class="menu-sub-wrap menu-unit-wrap">
-                                <a class="btn" :class="unit.btd.isPlayer?'btn-target-player':'btn-target-enemy'" v-for="(unit,index) in menuData.unitList" :key="index"  @click="onTapMenu({flag:21,data:unit})">{{unit.btd.name}}</a>
+                                <a class="btn" :class="unit.btd.isPlayer?'btn-target-player':'btn-target-enemy'" v-for="(unit,index) in menuData.unitList" :key="index"  @click="onTapMenu({flag:menuData.state==4?21:23,data:unit})">{{unit.btd.name}}</a>
                             </div>
                         </div>
+                        <!-- 选择属性 -->
                         <div class="menu-tag" v-if="menuData.state==5">
                             <div class="menu-sub-wrap menu-attr-wrap">
                                 <a class="btn" v-for="(attr,index) in menuData.attrList" :key="index"  @click="onTapMenu({flag:22,data:attr.i})">{{attr.n}}</a>
@@ -133,9 +137,10 @@
                 </div>
             </div>
         </Pop>
+        <!-- 作弊码弹窗 -->
         <Pop v-if="showCodePop" @onTapClose="onTapPop">
             <div class="code-wrap" v-if="codeList.length>0">
-                <a class="btn-code" @click.stop="onTapCode(code)" v-for="code in codeList">
+                <a class="btn-code" @click.stop="onTapCode(code)" v-for="code in codeList" v-if="code.count[0]">
                     <span class="code-name">[ {{code.name}} ]</span>
                     <span class="code-desc">{{code.desc}}</span>
                     <span class="code-count"><span class="code-count-inner" v-if="code.count[0]>1">剩余 {{code.count[0]}}</span></span>
@@ -231,6 +236,8 @@ export default {
     },
     data(){
         return {
+            originalBattle: null, // battle参数原始数据
+
             pageState: 0, // 页面状态【0:读取数据中|1：战斗准备完成|2：累积行动条|3：战斗-操作中|4：动画|5：buff编辑|99：离开】
 
             boardText: '', // 战场公示文字
@@ -257,6 +264,7 @@ export default {
 
             showCodePop: false, // 显示作弊码弹窗
             codeList: [], // 作弊码数组
+            usingCodeId: 0, // 正在使用的作弊码ID
             showMenuGuide: 0, // 显示操作菜单指导
             menuGuids: [
                 {name:'防御',desc:'恢复防御力到满值'},
@@ -301,229 +309,9 @@ export default {
 
     },
     mounted(){
-        let _nus = [];
-       //  _nus.push(common.genUnitData({id:1,name:'赵日天',age:20,gender:1,level:1,tms:1,rel:3,game:this.battle.tempGame,}));
-       //  _nus.push(common.genUnitData({id:2,gender:2,tms:2,level:1,inten:1,rel:3,game:this.battle.tempGame,}));
-       //  _nus.push(common.genUnitData({id:3,tms:3,level:1,inten:2,rel:3,game:this.battle.tempGame,}));
-       //  _nus.push(common.genUnitData({id:4,tms:4,level:1,inten:3,rel:3,game:this.battle.tempGame,}));
-       //  _nus.push(common.genUnitData({id:11,gender:1,level:9,inten:0,game:this.battle.tempGame,}));
-       //  _nus.push(common.genUnitData({id:12,gender:1,level:9,inten:0,game:this.battle.tempGame,}));
-       //  _nus.push(common.genUnitData({id:13,gender:2,level:9,inten:0,game:this.battle.tempGame,}));
-       //  _nus.push(common.genUnitData({id:14,gender:2,level:9,inten:0,game:this.battle.tempGame,}));
-       //  window.GLOBAL = {};
-       //  window.GLOBAL.game = {
-       //  	money: 1000,
-       //  	day: 1,
-       //  	hour: 0,
-       //  	meTeamIDs: [1,], // 队伍角色ID
-       //  	luck: 0, // 夺宝能力
-       //  	allUnits: [], // 角色
-       //  	unitIndex: 101, // 角色 ID 索引
-       //  	allEquips: [], // 装备
-       //  	equipIndex: 101, // 装备 ID 索引
-       //  	allSkills: [], // 技能
-       //  	skillIndex: 101, // 技能 ID 索引
-       //  	allMaps: [], // 地图
-       //  };
-       //  window.GLOBAL.battle = {
-       //      mode: 1, // 战斗模式【1:普通|2：BOSS|3：切磋|4：营地】
-       //      envirs: {
-       //          mapId: 101,
-       //      },
-       //      field: 9, // 战场 1-9
-       //      playerTeamIds: [1,2,3,4,],
-       //      enemyTeamIds: [11,12,13,14,],
-       //  }
-       //  // 预设装备
-       //  window.GLOBAL.game.allUnits = _nus;
-       //  window.GLOBAL.game.allEquips = [];
-       //
-       //  // _nus[0].as[6] = 50;
-       //  // _nus[1].as[6] = 50;
-       //  // _nus[2].as[6] = 50;
-       //  // _nus[3].as[6] = 50;
-       //
-       //  _nus[0].as[6] = 800;
-       //  _nus[1].as[6] = 800;
-       //  _nus[2].as[6] = 800;
-       //  _nus[3].as[6] = 800;
-       //  _nus[1].as[0] = 1800;
-       //  _nus[1].as[7] = 100;
-       //  _nus[1].as[10] = 1000;
-       //  _nus[3].as[9] = 250;
-       //  _nus[3].as[0] = 2300;
-       //  _nus[3].as[2] = 100;
-       //  _nus[3].as[1] = 400;
-       //  _nus[3].as[3] = 100;
-       //  _nus[3].as[10] = 200;
-       //  _nus[3].as[7] = 500;
-       //  _nus[3].ss[0] = 12;
-       //  // _nus[3].as[8] = -500;
-       //  _nus[7].as[1] = 1;
-       //  _nus[7].as[1] = 1;
-       //  _nus[6].as[0] = 2350;
-       //  _nus[7].as[0] = 1350;
-       //  _nus[7].as[1] = 300;
-       //  _nus[7].as[2] = 100;
-       //  _nus[7].as[3] = 242;
-       //  _nus[7].as[6] = 944;
-       //  //
-       //  _nus[1].es[0] = 1;
-       //  _nus[1].es[0] = 2;
-       //  _nus[1].es[5] = 6;
-       //  _nus[1].es[3] = 7;
-       //  _nus[1].es[0] = 3;
-       //  _nus[2].es[5] = 6;
-       //  _nus[2].es[3] = 7;
-       //  //
-       //  _nus[3].es[0] = 4;
-       //  _nus[3].es[1] = 5;
-       //  _nus[3].es[5] = 6;
-       //  _nus[3].es[3] = 7;
-       //  _nus[3].es[4] = 8;
-       //  //
-       //  // _nus[6].as[6] = 15;
-       //  // _nus[5].as[6] = 14;
-       //  // _nus[4].as[6] = 13;
-       //  _nus[4].es[0] = 9;
-       //  _nus[4].es[5] = 10;
-       //  _nus[4].es[1] = 1;
-       //  _nus[5].es[1] = 2;
-       //  _nus[6].es[1] = 3;
-       //  _nus[7].es[1] = 4;
-       //  _nus[7].es[2] = 5;
-       //  //
-       //  // // _nus[4].ss[0] = 11;
-       //  // // _nus[5].ss[0] = 11;
-       //  // // _nus[6].ss[0] = 11;
-       //  // // _nus[7].ss[0] = 11;
-       //  // // _nus[7].ss[1] = 12;
-       //  // // _nus[7].ss[2] = 13;
-       //  // // _nus[7].ss[3] = 14;
-       //  // // _nus[7].ss[3] = 12;
-       //  // // _nus[7].ss[2] = 11;
-       //  // // _nus[7].ss[1] = 13;
-       //  // _nus[7].ss[0] = 14;
-       //
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:1,game:{},level:1,inten:0,type:r(1,1)}));
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:2,game:{},level:1,inten:0,type:r(1,1)}));
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:3,game:{},level:1,inten:1,inten:3,type:r(1,1)}));
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:4,game:{},level:1,inten:2,type:r(1,1)}));
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:5,game:{},level:1,inten:3,type:r(1,1)}));
-       //
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:6,game:{},level:r(1,1),type:r(3,3)}));
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:7,game:{},level:r(1,1),type:r(5,5)}));
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:8,game:{},level:r(1,1),type:r(5,5)}));
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:9,game:{},level:r(1,1),type:r(1,1)}));
-       //  window.GLOBAL.game.allEquips.push(common.genEquipData({id:10,game:{},level:r(1,1),type:r(5,5)}));
-       //  // 预设技能
-       //  for(let i=0;i<10;i++){
-       //      _nus[0].ss[i] = i+1;
-       //      window.GLOBAL.game.allSkills.push(common.genSkillData({id:i+1,game:{},level:r(1,9)}));
-       //  }
-       //
-       //  // 效果类型【 1攻击 2添加状态 3减弱一个增益状态 4削减一个减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感】
-       // // 攻击方式{...attack}，添加的状态-等级数组{ b:[1,2], bl:[3,4],}，
-       // // 固疗和百分疗 { h:100, rx:35, }，心防固伤和智力补正 { d:100, rx1:0, rx2:44, }
-       // // 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
-       //  window.GLOBAL.game.allSkills.push({
-       //      id: 11,
-       //  	l: 1,
-       //  	n: '治愈术',
-       //  	t: 2, // 1自己 2我方单体 3敌方单体
-       //  	el: [{ // 技能效果数组
-       //          t: 5,
-       //  		d: {h:117,rx:10},
-       //      },],
-       //  	c: 39, // 体力消耗
-       //  	d: 1200, // 存在感
-       //  	v: 133, // 价值
-       //  });
-       //  window.GLOBAL.game.allSkills.push({
-       //      id: 12,
-       //  	l: 1,
-       //  	n: '龙虾斩',
-       //  	t: 3, // 1自己 2我方单体 3敌方单体
-       //  	el: [{ // 技能效果数组
-       //          t: 1,
-       //  		d: {
-       //              n: '挥砍',
-       //  			d: 16, // 基础伤害
-       //  			r1: 13, // 力量补正
-       //  			r2: 15, // 精准补正
-       //  			b: [], // buff制造表（buff id）
-       //  			bl: [], // buff等级表（1-9）
-       //  			s: 0, // SP效果 1压制 2破盾 3气溃 4漩流 5锁敌 6攻心 7摸金
-       //  			sl: 9, // SP效果等级
-       //  			et: 1, // 特效类型 1劈砍 2钝击 3子弹 4飞刀 5火炮 6雷击
-       //          },
-       //      },{
-       //          t: 2,
-       //          d: { b:[114,115], bl:[2,4], },
-       //      }],
-       //  	c: 10, // 体力消耗
-       //  	d: 5200, // 存在感
-       //  	v: 1533, // 价值
-       //  });
-       //  window.GLOBAL.game.allSkills.push({
-       //      id: 13,
-       //  	l: 1,
-       //  	n: '蝴蝶阵法',
-       //  	t: 1, // 1自己 2我方单体 3敌方单体
-       //  	el: [{ // 技能效果数组
-       //          t: 9,
-       //  		d: { d:-5346, rx:115, },
-       //      },{ // 技能效果数组
-       //          t: 2,
-       //  		d: { b:[5,14,], bl:[4,3,], },
-       //      },],
-       //  	c: 46, // 体力消耗
-       //  	d: 5200, // 存在感
-       //  	v: 1533, // 价值
-       //  });
-       //  window.GLOBAL.game.allSkills.push({
-       //      id: 14,
-       //  	l: 1,
-       //  	n: '凝视',
-       //  	t: 3, // 1自己 2我方单体 3敌方单体
-       //  	el: [{
-       //          t: 9,
-       //  		// d: {d:100,rx1:35,rx2:40,},
-       //  		d: {d:3100,rx:0,},
-       //      },],
-       //  	c: 23, // 体力消耗
-       //  	d: 1600, // 存在感
-       //  	v: 0, // 价值
-       //  });
-       //  window.GLOBAL.game.allSkills.push({
-       //      id: 15,
-       //  	l: 3,
-       //  	n: '大绝命',
-       //  	t: 3, // 1自己 2我方单体 3敌方单体
-       //  	el: [
-       //          {
-       //              t: 8,
-       //      		d: { d:-146, rx1:115, rx2:12, },
-       //          },
-       //          {
-       //              t: 9,
-       //      		d: { d:3400, rx:35, },
-       //          },
-       //          {
-       //              t: 2,
-       //      		d: { b:[115,103,], bl:[1,5,], },
-       //          },
-       //      ],
-       //  	c: 144, // 体力消耗
-       //  	d: 700, // 存在感
-       //  	v: 0, // 价值
-       //  });
-       //  for(let i=0;i<4;i++){
-       //      let skill = window.GLOBAL.game.allSkills[i];
-       //      skill.v = common.calcSkillValue(skill);
-       //  }
         if(window.GLOBAL&&window.GLOBAL.battle){
             this.battle = window.GLOBAL.battle;
+            this.originalBattle = cloneObj(window.GLOBAL.battle); // 复制原始battle数据
             this.init();
         }
         else{
@@ -537,6 +325,7 @@ export default {
     methods: {
         /* 流程相关 */
         init(){ // 初始化全部
+
             let { playerTeamIds, enemyTeamIds, field, mode, } = this.battle;
             let playerTeam = [], enemyTeam = [];
             let unitAction = (ids,team) => {
@@ -607,7 +396,7 @@ export default {
             }
         },
         goMenuState(flag,data={}){ // 切换菜单
-            let { type, caster, } = data;
+            let { type, caster, targetList, } = data;
             if(flag==4){ // 选择目标单位 type:1敌方全体，2友方全体
                 let list, team;
                 if(type==1){
@@ -625,6 +414,16 @@ export default {
             else if(flag==5){ // 选择属性
                 this.menuData.extip = `选择属性`;
             }
+            else if(flag==6){ // 选择作弊码目标
+                let codeConfig = getMatchList(CONFIG.codeConfigs,[['id',this.usingCodeId]])[0];
+                this.menuData.unitList = targetList;
+                if(codeConfig){
+                    this.menuData.extip = `选择作弊码 <b style="color:orangeRed">[${codeConfig.name}]</b> 的目标`;
+                }
+                else{
+                    this.menuData.extip = `选择目标`;
+                }
+            }
             else{
                 this.menuData.extip = ``;
             }
@@ -633,6 +432,12 @@ export default {
         },
         movementProcess(){ // 行动条进展，计算出本帧行动者数组
             let allAliveUnits;
+            let fastest = 0; // 所有存活单位中的最快速度
+            let speedFactor = 100; // 速度调整因素
+            let tickCount = 0;
+            let _curUnitList = []; // 可行动单位数组
+            let curUnitList = []; // 多重可行动单位数组
+
             if(this.isFleeing){ // 如果正在撤离
                 let allEnemyUnits = [...this.enemyTeam];
                 allAliveUnits = getSubMatchList(allEnemyUnits,[['out',0]],'btd');
@@ -640,9 +445,16 @@ export default {
             else{
                 allAliveUnits = this.getAllAliveUnits();
             }
-            let tickCount = 0;
-            let _curUnitList = []; // 可行动单位数组
-            let curUnitList = []; // 多重可行动单位数组
+
+            // 计算 fastest
+            for(let unit of allAliveUnits){
+                let trueSpeed = common.getSpeed(unit);
+                if(trueSpeed>fastest){
+                    fastest = trueSpeed;
+                }
+            }
+            speedFactor = 500/fastest;
+
             let tick = _ =>{
                 // 每个存活单位行动力增长一次
                 for(let unit of allAliveUnits){
@@ -650,7 +462,7 @@ export default {
 
                     }
                     else{
-                        unit.btd.mov += common.getSpeed(unit)*100;
+                        unit.btd.mov += common.getSpeed(unit)*speedFactor;
                     }
                     if(unit.btd.mov>=10000){
                         unit.overflowMove = unit.btd.mov-10000;
@@ -1007,31 +819,56 @@ export default {
         },
         battleEnd(result=0){ // 战斗结束
             let lag = 1;
+            let code6;
+            let epilog = _ =>{
+                this.goPageState(99);
+                let resultData = {
+                    result,
+                    battle: this.battle,
+                    playerTeam: this.playerTeam,
+                    enemyTeam: this.enemyTeam,
+                    bonusRate: this.bonusRate,
+                    roundCount: this.roundCount,
+                };
+                window.GLOBAL.battleResult = resultData;
+                this.timerList.push(setTimeout(_=>{
+                    this.$router.push('home');
+                },lag));
+            }
             if(result==1){ // 获胜
                 lag = 1000;
                 this._alert(`获胜！`);
+                epilog();
             }
             else if(result==2){ // 战败
-                lag = 1000;
-                this._alert(`战败...`);
+                if(this.mode==1||this.mode==2){
+                    let codeList = this.battle.map.tempGame.codeList;
+                    for(let i=0;i<codeList.length;i++){
+                        if(codeList[i].id==6&&codeList[i].c[0]>0){
+                            code6 = codeList[i];
+                        }
+                    }
+                }
+                if(!code6){ // 如果没有时间回退的作弊码，则直接战败
+                    lag = 1000;
+                    this._alert(`战败...`);
+                    epilog();
+                }
+                else{ // 如果有时间回退的作弊码，则询问是否使用
+                    this._confirm(`你已战败，是否消耗作弊码 [时间回退] 重新开始战斗？`,_=>{
+                        this.reBattle();
+                    },_=>{
+                        lag = 1000;
+                        this._alert(`战败...`);
+                        epilog();
+                    });
+                }
             }
             else if(result==3){ // 撤离
                 lag = 1000;
                 this.boardTip(`撤离成功！`);
+                epilog();
             }
-            this.goPageState(99);
-            let resultData = {
-                result,
-                battle: this.battle,
-                playerTeam: this.playerTeam,
-                enemyTeam: this.enemyTeam,
-                bonusRate: this.bonusRate,
-                roundCount: this.roundCount,
-            };
-            window.GLOBAL.battleResult = resultData;
-            this.timerList.push(setTimeout(_=>{
-                this.$router.push('home');
-            },lag));
         },
 
         /* 快捷功能 */
@@ -1133,6 +970,18 @@ export default {
         },
         checkSubMenuButtonBan({unit,data}){ // 检查菜单的攻击和技能按钮是否该禁用
             return !common.canConsume({unit,consume:common.calcConsume({type:1,unit,data,})});
+        },
+        calcCodeConsume(codeList,codeId){ // 计算消耗作弊码
+            let res = cloneObj(codeList);
+            for(let i=0;i<res.length;i++){
+                if(res[i].c&&res[i].id==codeId){ // 时间回退
+                    res[i].c[0]--;
+                    if(res[i].c[0]<0){
+                        res[i].c[0] = 0;
+                    }
+                }
+            }
+            return res;
         },
 
         painAction({dmg,unit,}){ // 结算常规伤害
@@ -1378,6 +1227,50 @@ export default {
                 target.btd.changes.dge += CONFIG.spLevelMap[4][attack.sl-1];
             }
         },
+        reBattle(){ // 重新开始战斗
+            let originalCodeList = this.battle.map.tempGame.codeList;
+            originalCodeList = this.calcCodeConsume(originalCodeList,6);
+
+            this.battle = cloneObj(this.originalBattle);
+            this.battle.map.tempGame.codeList = originalCodeList;
+
+            this.pageState = 0;
+            this.boardText = ''; // 战场公示文字
+            this.boardSkill = {}; // 战场公示特效技能
+            this.menuData = { // 菜单数据
+                state: 0, // 操作面板出现状态【0:不显示|1：基础选项|2：攻击选项|3：技能选项|4：选择单位|5：选择属性】
+                unitList: [],
+                attrList: [{n:`力量`,i:4},{n:`精准`,i:5},{n:`速度`,i:6},{n:`智力`,i:7},{n:`定力`,i:8},{n:`隐蔽`,i:9},{n:`爆发`,i:10},],
+                tip: '', // 菜单公示主文字
+                extip: '', // 菜单公示副文字
+                expand: 0, // 菜单展开标识
+                unitOptionType: 0, // 选择单位对应的行动【1攻击|2技能施放|3话术】
+                unitOptionData: {}, // 选择单位对应的行动相关的数据
+                stateRecordList: [],
+            };
+            this.curUnitList = []; // 本帧行动单位数组
+            this.curUnitListIndex = -1; // 本帧行动单位数组下标
+            this.viewingUnit = null; // 正在查看的单位
+            this.showCodePop = false; // 显示作弊码弹窗
+            this.codeList = []; // 作弊码数组
+            this.usingCodeId = 0; // 正在使用的作弊码ID
+            this.showMenuGuide = 0; // 显示操作菜单指导
+            this.field = 0;
+            this.roundCount = 0; // 经历的回合次数
+            this.isFleeing = 0; // 当前正在撤离
+            this.fleeMove = 0; // 当前撤离进度
+            this.totalFleeMove = 1; // 撤离进度总值
+            this.aniList = []; // 播放画布动画的数据数组
+            this.playerTeam = [];
+            this.enemyTeam = [];
+            this.editBuffUnitList = []; // buff编辑对象单位数组
+            this.editBuffUnitIndex = -1; // buff编辑对象单位数组下标
+            this.editBuffList = []; // 编辑弹窗的 buff 数组
+            this.editLevel = 0; // 可以削减的 buff 层数
+            this.bonusRate = 1; // 额外金币奖励比率
+
+            this.init();
+        },
 
         /* 动画相关 */
         playDomAni(unit,aniName){ // 播放单位DOM元素动作
@@ -1545,7 +1438,6 @@ export default {
             let changesName = follow?'followChanges':'changes';
             if(arrContains(unit.btd[changesName].effectTypeList,type)==-1){
                 unit.btd[[changesName]].effectTypeList.push(type);
-                // console.log(`!!!!!!!!!!!${unit.btd.name}`,unit.btd.changes.effectTypeList);
             }
         },
         getUnitDomPos(id){ // 获取单位dom的坐标
@@ -1575,7 +1467,7 @@ export default {
         /* 单位动作 */
         unitAction({caster,type,targetUnitList,burstAttr,skill,attack}){ // 单位执行动作
             /*action = {
-                type: 1, // 动作类型 1攻击 2技能 3防御 4躲避 5追踪 6调息 7集气 8爆气 9话术 10撤离
+                type: 1, // 动作类型 1攻击 2技能 3防御 4躲避 5追踪 6调息 7集气 8爆气 9话术 10撤离 11作弊码
                 burstAttr: 1, // 4力量 5精准 6速度 7智力 8定力 9隐蔽 10爆发
                 targetUnitList: [], // 目标单位数组
             }*/
@@ -1632,6 +1524,10 @@ export default {
                 case 10: // 撤离
                     this.boardTip(`${oCaster.btd.name} 准备撤离了`);
                     this.unitFlee(oCaster);
+                break;
+                case 11: // 作弊码
+                    this.boardTip(`${oCaster.btd.name} 什么都没做，但难以理解的事情发生了`);
+                    this.unitCode(oCaster,oTargetUnitList);
                 break;
             }
         },
@@ -1789,6 +1685,44 @@ export default {
             }
 
             // 回合后置动作
+            this.unitRoundEpilog(caster);
+        },
+        unitCode(caster,targetUnitList){ // 单位使用作弊码
+            let codeId = this.usingCodeId;
+            let target = targetUnitList[0];
+            if(codeId==1){ // 偷钱
+                let money = target.btd.money;
+                target.btd.changes.money += -money;
+                caster.btd.changes.money += money;
+                this.registerAniEffect(201,caster);
+                this.registerAniEffect(201,target);
+            }
+            else if(codeId==2){ // 心理防御-1234
+                target.btd.changes.mdef += -1234;
+                this.registerAniEffect(201,target);
+            }
+            else if(codeId==3){ // 点杀
+                target.btd.out = 1;
+            }
+            else if(codeId==4){ // 潜能涨到100%
+                caster.btd.changes.ptc += 10000;
+                this.registerAniEffect(103,caster);
+            }
+            else if(codeId==5){ // 复活
+                target.btd.out = 0;
+                target.btd.changes.hp = Math.ceil(target.btd.hp[1]/2);
+                if(target.btd.def[1]){
+                    target.btd.changes.def = target.btd.def[1];
+                }
+                this.registerAniEffect(201,target);
+            }
+            else if(codeId==6){ // 重新开局
+
+            }
+            else if(codeId==7){ // 行动次数=2
+                target.btd.roundTotal = 2;
+            }
+            this.battle.map.tempGame.codeList = this.calcCodeConsume(this.battle.map.tempGame.codeList,codeId);
             this.unitRoundEpilog(caster);
         },
         unitDefense(caster){ // 单位防御
@@ -1982,6 +1916,7 @@ export default {
             this.menuData.expand = !this.menuData.expand;
         },
         onTapMenuBack(){ // 点击【菜单-退后】
+            this.usingCodeId = 0;
             this.menuData.extip = ``;
             this.menuData.state = this.menuData.stateRecordList[this.menuData.stateRecordList.length-1];
             this.menuData.stateRecordList.pop();
@@ -1999,12 +1934,42 @@ export default {
                     ...codeConfig,
                 });
             }
-            console.log(`点击【菜单-作弊码】`,codeList);
             this.codeList = codeList;
             this.showCodePop = !this.showCodePop;
         },
         onTapCode(code){ // 点击【作弊码】
-            console.log(`点击【作弊码】`,code);
+            let curUnit = this.curUnitList[this.curUnitListIndex];
+            let targetList = [];
+            this.onTapPop();
+            this.usingCodeId = code.id;
+            if(code.id==1){ // 偷钱
+                targetList = getSubMatchList(this.enemyTeam,[['out',0]],'btd'); // 所有敌方存活单位
+                this.goMenuState(6,{targetList,caster:curUnit,});
+            }
+            else if(code.id==2){ // 心理防御-1234
+                targetList = getSubMatchList(this.enemyTeam,[['out',0]],'btd'); // 所有敌方存活单位
+                this.goMenuState(6,{targetList,caster:curUnit,});
+            }
+            else if(code.id==3){ // 点杀
+                targetList = getSubMatchList(this.enemyTeam,[['out',0]],'btd'); // 所有敌方存活单位
+                this.goMenuState(6,{targetList,caster:curUnit,});
+            }
+            else if(code.id==4){ // 潜能涨到100%
+                this.unitAction({caster:curUnit,targetList,type:11});
+            }
+            else if(code.id==5){ // 复活
+                targetList = getSubMatchList(this.playerTeam,[['out',1]],'btd'); // 所有己方战退单位
+                this.goMenuState(6,{targetList,caster:curUnit,});
+            }
+            else if(code.id==6){ // 重新开局
+                this._confirm(`确定消耗作弊码，然后重新开始本场战斗吗？`,_=>{
+                    this.reBattle();
+                });
+            }
+            else if(code.id==7){ // 行动次数+1
+                targetList = getSubMatchList(this.playerTeam,[['out',0]],'btd'); // 所有己方存活单位
+                this.goMenuState(6,{targetList,caster:curUnit,});
+            }
         },
         onTapMenuAttack({flag,data,ban,buffId,buffLevel,sp,spLevel}){ // 点击【菜单-攻击】
             if(flag==1){ // 点击attack图标
@@ -2092,6 +2057,9 @@ export default {
             else if(flag==22){ // 选择属性
                 this.unitAction({caster:curUnit,type:8,burstAttr:data});
             }
+            else if(flag==23){ // 点击作弊码目标单位
+                this.unitAction({caster:curUnit,type:11,targetUnitList:[data]});
+            }
             else if(flag==101){ // 点击攻击方式
                 let attack = data;
                 if(attack.a){ // 全体攻击，则直接执行动作
@@ -2139,8 +2107,8 @@ export default {
         _alert(text,time){ // 显示提示
             this.$refs['toast-alert'].trigger(text,time);
         },
-        _confirm(confirmTip,onTapConfirm){ // 显示确认文本
-            this.$refs['toast-confirm'].showConfirm({ confirmTip, onTapConfirm, });
+        _confirm(confirmTip,onTapConfirm,onTapCancel){ // 显示确认文本
+            this.$refs['toast-confirm'].showConfirm({ confirmTip, onTapConfirm, onTapCancel, });
         },
         forceUpdatePage(){ // 防止页面刷新停滞
             let oPlayerTeam = cloneObj(this.playerTeam), oEnemyTeam = cloneObj(this.enemyTeam);
@@ -2376,7 +2344,8 @@ export default {
         position: relative;
         z-index: 10;
         height: 1rem;
-        padding: 0 .2rem;
+        padding-left: 1.5rem;
+        padding-right: .9rem;
         line-height: .3rem;
         font-size: .24rem;
         color: #fff;
@@ -2726,21 +2695,14 @@ export default {
     }
 
     /* 作弊码弹窗 */
-    /* <div class="code-wrap" v-if="codeList.length>0">
-        <a class="btn-code" @click.stop="onTapCode(code)" v-for="code in codeList">
-            <span class="code-name">{{code.name}}</span>
-            <span class="code-desc">{{code.desc}}</span>
-            <span class="code-count">{{code.count}}</span>
-        </a>
-    </div> */
     .code-wrap{
         height: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        padding: .06rem;
-        padding-top: .12rem;
+        padding: 1.4rem .06rem;
+        overflow-y:auto;
     }
     .code-wrap .btn-code{
         display: flex;
@@ -2771,6 +2733,7 @@ export default {
         white-space: nowrap;
         word-break: keep-all;
         line-height: .6rem;
+        color: orangeRed;
     }
     .code-wrap .btn-code .code-desc{
         display: flex;

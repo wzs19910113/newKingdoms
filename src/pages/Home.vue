@@ -960,6 +960,9 @@ export default {
                     }
                 }
             }
+            let setCodeList = _ =>{ // 作弊码赋值
+                this.game.codeList = map.tempGame.codeList;
+            }
             this.map = map;
             this.asynTeam();
             if(mode==3){ // 切磋模式
@@ -967,6 +970,7 @@ export default {
             }
             else{
                 setAllUnits();
+                setCodeList();
                 if(result==3){ // 撤离成功
                     this.map.guard -= 10;
                     this.map.guard = setInRange(this.map.guard,0,100);
@@ -1420,11 +1424,13 @@ export default {
                     cellList[enemyDistributionList[i]].enemy = r(1,(navi.level<3)?3:4);
                 }
             }
+
             // 配备电池
             let battery = cellCount*15;
             map.battery = [battery,battery]
-            // 配置作弊码
-            for(let i=0;i<this.game.codeList;i++){
+
+            // 自动作弊码
+            for(let i=0;i<this.game.codeList.length;i++){
                 this.game.codeList[i].c[0] = this.game.codeList[i].c[1];
             }
 
@@ -2080,6 +2086,16 @@ export default {
             this.map.guard += 50;
             this.map.guard = setInRange(this.map.guard,0,100);
             common.skillXIncrease(7300,this.game);
+            // 作弊码
+            let codeList = []
+            for(let codeConfig of CONFIG.codeConfigs){
+                codeList.push({
+                    id: codeConfig.id,
+                    c: [2,2,],
+                });
+            }
+            this.game.codeList = codeList;
+            console.log(`作弊`);
             // for(let map of this.game.mapList){
             //     map.flagMarks = Array.from(map.flagMarks,_=>{
             //         return 1;

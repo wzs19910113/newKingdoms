@@ -405,8 +405,12 @@ export default {
             transform: scale(2000%);
             border-width: .001rem;
         }
-        100%{
+        99%{
             transform: scale(2400%);
+            opacity: 0;
+        }
+        100%{
+            transform: scale(1);
             opacity: 0;
         }
     }
