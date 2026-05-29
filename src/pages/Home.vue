@@ -126,9 +126,9 @@
                             </div>
                             <div class="temple-tab-list-wrap">
                                 <div class="temple-tab-tip">可融合的装备（{{temple.equipList.length}}）：</div>
-                                <div class="temple-item" :class="`${index<temple.onEquipCount?'temple-item-on':''}`" v-for="(equip,index) of temple.equipList">
-                                    <Equip class="temple-equip" v-if="temple.baseEquip&&(temple.baseEquip.t==equip.t)" :compare="temple.baseEquip" :colorReverse="true" :onEquip="index<temple.onEquipCount" :equip="equip" :key="index" @onTap="onTapEquip" />
-                                    <Equip class="temple-equip" v-else :equip="equip" :onEquip="index<temple.onEquipCount" :key="index" @onTap="onTapEquip" />
+                                <div class="temple-item" :class="`${isOnEquip(viewingUnit,equip)?'temple-item-on':''}`" v-for="(equip,index) of temple.equipList">
+                                    <Equip class="temple-equip" v-if="temple.baseEquip&&(temple.baseEquip.t==equip.t)" :compare="temple.baseEquip" :colorReverse="true" :onEquip="isOnEquip(viewingUnit,equip)" :equip="equip" :key="index" @onTap="onTapEquip" />
+                                    <Equip class="temple-equip" v-else :equip="equip" :onEquip="isOnEquip(viewingUnit,equip)" :key="index" @onTap="onTapEquip" />
                                     <a class="temple-item-btn" @click="onTapTempleEquip(equip,map.level)">
                                         <span v-html="!temple.baseEquip?`加入<br/>熔炉`:`融合`"></span>
                                     </a>
@@ -476,7 +476,6 @@ export default {
                 tag: 1, // 1装备融合 2技能强化
                 skillList: [],
                 equipList: [],
-                onEquipCount: 0,
                 baseEquip: null,
                 previewSkill: null,
             },
@@ -747,12 +746,6 @@ export default {
             let skillList = [], equipList = [];
             let baseEquip = this.temple.baseEquip;
             let combinedEquipIdList = [...es,...b,];
-            let onEquipCount = 0;
-            for(let i=0;i<es.length;i++){
-                if(es[i]){
-                    onEquipCount++;
-                }
-            }
             for(let equipId of combinedEquipIdList){
                 let oEquip = getMatchList(this.game.allEquips,[['id',equipId]])[0];
                 if(oEquip){
@@ -774,7 +767,6 @@ export default {
             }
             this.temple.skillList = skillList;
             this.temple.equipList = equipList;
-            this.temple.onEquipCount = onEquipCount;
         },
         initTemple(){ // 初始化神庙数据
             this.temple.baseEquip = null;
@@ -1147,6 +1139,11 @@ export default {
 
                 }
             }
+        },
+
+        //快捷计算
+        isOnEquip(unit,equip){ // 判断一个装备是否正在被单位装上
+            return arrContains(unit.es,equip.id)!=-1;
         },
 
         equipOn(equip,unit,seq){ // 装上装备
@@ -1981,7 +1978,6 @@ export default {
                 tag: 1,
                 skillList: [],
                 equipList: [],
-                onEquipCount: 0,
                 baseEquip: null,
                 previewSkill: null,
             };

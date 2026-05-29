@@ -428,7 +428,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     // }
     return res;
 }
-export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生成一个装备数据 level（1-14）
+export function genEquipData({id=1,game,level=1,inten=0,type=1,melee=r(0,1),}){ // 生成一个装备数据 level（1-14） melee武器类型 1近战 2远程
     let res = {
         id,
         n: '',
@@ -445,9 +445,6 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee,}){ // 生�
     let rRange = []; // 可加成的属性范围
     let dRange = [0,0,]; // 存在感范围
     let name;
-    if(melee){
-        melee = r(1,2); // 武器类型 1近战 2远程
-    }
     let genAttrVal = (attr) =>{ // 根据等级生成属性值
         let res = 0;
         let intenRoot = 0;

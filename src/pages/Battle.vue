@@ -869,6 +869,9 @@ export default {
                 this.boardTip(`撤离成功！`);
                 epilog();
             }
+            else{
+                epilog();
+            }
         },
 
         /* 快捷功能 */
