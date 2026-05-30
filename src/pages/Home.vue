@@ -1810,21 +1810,27 @@ export default {
         },
         onTapCell(cell,index){ // 点击【单元格】
             if(this.banReactive) return;
-            cell.show = true;
             // 同步这张地图的路标与核心数据的标记状态
             let gameMap = getMatchList(this.game.mapList,[['id',this.map.id]])[0];
             let remainEnemyCellCount = 0;
-            for(let cellIndex=0;cellIndex<this.map.cellList.length;cellIndex++){
-                let tCell = this.map.cellList[cellIndex];
-                if(tCell.show){
-                    let flagMarkIndex = arrContains(gameMap.flagIndexes,cellIndex); //
-                    if(flagMarkIndex>-1){
-                        gameMap.flagMarks[flagMarkIndex] = 1;
-                    }
-                    if(gameMap.coreIndex==cellIndex){
-                        gameMap.coreMark = 1;
+            let showCell = _ =>{
+                cell.show = true;
+                for(let cellIndex=0;cellIndex<this.map.cellList.length;cellIndex++){
+                    let tCell = this.map.cellList[cellIndex];
+                    if(tCell.show){
+                        let flagMarkIndex = arrContains(gameMap.flagIndexes,cellIndex); //
+                        if(flagMarkIndex>-1){
+                            gameMap.flagMarks[flagMarkIndex] = 1;
+                        }
+                        if(gameMap.coreIndex==cellIndex){
+                            gameMap.coreMark = 1;
+                        }
                     }
                 }
+            }
+            // 计算剩余敌人数量
+            for(let cellIndex=0;cellIndex<this.map.cellList.length;cellIndex++){
+                let tCell = this.map.cellList[cellIndex];
                 if(tCell.enemy){
                     remainEnemyCellCount++;
                 }
@@ -1834,84 +1840,103 @@ export default {
                 let playerTeamIds = Array.from(this.team,unit=>{
                     return unit.id;
                 });
+                let setEnemy = _ =>{ // 生成随机敌人数据（unit, equips, skills），并保存至 battle.tempGame 中
+                    let enemyTeamIds = [];
+                    let { guard, level, floors, } = this.map;
+                    let tempGame = cloneObj(this.game);
+                    let guardLevel = common.calcGuardLevel(this.map);
+                    let enemyList = [];
+                    for(let i=0;i<cell.enemy;i++){
+                        let inten = 0;
+                        if(remainEnemyCellCount==1){ // 如果是地图最后一个敌对单元格，则强化敌人
+                            inten = guardLevel;
+                        }
+                        else{
+                            inten = r(0,guardLevel);
+                        }
+                        let enemy = common.genUnit({
+                            id: tempGame.unitIndex++,
+                            game: tempGame,
+                            level,
+                            nickname: floors[inten].title,
+                            inten,
+                            equipList: tempGame.allEquips,
+                            skillList: tempGame.allSkills,
+                        });
+                        // 设置金币
+                        let gold = this.map.floors[inten].award*20;
+                        gold = cl(gold+r(0,gold*.5));
+                        enemy.g = gold;
+                        // 属性调整
+                        if(inten==0){ // 白名没有技能
+                            enemy.ss = [];
+                            // enemy.ss = this.me.ss;
+                        }
+                        if(this.map.level==1){ // 1级地图
+                            if(inten==0){ // 流浪者没有装备和背包
+                                enemy.b = [];
+                                enemy.es = [];
+                            }
+                            else if(inten==1){ // 盗墓贼没有技能、头盔、衣服和鞋子
+                                enemy.es[4] = 0;
+                                enemy.es[5] = 0;
+                                enemy.es[6] = 0;
+                                enemy.ss = [];
+                            }
+                        }
+                        else if(this.map.level==2){ // 2级地图
+                            if(inten==0){ // 混混没有头盔、衣服和鞋子
+                                enemy.es[4] = 0;
+                                enemy.es[5] = 0;
+                                enemy.es[6] = 0;
+                            }
+                            else if(inten==1){ // 悍匪没有头盔和鞋子
+                                enemy.es[5] = 0;
+                                enemy.es[6] = 0;
+                            }
+                        }
+                        enemyList.push(enemy);
+                    }
+                    for(let enemy of enemyList){
+                        let newEnemy = common.registerUnit({
+                            unit: enemy,
+                            game: tempGame,
+                            equipList: tempGame.allEquips,
+                            skillList: tempGame.allSkills,
+                        });
+                        common.recoverUnit(newEnemy,tempGame);
+                        enemyTeamIds.push(newEnemy.id);
+                    }
+                    this.map.curCellIndex = index;
+
+                    this.banReactive = true;
+                    setTimeout(_=>{
+                        this.banReactive = false;
+                        this.goBattle({playerTeamIds,enemyTeamIds,game:tempGame});
+                    },400);
+                }
                 // 如果是地图最后一个敌对单元格，则强化敌人
                 if(remainEnemyCellCount==1){
                     cell.enemy = 4;
-                }
-                // 生成随机敌人数据（unit, equips, skills），并保存至 battle.tempGame 中
-                let enemyTeamIds = [];
-                let { guard, level, floors, } = this.map;
-                let tempGame = cloneObj(this.game);
-                let guardLevel = common.calcGuardLevel(this.map);
-                let enemyList = [];
-                for(let i=0;i<cell.enemy;i++){
-                    let inten = 0;
-                    if(remainEnemyCellCount==1){ // 如果是地图最后一个敌对单元格，则强化敌人
-                        inten = guardLevel;
+                    // 地图全开
+                    for(let cellIndex=0;cellIndex<this.map.cellList.length;cellIndex++){
+                        let tCell = this.map.cellList[cellIndex];
+                        if(!tCell.enemy){
+                            tCell.show = true;
+                        }
                     }
-                    else{
-                        inten = r(0,guardLevel);
-                    }
-                    let enemy = common.genUnit({
-                        id: tempGame.unitIndex++,
-                        game: tempGame,
-                        level,
-                        nickname: floors[inten].title,
-                        inten,
-                        equipList: tempGame.allEquips,
-                        skillList: tempGame.allSkills,
+                    this._confirm(`地牢中的最后一战将会非常凶险，但胜利后可进入神庙。<br/>神庙可以融合装备以及强化技能。<br/>你确定要进入战斗吗？`,_=>{
+                        showCell();
+                        setEnemy();
                     });
-                    // 设置金币
-                    let gold = this.map.floors[inten].award*20;
-                    gold = cl(gold+r(0,gold*.5));
-                    enemy.g = gold;
-                    // 属性调整
-                    if(inten==0){ // 白名没有技能
-                        enemy.ss = [];
-                        // enemy.ss = this.me.ss;
-                    }
-                    if(this.map.level==1){ // 1级地图
-                        if(inten==0){ // 流浪者没有装备和背包
-                            enemy.b = [];
-                            enemy.es = [];
-                        }
-                        else if(inten==1){ // 盗墓贼没有技能、头盔、衣服和鞋子
-                            enemy.es[4] = 0;
-                            enemy.es[5] = 0;
-                            enemy.es[6] = 0;
-                            enemy.ss = [];
-                        }
-                    }
-                    else if(this.map.level==2){ // 2级地图
-                        if(inten==0){ // 混混没有头盔、衣服和鞋子
-                            enemy.es[4] = 0;
-                            enemy.es[5] = 0;
-                            enemy.es[6] = 0;
-                        }
-                        else if(inten==1){ // 悍匪没有头盔和鞋子
-                            enemy.es[5] = 0;
-                            enemy.es[6] = 0;
-                        }
-                    }
-                    enemyList.push(enemy);
                 }
-                for(let enemy of enemyList){
-                    let newEnemy = common.registerUnit({
-                        unit: enemy,
-                        game: tempGame,
-                        equipList: tempGame.allEquips,
-                        skillList: tempGame.allSkills,
-                    });
-                    common.recoverUnit(newEnemy,tempGame);
-                    enemyTeamIds.push(newEnemy.id);
+                else{
+                    showCell();
+                    setEnemy();
                 }
-                this.map.curCellIndex = index;
-
-                this.banReactive = true;
-                setTimeout(_=>{
-                    this.banReactive = false;
-                    this.goBattle({playerTeamIds,enemyTeamIds,game:tempGame});
-                },400);
+            }
+            else{
+                showCell();
             }
         },
         onTapLeaveDungeon(){ // 点击【离开地牢】

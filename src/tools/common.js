@@ -1340,8 +1340,8 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
         defaultR2 = cl(btd.attrs[5]/30);
     }
     btd.defaultAttack = {
-		n: strBase?'挥拳':'扔石',
-		d: 1, // 基础伤害
+		n: strBase?'拳头':'石子',
+		d: unit.id==101?2:1, // 基础伤害
 		r1: defaultR1, // 力量补正
 		r2: defaultR2, // 精准补正
 		b: [], // buff制造表（buff id）

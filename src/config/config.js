@@ -460,7 +460,7 @@ module.exports = {
 				}],
 			},
 			{
-				id:103, level:2, type:2, name:'非法山林', links: [102,], size:5,
+				id:103, level:2, type:2, name:'非法森林', links: [102,], size:5,
 				floors:[
 					{title:`混混`,thresGuard:0,guard:1,award:30,},
 					{title:`悍匪`,thresGuard:20,guard:2,award:80,},
