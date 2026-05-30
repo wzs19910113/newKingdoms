@@ -73,7 +73,7 @@ module.exports = {
 		goodBuffs: [{ // 倾向分值[1保护,2强化,3伤害,4弱化]
 				id: 1,name: '止痛',trend:1,good:1,
 				desc: '受到的治疗效果增强',
-				construction: [1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, ],
+				construction: [2, 2.3, 2.6, 2.9, 3.2, 3.5, 3.8, 4.1, 4.4, ],
 			},{
 				id: 2,name: '护盾',trend:1,good:1,
 				desc: '受到的攻击伤害减少',
@@ -89,7 +89,7 @@ module.exports = {
 			},{
 				id: 5,name: '养息',trend:2,good:1,
 				desc: '回合结束时自动恢复体力',
-				construction: [.1, .125, .15, .175, .2, .225, .25, .275, .3,],
+				construction: [.2, .225, .25, .275, .3, .325, .35, .375, .4,],
 			},{
 				id: 6,name: '潜行',trend:1,good:1,
 				desc: '主动行动不增加存在感',
@@ -109,7 +109,7 @@ module.exports = {
 			},{
 				id: 10,name: '狂暴',trend:2,good:1,
 				desc: '无视压制，受到伤害后立刻提升行动力',
-				construction: [1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000,],
+				construction: [1000, 1300, 1600, 1900, 2200, 2500, 2800, 3100, 3400,],
 			},{
 				id: 11,name: '反伤',trend:1,good:1,
 				desc: '对伤害来源造成伤害',
@@ -133,15 +133,15 @@ module.exports = {
 			},{
 				id: 16,name: '亢奋',trend:2,good:1,
 				desc: '造成伤害后恢复自己的体力',
-				construction: [2, 4, 6, 8, 10, 12, 16, 18, 20,],
+				construction: [5, 10, 15, 20, 25, 30, 35, 40, 45,],
 			},{
 				id: 17,name: '隐匿',trend:1,good:1,
 				desc: '回合结束时自动降低存在感',
-				construction: [1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000,],
+				construction: [1000, 1300, 1600, 1900, 2200, 2500, 2800, 3100, 3400,],
 			},{
 				id: 18,name: '战气',trend:2,good:1,
 				desc: '造成伤害的同时削弱体力',
-				construction: [2, 4, 6, 8, 10, 12, 14, 16, 18,],
+				construction: [5, 10, 15, 20, 25, 30, 35, 40, 45,],
 			},{
 				id: 19,name: '霸气',trend:2,good:1,
 				desc: '造成伤害的同时削弱潜能',
@@ -149,7 +149,7 @@ module.exports = {
 			},{
 				id: 20,name: '威慑',trend:2,good:1,
 				desc: '造成伤害的同时造成心理伤害',
-				construction: [10, 20, 30, 40, 50, 60, 70, 80, 90,],
+				construction: [50, 100, 150, 200, 250, 300, 350, 400, 450,],
 			},{
 				id: 21,name: '专注',trend:1,good:1,
 				desc: '受到的心理伤害减少',
@@ -174,11 +174,11 @@ module.exports = {
 			},{
 				id: 104,name: '剧痛',trend:3,good:0,
 				desc: '受到的治疗效果减弱',
-				construction: [.7, .65, .6, .55, .5, .45, .4, .35, .3,],
+				construction: [.5, .47, .44, .41, .38, .35, .32, .29, .26,],
 			},{
 				id: 105,name: '紊乱',trend:4,good:0,
 				desc: '增加攻击和技能的体力消耗',
-				construction: [1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6,],
+				construction: [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2,],
 			},{
 				id: 106,name: '涣散',trend:4,good:0,
 				desc: '潜能累积速度下降',
@@ -202,11 +202,11 @@ module.exports = {
 			},{
 				id: 111,name: '乏力',trend:4,good:0,
 				desc: '力量补正减少',
-				construction: [.8, .74, .68, .62, .56, .5, .44, .38, .32,],
+				construction: [.7, .64, .58, .52, .46, .4, .34, .28, .22,],
 			},{
 				id: 112,name: '模糊',trend:4,good:0,
 				desc: '精准补正减少',
-				construction: [.8, .74, .68, .62, .56, .5, .44, .38, .32,],
+				construction: [.7, .64, .58, .52, .46, .4, .34, .28, .22,],
 			},{
 				id: 113,name: '迟钝',trend:4,good:0,
 				desc: '行动力增速下降',
@@ -222,11 +222,11 @@ module.exports = {
 			},{
 				id: 116,name: '恐惧',trend:3,good:0,
 				desc: '回合结束损失心理防御',
-				construction: [10, 20, 30, 40, 50, 60, 70, 80, 90,],
+				construction: [30, 60, 90, 120, 150, 180, 210, 240, 270,],
 			},{
 				id: 117,name: '促息',trend:4,good:0,
 				desc: '受到伤害会损失体力',
-				construction: [4, 8, 12, 16, 20, 24, 28, 32, 36,],
+				construction: [5, 10, 15, 20, 25, 30, 35, 40, 45,],
 			},{
 				id: 118,name: '麻痹',trend:4,good:0,
 				desc: '受到伤害会损失潜能',
@@ -234,11 +234,11 @@ module.exports = {
 			},{
 				id: 119,name: '干毒',trend:4,good:0,
 				desc: '回合结束损失生命值（固定值）',
-				construction: [5, 10, 20, 40, 80, 160, 320, 640, 1280,],
+				construction: [10, 20, 30, 50, 80, 130, 220, 350, 500, ],
 			},{
 				id: 120,name: '迷惑',trend:3,good:0,
 				desc: '受到话术和技能的心理伤害增加',
-				construction: [1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2,],
+				construction: [2, 2.3, 2.6, 2.9, 3.2, 3.5, 3.8, 4.1, 4.4,],
 			},{
 				id: 121,name: '失智',trend:4,good:0,
 				desc: '智力补正减少',
@@ -428,6 +428,8 @@ module.exports = {
 		sellingRatio: .25, // 售卖价格比率
 		skillXLevelMap: [5000,8000,12500,20000,30000,42000,], // 技能经验升级阈值分布（6级之前）
 		skillXLevelRate: 1.5, // 技能经验升级阈值上涨比率（6级之后）
+		fuseGuardConsume: 10, // 装备融合所需警戒值
+		upgradeGuardConsume: 10, // 技能升级所需警戒值
 
 		figureConsumeMap: [ // 可塑性消耗等级映射表
 			5000, // 1级
@@ -450,8 +452,8 @@ module.exports = {
 			{
 				id:102, level:1, type:2, name:'活死人墓穴', links: [], size:4,
 				floors:[
-					{title:`流民`,thresGuard:0,guard:5,award:15,},
-					{title:`盗墓贼`,thresGuard:50,guard:10,award:50,},
+					{title:`流民`,thresGuard:0,guard:2,award:15,},
+					{title:`盗墓贼`,thresGuard:30,guard:5,award:50,},
 				],
 				bosses:[{
 					title: `祭品盗贼`, id: 51, inten: 4, expired: 30, gold: 10000,
@@ -460,9 +462,9 @@ module.exports = {
 			{
 				id:103, level:2, type:2, name:'非法山林', links: [102,], size:5,
 				floors:[
-					{title:`混混`,thresGuard:0,guard:3,award:30,},
-					{title:`悍匪`,thresGuard:35,guard:5,award:80,},
-					{title:`头目`,thresGuard:70,guard:10,award:200,},
+					{title:`混混`,thresGuard:0,guard:1,award:30,},
+					{title:`悍匪`,thresGuard:20,guard:2,award:80,},
+					{title:`头目`,thresGuard:35,guard:3,award:200,},
 				],
 				bosses:[{
 					title: `渡鸦`, id: 52, inten: 5, expired: 50, gold: 20000,
@@ -471,9 +473,9 @@ module.exports = {
 			{
 				id:104, level:3, type:2, name:'熔铁洞窟', links: [103,], size:5,
 				floors:[
-					{title:`学徒`,thresGuard:0,guard:3,award:60,},
-					{title:`匠人`,thresGuard:35,guard:5,award:160,},
-					{title:`铸剑师`,thresGuard:70,guard:10,award:500,},
+					{title:`学徒`,thresGuard:0,guard:1,award:60,},
+					{title:`匠人`,thresGuard:20,guard:2,award:160,},
+					{title:`铸剑师`,thresGuard:35,guard:3,award:500,},
 				],
 				bosses:[
 					{ title: `舞女剑`, id: 53, inten: 4, expired: 70, gold: 30000, },
@@ -483,9 +485,9 @@ module.exports = {
 			{
 				id:105, level:4, type:2, name:'雪海', links: [103,], size:5,
 				floors:[
-					{title:`水手`,thresGuard:0,guard:3,award:150,},
-					{title:`海盗`,thresGuard:35,guard:5,award:350,},
-					{title:`船长`,thresGuard:70,guard:10,award:800,},
+					{title:`水手`,thresGuard:0,guard:1,award:150,},
+					{title:`海盗`,thresGuard:20,guard:2,award:350,},
+					{title:`船长`,thresGuard:35,guard:3,award:800,},
 				],
 				bosses:[{
 					title: `寒冰鬼影`, id: 55, inten: 5, expired: 90, gold: 50000,
@@ -494,10 +496,10 @@ module.exports = {
 			{
 				id:106, level:5, type:2, name:'落叶城', links: [105,], size:6,
 				floors:[
-					{title:`佣兵`,thresGuard:0,guard:3,award:250,},
-					{title:`佩剑士`,thresGuard:30,guard:5,award:550,},
-					{title:`副将`,thresGuard:60,guard:10,award:1000,},
-					{title:`大将`,thresGuard:90,guard:20,award:2000,},
+					{title:`佣兵`,thresGuard:0,guard:1,award:250,},
+					{title:`佩剑士`,thresGuard:20,guard:2,award:550,},
+					{title:`副将`,thresGuard:35,guard:3,award:1000,},
+					{title:`大将`,thresGuard:50,guard:5,award:2000,},
 				],
 				bosses:[{
 					title: `主城太守`, id: 56, inten: 5, expired: 110, gold: 80000,
@@ -506,10 +508,10 @@ module.exports = {
 			{
 				id:107, level:6, type:2, name:'愚困密道', links: [106,], size:6,
 				floors:[
-					{title:`密探`,thresGuard:0,guard:3,award:400,},
-					{title:`信徒`,thresGuard:30,guard:5,award:800,},
-					{title:`邪师`,thresGuard:60,guard:10,award:1600,},
-					{title:`主教`,thresGuard:90,guard:20,award:3200,},
+					{title:`密探`,thresGuard:0,guard:1,award:400,},
+					{title:`信徒`,thresGuard:20,guard:2,award:800,},
+					{title:`邪师`,thresGuard:35,guard:3,award:1600,},
+					{title:`主教`,thresGuard:50,guard:5,award:3200,},
 				],
 				bosses:[
 					{ title: `处刑人`, id: 57, inten: 5, expired: 130, gold: 100000, },
@@ -519,9 +521,9 @@ module.exports = {
 			{
 				id:108, level:7, type:2, name:'云观', links: [106,], size:5,
 				floors:[
-					{title:`门使`,thresGuard:0,guard:3,award:750,},
-					{title:`游仙`,thresGuard:35,guard:5,award:1500,},
-					{title:`破道者`,thresGuard:70,guard:10,award:3500,},
+					{title:`门使`,thresGuard:0,guard:1,award:750,},
+					{title:`游仙`,thresGuard:20,guard:2,award:1500,},
+					{title:`破道者`,thresGuard:35,guard:3,award:3500,},
 				],
 				bosses:[{
 					title: `天体轨道护卫`, id: 59, inten: 6, expired: 150, gold: 250000,
@@ -530,11 +532,11 @@ module.exports = {
 			{
 				id:109, level:8, type:2, name:'终神宫', links: [107,108,], size:7,
 				floors:[
-					{title:`卫兵`,thresGuard:0,guard:2,award:1000,},
-					{title:`骑士`,thresGuard:25,guard:4,award:2000,},
-					{title:`骑兵长`,thresGuard:50,guard:8,award:4000,},
-					{title:`副统帅`,thresGuard:75,guard:15,award:8000,},
-					{title:`统帅`,thresGuard:100,guard:30,award:18000,},
+					{title:`卫兵`,thresGuard:0,guard:1,award:1000,},
+					{title:`骑士`,thresGuard:20,guard:2,award:2000,},
+					{title:`骑兵长`,thresGuard:35,guard:3,award:4000,},
+					{title:`副统帅`,thresGuard:50,guard:5,award:8000,},
+					{title:`统帅`,thresGuard:75,guard:8,award:18000,},
 				],
 				bosses:[
 					{ title: `恐惧之神`, id: 60, inten: 5, expired: 180, gold: 300000, },
@@ -545,8 +547,8 @@ module.exports = {
 			{
 				id:110, level:9, type:2, name:'漩涡', links: [109,], size:4,
 				floors:[
-					{title:`天选`,thresGuard:0,guard:5,award:1800,},
-					{title:`神话`,thresGuard:50,guard:10,award:4500,},
+					{title:`天选`,thresGuard:0,guard:2,award:1800,},
+					{title:`神话`,thresGuard:30,guard:5,award:4500,},
 				],
 				bosses:[{
 					title: `系统权限`, id: 63, inten: 6, expired: 200, gold: 1,

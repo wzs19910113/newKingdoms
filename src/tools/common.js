@@ -1396,7 +1396,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     // let newBuff2 = cloneObj(CONFIG.badBuffs[14]);
     // newBuff2.level = 7;
     // btd.buffList.push(newBuff2);
-    // let newBuff3 = cloneObj(CONFIG.goodBuffs[10]);
+    // let newBuff3 = cloneObj(CONFIG.goodBuffs[9]);
     // newBuff3.level = 4;
     // btd.buffList.push(newBuff3);
     // let newBuff4 = cloneObj(CONFIG.goodBuffs[8]);

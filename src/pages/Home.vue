@@ -2013,11 +2013,11 @@ export default {
                 });
             }
             else{ // 融合
-                this._confirm(`确定要融合 ${equip.n} 的属性到 ${this.temple.baseEquip.n} 上吗（消耗警戒值50）？`,_=>{
-                    if(this.map.guard>=50){
+                this._confirm(`确定要融合 ${equip.n} 的属性到 ${this.temple.baseEquip.n} 上吗（消耗警戒值${CONFIG.fuseGuardConsume}）？`,_=>{
+                    if(this.map.guard>=CONFIG.fuseGuardConsume){
                         let res = common.fuseEquip({baseEquip:this.temple.baseEquip,equip,unit:this.viewingUnit,game:this.game,level,});
                         if(res.valid){
-                            this.map.guard -= 50;
+                            this.map.guard -= CONFIG.fuseGuardConsume;
                             this.map.guard = setInRange(this.map.guard,0,100);
                             this._alert(`融合成功！`,5);
                             this._alert(`${this.temple.baseEquip.n} 的可塑性-${common.awaFormat(res.figureConsume)}%`,5);
@@ -2046,15 +2046,15 @@ export default {
         },
         onTapTempleUpgradeSkill(){ // 点击【神庙-强化技能】
             if(this.banReactive) return;
-            this._confirm(`确定强化 ${this.temple.previewSkill.n} 吗（消耗警戒值50）？`,_=>{
-                if(this.map.guard>=50){
+            this._confirm(`确定强化 ${this.temple.previewSkill.n} 吗（消耗警戒值${CONFIG.upgradeGuardConsume}）？`,_=>{
+                if(this.map.guard>=CONFIG.upgradeGuardConsume){
                     let oSkill = getMatchList(this.game.allSkills,[['id',this.temple.previewSkill.id]])[0];
                     for(let i=0;i<this.game.allSkills.length;i++){
                         if(this.game.allSkills[i].id==this.temple.previewSkill.id){
                             this.game.allSkills[i] = cloneObj(this.temple.previewSkill);
                         }
                     }
-                    this.map.guard -= 50;
+                    this.map.guard -= CONFIG.upgradeGuardConsume;
                     this.map.guard = setInRange(this.map.guard,0,100);
                     this._alert(`强化成功！`);
                     this.asynTeam();

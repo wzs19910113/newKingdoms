@@ -28,11 +28,6 @@
                             <i class="flashing flashing-right">{{boardSkill.n}}</i>
                         </div>
                         <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊1</a>
-                        <!-- <a class="btn btn-cheat btn-cheat-2" v-if="pageState==1&&DEBUG" @click="onTapCheat(2)">作弊2</a> -->
-                        <a class="btn btn-code" @click="onTapMenuCode" v-if="(mode==1||mode==2)&&menuData.state>0&&battle.map.tempGame.codeList.length>0"><b>作弊码</b></a>
-                        <!-- <a class="btn btn-code" @click="onTapMenuCode" v-if="menuData.state>0">
-                            <b>作弊码</b>
-                        </a> -->
                         <div class="battery-wrap" v-if="battle.map.battery">
                             能源：{{battle.map.battery[0]}}
                         </div>
@@ -52,8 +47,14 @@
                             {{menuData.tip}} <span v-html="menuData.extip"></span>：
                         </p>
                         <div class="menu-tag" v-if="menuData.state==1">
-                            <a class="btn menu-block menu-btn menu-btn-1" @click="onTapMenu({flag:1})">攻击</a>
-                            <a class="btn menu-block menu-btn menu-btn-2" @click="onTapMenu({flag:2})">技能</a>
+                            <div class="menu-block menu-btn menu-btn-1">
+                                <a class="btn" @click="onTapMenu({flag:1})">攻击</a>
+                                <!-- <a class="btn btn-code" @click="onTapMenuCode" v-if="1"><b>作弊码</b></a> -->
+                                <a class="btn btn-code" @click="onTapMenuCode" v-if="checkShowMenuCodeButton()"><b>作弊码</b></a>
+                            </div>
+                            <div class="menu-block menu-btn menu-btn-2" >
+                                <a class="btn" @click="onTapMenu({flag:2})">技能</a>
+                            </div>
                             <div class="menu-block menu-block-lg">
                                 <a class="btn btn-mop btn-cdot" :class="`btn-cdot-${CONFIG.baseConsumeList[0]} ${checkMenuButtonBan({flag:1,checkCrumble:1})?'btn-ban':''}`" @click="onTapMenu({flag:3,ban:checkMenuButtonBan({flag:1,checkCrumble:1}),})">防御️</a>
 
@@ -974,6 +975,19 @@ export default {
         checkSubMenuButtonBan({unit,data}){ // 检查菜单的攻击和技能按钮是否该禁用
             return !common.canConsume({unit,consume:common.calcConsume({type:1,unit,data,})});
         },
+        checkShowMenuCodeButton(){ // 检查菜单是否显示“作弊码”按钮
+            let res;
+            if(
+                (this.mode==1||this.mode==2)
+                &&this.curUnitList[this.curUnitListIndex].id==101
+                &&this.menuData.state>0
+                &&this.battle.map.tempGame.codeList.length>0
+            ){
+                res = true;
+            }
+
+            return res;
+        },
         calcCodeConsume(codeList,codeId){ // 计算消耗作弊码
             let res = cloneObj(codeList);
             for(let i=0;i<res.length;i++){
@@ -1474,7 +1488,6 @@ export default {
                 burstAttr: 1, // 4力量 5精准 6速度 7智力 8定力 9隐蔽 10爆发
                 targetUnitList: [], // 目标单位数组
             }*/
-            this.resetMenu();
             let oTargetUnitList = [], oCaster = this.getUnit(caster.id);
             if(targetUnitList&&targetUnitList.length){
                 for(let target of targetUnitList){
@@ -1491,38 +1504,47 @@ export default {
                 case 1: // 进行攻击
                     this.boardTip(`${oCaster.btd.name} 进行攻击`);
                     this.unitAttack(oCaster,attack,oTargetUnitList);
+                    this.resetMenu();
                 break;
                 case 2: // 施放技能
                     this.boardTip(`${oCaster.btd.name} 发动 ${skill.n}`);
                     this.unitSpell(oCaster,skill,oTargetUnitList);
+                    this.resetMenu();
                 break;
                 case 3: // 防御
                     this.boardTip(`${oCaster.btd.name} 恢复了防御`);
                     this.unitDefense(oCaster);
+                    this.resetMenu();
                 break;
                 case 4: // 躲避
                     this.boardTip(`${oCaster.btd.name} 降低了存在感`);
                     this.unitDodge(oCaster);
+                    this.resetMenu();
                 break;
                 case 5: // 追踪
                     this.boardTip(`${oCaster.btd.name} 进行追踪`);
                     this.unitTrace(oCaster);
+                    this.resetMenu();
                 break;
                 case 6: // 调息
                     this.boardTip(`${oCaster.btd.name} 恢复了体力`);
                     this.unitBreath(oCaster);
+                    this.resetMenu();
                 break;
                 case 7: // 集气
                     this.boardTip(`${oCaster.btd.name} 提升了潜能`);
                     this.unitConcentrate(oCaster);
+                    this.resetMenu();
                 break;
                 case 8: // 爆气
                     this.boardTip(`${oCaster.btd.name} 消耗潜能提升了 ${CONFIG.attrMap[burstAttr]}`);
                     this.unitBurst(oCaster,burstAttr);
+                    this.resetMenu();
                 break;
                 case 9: // 话术
                     this.boardTip(`${oCaster.btd.name} 进行心理攻击`);
                     this.unitPersuade(oCaster,oTargetUnitList);
+                    this.resetMenu();
                 break;
                 case 10: // 撤离
                     this.boardTip(`${oCaster.btd.name} 准备撤离了`);
@@ -1531,6 +1553,7 @@ export default {
                 case 11: // 作弊码
                     this.boardTip(`${oCaster.btd.name} 什么都没做，但难以理解的事情发生了`);
                     this.unitCode(oCaster,oTargetUnitList);
+                    this.resetMenu();
                 break;
             }
         },
@@ -1850,6 +1873,7 @@ export default {
             }
             else{ // 非营地模式
                 this._confirm(`确定要从本场战斗撤离吗？`,_=>{
+                    this.resetMenu();
                     let allEnemyUnits = [...this.enemyTeam];
                     let allAliveEnemyUnits = getSubMatchList(allEnemyUnits,[['out',0]],'btd');
                     let fleeMoveIncresement = 0; // 所有存活敌方单位的速度总和
@@ -1862,6 +1886,8 @@ export default {
                         this.registerAniEffect(201,caster);
                     }
                     this.unitRoundEpilog(caster);
+                },_=>{
+
                 });
             }
         },
@@ -2372,8 +2398,7 @@ export default {
             transform: scale(1.05);
         }
     }
-    .board-container .btn-cheat,
-    .board-container .btn-code{
+    .board-container .btn-cheat{
         position: absolute;
         right: -.33rem;
         width: 1.2rem;
@@ -2385,12 +2410,6 @@ export default {
     }
     .btn-cheat-1{
         top: .6rem;
-    }
-    /* .btn-cheat-2{
-        top: .6rem;
-    } */
-    .btn-code{
-        top: 0;
     }
 
     /* time */
