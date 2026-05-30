@@ -29,7 +29,7 @@
                         </div>
                         <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊1</a>
                         <div class="battery-wrap" v-if="battle.map.battery">
-                            能源：{{battle.map.battery[0]}}
+                            能源：{{mode==2?'无限':battle.map.battery[0]}}
                         </div>
                     </div>
                     <!-- 我方区域 -->
@@ -1495,7 +1495,7 @@ export default {
                 }
             }
             // 消耗能源
-            if(this.mode!=3&&oCaster.btd.isPlayer){
+            if(this.mode!=3&&this.mode!=2&&oCaster.btd.isPlayer){
                 let batteryConsume = type==2?2:1;
                 this.battle.map.battery[0] -= batteryConsume;
                 this.battle.map.battery[0] = setInRange(this.battle.map.battery[0],0,this.battle.map.battery[1]);
@@ -2692,13 +2692,6 @@ export default {
     }
 
     /* 电池 */
-    /* <div class="battery-wrap" v-if="battle.map.battery">
-        <div class="battery-title">能源储备</div>
-        <div class="battery-value">
-            <div class="battery-value-remain">{{battle.map.battery[0]}}</div>
-            <div class="battery-value-total">{{battle.map.battery[1]}}</div>
-        </div>
-    </div> */
     .battery-wrap{
         position: absolute;
         text-align: left;

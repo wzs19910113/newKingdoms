@@ -722,7 +722,7 @@ export default {
             this.$nextTick(_=>{
                 let inmateList = [];
                 for(let unit of this.game.allUnits){
-                    if(unit.rel<3&&unit.rel>0){
+                    if((unit.rel<3&&unit.rel>0)||DEBUG){
                         let newInmate = cloneObj(unit);
                         newInmate.btd = common.getUnitBtd(newInmate,this.game);
                         inmateList.push(newInmate);
@@ -1423,7 +1423,7 @@ export default {
             }
 
             // 配备电池
-            let battery = cellCount*15;
+            let battery = cellCount*5;
             map.battery = [battery,battery]
 
             // 自动作弊码
@@ -1813,8 +1813,8 @@ export default {
             // 同步这张地图的路标与核心数据的标记状态
             let gameMap = getMatchList(this.game.mapList,[['id',this.map.id]])[0];
             let remainEnemyCellCount = 0;
-            let showCell = _ =>{
-                cell.show = true;
+            let showCell = (_cell) =>{
+                _cell.show = true;
                 for(let cellIndex=0;cellIndex<this.map.cellList.length;cellIndex++){
                     let tCell = this.map.cellList[cellIndex];
                     if(tCell.show){
@@ -1922,21 +1922,21 @@ export default {
                     for(let cellIndex=0;cellIndex<this.map.cellList.length;cellIndex++){
                         let tCell = this.map.cellList[cellIndex];
                         if(!tCell.enemy){
-                            tCell.show = true;
+                            showCell(tCell);
                         }
                     }
                     this._confirm(`地牢中的最后一战将会非常凶险，但胜利后可进入神庙。<br/>神庙可以融合装备以及强化技能。<br/>你确定要进入战斗吗？`,_=>{
-                        showCell();
+                        showCell(cell);
                         setEnemy();
                     });
                 }
                 else{
-                    showCell();
+                    showCell(cell);
                     setEnemy();
                 }
             }
             else{
-                showCell();
+                showCell(cell);
             }
         },
         onTapLeaveDungeon(){ // 点击【离开地牢】

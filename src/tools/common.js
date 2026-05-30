@@ -2109,7 +2109,8 @@ export function calcMentalSpDmg({caster,target,dmg,}){ // 计算攻心带来的�
 export function calcGoldSpDmg({target,attack,dmg,}){ // 计算偷窃带来的金币伤害
     let res = 0;
     let hr = hurtRate(target);
-    res = cl(CONFIG.spLevelMap[6][attack.sl-1]*dmg/200*hr);
+    // res = cl(CONFIG.spLevelMap[6][attack.sl-1]*dmg/200*hr);
+    res = cl(CONFIG.spLevelMap[6][attack.sl-1]*hr);
     return res;
 }
 
