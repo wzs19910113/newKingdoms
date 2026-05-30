@@ -361,8 +361,8 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     eng = cl(eng*pow(1.5,inten));
     phy = cl(phy*pow(1.5,inten));
     if(isBoss){
-        ba[0] = cl(hp*pow(1.7,inten));
-        ba[1] = cl(eng*pow(1.6,inten));
+        ba[0] = cl(hp*pow(1.5,inten));
+        ba[1] = cl(eng*pow(1.5,inten));
     }
 
     // 内在属性强化
@@ -806,7 +806,7 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
     let res;
     let cSkill = cloneObj(skill);
     let { t, el, l, n, } = cSkill;
-    let beniFact = t<2?1:-1;
+    let beniFact = (t<=2)?1:-1;
     let melee = false;
     let maxEl = [
         { d:0, r1:0, r2:0, }, // 1攻击
@@ -875,16 +875,16 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
         else if(type==7){ // 潜能 { d:0, rx:0, }
             maxEl[6].d = cl((500+level*9*(beniFact==1?25:50))*beniFact);
             if(skill.l>=3){ // 目标单位的爆发补正
-                newEffect.rx = cl(CONFIG.rxRangeMap[level+4][1]);
+                maxEl[6].rx = cl(CONFIG.rxRangeMap[level+4][1]);
             }
         }
         else if(type==8){ // 心防（固定修改值和定力、智力补正） { d:0, rx1:0, rx2:0, }
-            maxEl[7].d = cl((10+level*25)*beniFact);
+            maxEl[7].d = cl((10+level*125)*beniFact);
             if(beniFact==1&&level>=4){ // 强化心理防御，目标单位的定力补正
-                newEffect.rx1 = cl(CONFIG.rxRangeMap[level+4][1]);
+                maxEl[7].rx1 = cl(CONFIG.rxRangeMap[level+4][1]);
             }
             else if(beniFact==-1&&level>=4){ // 造成心理伤害，施法者的智力补正
-                newEffect.rx2 = cl(CONFIG.rxRangeMap[level+4][1]);
+                maxEl[7].rx2 = cl(CONFIG.rxRangeMap[level+4][1]);
             }
         }
         else if(type==9){ // 存在感 { d:0, rx:0, }

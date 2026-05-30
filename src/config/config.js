@@ -478,8 +478,8 @@ module.exports = {
 					{title:`铸剑师`,thresGuard:35,guard:3,award:500,},
 				],
 				bosses:[
-					{ title: `舞女剑`, id: 53, inten: 4, expired: 70, gold: 30000, },
-					{ title: `练星刀`, id: 54, inten: 4, expired: 70, gold: 30000, },
+					{ title: `舞女剑`, id: 53, inten: 5, expired: 70, gold: 30000, },
+					{ title: `练星刀`, id: 54, inten: 5, expired: 70, gold: 30000, },
 				],
 			},
 			{
@@ -490,7 +490,7 @@ module.exports = {
 					{title:`船长`,thresGuard:35,guard:3,award:800,},
 				],
 				bosses:[{
-					title: `寒冰鬼影`, id: 55, inten: 5, expired: 90, gold: 50000,
+					title: `极寒鬼影`, id: 55, inten: 5, expired: 90, gold: 50000,
 				}],
 			},
 			{
@@ -551,7 +551,7 @@ module.exports = {
 					{title:`神话`,thresGuard:30,guard:5,award:4500,},
 				],
 				bosses:[{
-					title: `系统权限`, id: 63, inten: 6, expired: 200, gold: 1,
+					title: `系统权限`, id: 63, inten: 7, expired: 200, gold: 1,
 				}],
 			},
 		],
@@ -560,7 +560,7 @@ module.exports = {
 		// 作弊码
 		codeConfigs: [
 			{ id: 1, level: 1, name:'妙手狂欢', desc:'无视存在感，窃取一个敌人的所有金币。', },
-			{ id: 2, level: 2, name:'识界阻断', desc:'无视存在感，令一个敌人的心理防御下降1234点。', },
+			{ id: 2, level: 2, name:'识界阻断', desc:'无视存在感，令一个敌人的心理防御下降3333点。', },
 			{ id: 3, level: 2, name:'不可撤销', desc:'直接击败一个非核心敌人。', },
 			{ id: 4, level: 3, name:'以太回响', desc:'潜力值增长至100%。', },
 			{ id: 5, level: 3, name:'生存协议', desc:'复活一个友方并令其防御回满、生命值恢复50%。', },

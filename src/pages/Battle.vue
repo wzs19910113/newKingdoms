@@ -1723,8 +1723,8 @@ export default {
                 this.registerAniEffect(201,caster);
                 this.registerAniEffect(201,target);
             }
-            else if(codeId==2){ // 心理防御-1234
-                target.btd.changes.mdef += -1234;
+            else if(codeId==2){ // 心理防御-3333
+                target.btd.changes.mdef += -3333;
                 this.registerAniEffect(201,target);
             }
             else if(codeId==3){ // 点杀
@@ -1975,7 +1975,7 @@ export default {
                 targetList = getSubMatchList(this.enemyTeam,[['out',0]],'btd'); // 所有敌方存活单位
                 this.goMenuState(6,{targetList,caster:curUnit,});
             }
-            else if(code.id==2){ // 心理防御-1234
+            else if(code.id==2){ // 心理防御-3333
                 targetList = getSubMatchList(this.enemyTeam,[['out',0]],'btd'); // 所有敌方存活单位
                 this.goMenuState(6,{targetList,caster:curUnit,});
             }
