@@ -224,35 +224,23 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
     if(skillId){ // 用于技能
         minAtk = CONFIG.skillAtkRangeMap[level-1][0];
         maxAtk = CONFIG.skillAtkRangeMap[level-1][1];
-        rAllRatio = 1;
+        rAllRatio = 1.3;
     }
     else if(equipId){ // 用于武器
         minAtk = CONFIG.weaponAtkRangeMap[level-1][0];
         maxAtk = CONFIG.weaponAtkRangeMap[level-1][1];
         atkAll = !r(0,4);
-        rAllRatio = .75;
+        rAllRatio = 1;
     }
     if(melee==1){ // 近战
-        if(r(1,10)<=7){ // 纯近战
-            r1Ratio = 1;
-            r2Ratio = 0;
-        }
-        else{
-            r1Ratio = .9;
-            r2Ratio = .4;
-        }
+        r1Ratio = 1;
+        r2Ratio = 0;
         aniType = [1,2,][r(0,1)];
         spRange = [1,2,3,4,];
     }
     else{ // 远程
-        if(r(1,10)<=8){ // 纯远程
-            r1Ratio = 0;
-            r2Ratio = 1;
-        }
-        else{
-            r1Ratio = .3;
-            r2Ratio = .9;
-        }
+        r1Ratio = 0;
+        r2Ratio = 1;
         aniType = [3,4,5,6,][r(0,3)];
         spRange = [5,6,7,];
     }
@@ -309,8 +297,8 @@ export function genAttackData({level=1,melee=1,names=[],skillId=0,equipId=0}){ /
     }
     else if(skillId){ // 属于技能
         // 力量和精准补正
-        newAtk.r1 = cl(genRx(level+5,1)*r1Ratio*rAllRatio);
-        newAtk.r2 = cl(genRx(level+5,1)*r2Ratio*rAllRatio);
+        newAtk.r1 = cl(genRx(level+2,1)*r1Ratio*rAllRatio);
+        newAtk.r2 = cl(genRx(level+2,1)*r2Ratio*rAllRatio);
 
         newAtk.sid = skillId;
     }
@@ -484,35 +472,35 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee=r(0,1),}){ 
         return res;
     }
 
+    // [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
     if(type==1){ // 武器
         if(melee){
-            aRange = [4,];
-            rRange = [3,5,6,7,8,10,];
+            aRange = [4,6,];
         }
         else{
-            aRange = [5,];
-            rRange = [3,4,6,7,8,10,];
+            aRange = [5,6,];
         }
+        rRange = [10,];
         dRange = [50,100];
     }
     else if(type==2){ // 头
-        aRange = [0,3,8,];
-        rRange = [1,2,4,5,6,7,9,10,];
+        aRange = [0,3,];
+        rRange = [6,9,10,];
         dRange = [15,30];
     }
     else if(type==3){ // 身体
-        aRange = [0,3,8,9,];
-        rRange = [1,2,6,7,10,];
+        aRange = [0,3,];
+        rRange = [6,9,10,];
         dRange = [50,100];
     }
     else if(type==4){ // 配饰
-        aRange = [2,];
-        rRange = [3,4,5,6,7,8,9,10,];
+        aRange = [1,2,];
+        rRange = [4,5,7,8,10,];
         dRange = [6,12];
     }
     else if(type==5){ // 脚
-        aRange = [0,3,8,];
-        rRange = [1,2,4,5,6,7,9,10,];
+        aRange = [0,3,6,];
+        rRange = [9,10,];
         dRange = [15,30];
     }
     name = genEquipName(type,melee);
@@ -524,10 +512,7 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee=r(0,1),}){ 
         res.a.push(newAttr);
     }
     // 设置可有属性
-    let rCount = exptr(0,5,1);
-    if(type==4){
-        rCount = exptr(0,7,1);
-    }
+    let rCount = exptr(0,rRange.length,1);
     let shufRRange = shuffle(rRange);
     for(let i=0;i<rCount;i++){
         let newAttr = [0,0,];
@@ -706,7 +691,7 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
             break;
             case 5: // 治疗
                 newEffect.d = { h:0, rx:0, };
-                newEffect.d.h = 15+exptr(1,cl(CONFIG.hpRangeMap[level-1][1]/100+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
+                newEffect.d.h = 15+exptr(1,cl(CONFIG.hpRangeMap[level-1][1]/5+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
                 if(level>=r(4,5)){ // 施法者的智力补正
                     newEffect.d.rx = genRx(level+5,3);
                 }
@@ -867,7 +852,7 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
             maxEl[3] = level+1;
         }
         else if(type==5){ // 治疗 { h:0, rx:0, }
-            maxEl[4].h = 35+cl(CONFIG.hpRangeMap[level-1][1]/100)+cl(pow(level,3.5));
+            maxEl[4].h = 35+cl(CONFIG.hpRangeMap[level-1][1]/5)+cl(pow(level,3.5));
             if(skill.l>4){
                 maxEl[4].rx = cl(CONFIG.rxRangeMap[level+4][1]);
             }
@@ -1293,10 +1278,10 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     btd.name = _unit.nm;
 
     // 获取当前血精状态
-    let curHp = unit.st[0]+unit.ba[0];
     let curEng = unit.st[1]+unit.ba[1];
     let maxHp = btd.attrs[0]+unit.ba[0];
     let maxEng = btd.attrs[1]+unit.ba[1];
+    let curHp = maxHp;
     curHp = setInRange(curHp,0,maxHp);
     curEng = setInRange(curEng,0,maxEng);
 
@@ -1341,7 +1326,7 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     }
     btd.defaultAttack = {
 		n: strBase?'拳头':'石子',
-		d: unit.id==101?2:1, // 基础伤害
+		d: 1, // 基础伤害
 		r1: defaultR1, // 力量补正
 		r2: defaultR2, // 精准补正
 		b: [], // buff制造表（buff id）

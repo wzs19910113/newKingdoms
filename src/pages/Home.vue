@@ -162,7 +162,7 @@
                 <!-- <img class="beer-icon" :src="require('../assets/icon-beer.png')" /> -->
             </a>
             <!-- 营地按钮 -->
-            <a class="btn btn-bonfire" v-if="state==2" @click.stop="onTapBonfire">营</a>
+            <!-- <a class="btn btn-bonfire" v-if="state==2" @click.stop="onTapBonfire">营</a> -->
             <!-- 背景 -->
             <div class="bg" v-if="!loadingResources">
                 <!-- <img class="bg-pic" :class="state==2?'bg-pic-fade':''" :src="require(`../assets/${calcBgName()}.png`)" /> -->
@@ -253,31 +253,36 @@
             </div>
         </Pop>
         <!-- 结算弹窗 -->
-        <div class="pop-checkout" v-if="award.show" @click="onTapClosePop">
-            <div class="checkout-shadow">
-                <div class="light"></div>
-            </div>
-            <div class="row row-title">
-                ◆ {{award.title||'战斗结算'}} ◆
-            </div>
-            <div class="row row-money" v-if="award.gold">
-                <label class="title">获得金币：</label>
-                <span class="value money" v-html="`${common.moneyFormat(award.gold)} $`"></span>
-            </div>
-            <div class="row row-guard" v-if="award.guard">
-                <label class="title">警戒值：</label>
-                <span class="value guard">+{{award.guard}}</span>
-            </div>
-            <div class="row row-battery" v-if="award.battery">
-                <label class="title">获得能量：</label>
-                <span class="value battery">{{award.battery}}</span>
-            </div>
-            <div class="row row-equips" v-if="award.equipList.length>0">
-                <label class="title">获得装备（{{award.equipList.length}}）：</label>
-                <div class="row-equips-wrap">
-                    <div class="equip" :class="`${equip.t==1?'weapon':''}`" v-for="equip of award.equipList">
-                        <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
-                        <span class="name">{{equip.n}}</span>
+        <div class="pop-checkout" v-if="award.show">
+            <div class="pop-checkout-wrap">
+                <div class="checkout-shadow">
+                    <div class="light"></div>
+                </div>
+                <div class="row row-title">
+                    ◆ {{award.title||'战斗结算'}} ◆
+                </div>
+                <div class="row row-money" v-if="award.gold">
+                    <label class="title">获得金币：</label>
+                    <span class="value money" v-html="`${common.moneyFormat(award.gold)} $`"></span>
+                </div>
+                <div class="row row-guard" v-if="award.guard">
+                    <label class="title">警戒值<label class="desc">（请选择）</label>：</label>
+                    <span class="value guard">
+                        <a class="btn-orange" @click="onTapIncreaseGuard">+{{award.guard}}</a>
+                        <a class="btn-orange btn-giveup" @click="onTapCloseCheckout">不增加</a>
+                    </span>
+                </div>
+                <!-- <div class="row row-battery" v-if="award.battery">
+                    <label class="title">获得能量：</label>
+                    <span class="value battery">{{award.battery}}</span>
+                </div> -->
+                <div class="row row-equips" v-if="award.equipList.length>0">
+                    <label class="title">获得装备（{{award.equipList.length}}）：</label>
+                    <div class="row-equips-wrap">
+                        <div class="equip" :class="`${equip.t==1?'weapon':''}`" v-for="equip of award.equipList">
+                            <span class="type">{{[`🗡️`,`🎩`,`🧥`,`💍`,`🥾`,][equip.t-1]}}</span>
+                            <span class="name">{{equip.n}}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -859,26 +864,30 @@ export default {
                 // 注册 3 个客人
                 let tempUnitList = [], tempEquipList = [], tempSkillList = [];
                 let newGuestCount ;
+                let level = Math.ceil(this.game.day/10);
+                level = setInRange(level,1,9);
                 if(this.game.day==3){
                     newGuestCount = 3;
                 }
                 else{
-                    newGuestCount = r(3,6);
+                    newGuestCount = r(1,3)+level;
                 }
                 let pushGuests = _ =>{ // 向酒馆推送x个随机的客人
-                    for(let i=2;i<(newGuestCount+2);i++){
+                    for(let i=0;i<newGuestCount;i++){
                         let unit = common.genUnit({
                             id: this.game.unitIndex++,
                             game: this.game,
-                            level: 1,
+                            level,
                             nickname: `酒馆客人`,
                             equipList: tempEquipList,
                             skillList: tempSkillList,
                             rel: 1,
                         });
-                        unit.g = 0;
-                        unit.b = [];
-                        unit.es = [unit.es[0],0,0,0,0,0,0,];
+                        if(level==1){
+                            unit.g = 0;
+                            unit.b = [];
+                            unit.es = [unit.es[0],0,0,0,0,0,0,];
+                        }
                         tempUnitList.push(unit);
                     }
                     for(let unit of tempUnitList){
@@ -944,12 +953,12 @@ export default {
                     let oUnit = getMatchList(this.game.allUnits,[['id',player.id]])[0];
                     oUnit.st[1] = btd.eng[0];
                     oUnit.g = btd.money;
-                    if(btd.out!=0){ // 若战退或屈服
-                        oUnit.st[0] = 1;
-                    }
-                    else{
-                        oUnit.st[0] = btd.hp[0];
-                    }
+                    // if(btd.out!=0){ // 若战退或屈服
+                    //     oUnit.st[0] = 1;
+                    // }
+                    // else{
+                    //     oUnit.st[0] = btd.hp[0];
+                    // }
                 }
             }
             let setCodeList = _ =>{ // 作弊码赋值
@@ -1106,8 +1115,6 @@ export default {
                     }
 
                     // award 赋值
-                    this.map.guard += award.guard;
-                    this.map.guard = setInRange(this.map.guard,0,100);
                     if(this.map.battery){
                         this.map.battery[0] += award.battery;
                         this.map.battery[0] = setInRange(this.map.battery[0],0,this.map.battery[1]);
@@ -1751,10 +1758,13 @@ export default {
                 this.asynTeam();
             });
         },
-        onTapClosePop(){ // 点击【弹窗-关闭】
-            if(this.banReactive) return;
-            this.resetViewingUnitPopData();
-            this.showGuide = false;
+        onTapIncreaseGuard(){ // 点击【结算弹窗-增加警戒值】
+            this.map.guard += this.award.guard;
+            this.map.guard = setInRange(this.map.guard,0,100);
+            this._alert(`警戒值增加了 ${this.award.guard}`,3);
+            this.onTapCloseCheckout();
+        },
+        onTapCloseCheckout(){ // 点击【结算弹窗-关闭】
             this.award = {
                 show: false,
                 gold: 0,
@@ -1763,6 +1773,11 @@ export default {
                 codeList: [],
                 codePickingCount: 0,
             }
+        },
+        onTapClosePop(){ // 点击【弹窗-关闭】
+            if(this.banReactive) return;
+            this.resetViewingUnitPopData();
+            this.showGuide = false;
         },
 
         onTapGear(){ // 点击【齿轮】
@@ -1976,14 +1991,12 @@ export default {
         },
         onTapBonfire(){ // 点击【营地】
             if(this.banReactive) return;
-            this._confirm(`进入营地会消耗 5 点能源，是否进入？`,_=>{
-                let playerTeamIds = Array.from(this.team,unit=>{
-                    return unit.id;
-                });
-                this.map.battery[0] -= 5;
-                this.map.battery[0] = setInRange(this.map.battery[0],0,this.map.battery[1]);
-                this.goBattle({mode:4,playerTeamIds,});
+            let playerTeamIds = Array.from(this.team,unit=>{
+                return unit.id;
             });
+            this.goBattle({mode:4,playerTeamIds,});
+            // this._confirm(`进入营地会消耗 5 点能源，是否进入？`,_=>{
+            // });
         },
         onTapBattery(){ // 点击【电池】
             if(this.banReactive) return;

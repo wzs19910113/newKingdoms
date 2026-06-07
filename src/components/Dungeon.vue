@@ -1,13 +1,13 @@
 <template>
     <div class="dungeon">
         <div class="dungeon-header">
-            <a class="battery-wrap" @click.stop="onTapBattery">
+            <!-- <a class="battery-wrap" @click.stop="onTapBattery">
                 <div class="battery-title">能源储备</div>
                 <div class="battery-value">
                     <div class="battery-value-remain">{{map.battery[0]}}</div>
                     <div class="battery-value-total">{{map.battery[1]}}</div>
                 </div>
-            </a>
+            </a> -->
             <a class="dungeon-guard" @click.stop="onTapGuard">
                 <div class="guard-level">
                     <span>警戒等级：{{common.calcGuardLevel(map)}} 级</span>

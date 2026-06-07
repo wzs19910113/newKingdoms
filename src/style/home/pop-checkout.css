@@ -26,14 +26,23 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 2rem;
-    min-height: 1.5rem;
+    top: 0;
+    bottom: 0;
+    height: 100%;
     width: 7.5rem;
-    margin: 0 auto;
+    margin: 0;
     z-index: 700;
-    padding-bottom: .4rem;
     color: #fff;
     overflow: hidden;
+    background-color: rgba(0,0,0,.6);
+}
+.pop-checkout-wrap{
+    position: absolute;
+    width: 100%;
+    top: 2.14rem;
+    min-height: 1.5rem;
+    margin: 0 auto;
+    padding-bottom: .4rem;
     animation: areward .5s ease-in-out forwards;
 }
 @keyframes areward{
@@ -54,6 +63,32 @@
     min-height: .4rem;
     font-size: .3rem;
     margin-bottom: .04rem;
+}
+.pop-checkout .row .btn-orange{
+    width: 1rem;
+    height: .4rem;
+    line-height: .4rem;
+    background-color: transparent;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    background-color: #CD812C;
+    color: #fff;
+    text-shadow: 0 0 .04rem #000;
+    white-space: nowrap;
+    word-break: keep-all;
+    font-size: .28rem;
+    /* animation: pump 1s ease-in-out forwards infinite; */
+}
+.pop-checkout .row .btn-giveup{
+    width: 1rem;
+    height: .4rem;
+    line-height: .4rem;
+    background-color: #666;
+}
+.pop-checkout .row .desc{
+    color: #aaa;
+    font-size: .24rem;
 }
 .pop-checkout .row-title{
     color: #f1ff74;
@@ -179,13 +214,13 @@
 }
 .checkout-shadow .light{
     position: absolute;
-    height: 200%;
+    height: 100%;
     width: .04rem;
     background-color: #fff;
     left: 150%;
     right: -50%;
-    top: -50%;
-    bottom: -50%;
+    top: 0;
+    bottom: 0;
     transform: rotateZ(32deg);
     box-shadow: 0 0 .24rem .18rem #fff;
     z-index: 10;

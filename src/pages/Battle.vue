@@ -28,9 +28,9 @@
                             <i class="flashing flashing-right">{{boardSkill.n}}</i>
                         </div>
                         <a class="btn btn-cheat btn-cheat-1" v-if="pageState==1&&DEBUG" @click="onTapCheat(1)">作弊1</a>
-                        <div class="battery-wrap" v-if="battle.map.battery">
+                        <!-- <div class="battery-wrap" v-if="battle.map.battery">
                             能源：{{mode==2?'无限':battle.map.battery[0]}}
-                        </div>
+                        </div> -->
                     </div>
                     <!-- 我方区域 -->
                     <div class="team-pan team-pan-bottom">
@@ -1183,7 +1183,7 @@ export default {
 
                 // 其他sppp
                 if(attack.s&&r(1,100)<CONFIG.spAttackRate){
-                    if(attack.s==1){ // 压制sppp，计算行动力下降值
+                    if(attack.s==1&&!common.getBuff(target,10)){ // 压制sppp，且目标没有狂暴bufff，则计算行动力下降值
                         let movDmg = common.calcQuellSpDmg({caster,target,attack,dmg});
                         if(movDmg>0){
                             changes.mov -= movDmg;
@@ -1495,11 +1495,11 @@ export default {
                 }
             }
             // 消耗能源
-            if(this.mode!=3&&this.mode!=2&&oCaster.btd.isPlayer){
-                let batteryConsume = type==2?2:1;
-                this.battle.map.battery[0] -= batteryConsume;
-                this.battle.map.battery[0] = setInRange(this.battle.map.battery[0],0,this.battle.map.battery[1]);
-            }
+            // if(this.mode!=3&&this.mode!=2&&oCaster.btd.isPlayer){
+            //     let batteryConsume = type==2?2:1;
+            //     this.battle.map.battery[0] -= batteryConsume;
+            //     this.battle.map.battery[0] = setInRange(this.battle.map.battery[0],0,this.battle.map.battery[1]);
+            // }
             switch(type){
                 case 1: // 进行攻击
                     this.boardTip(`${oCaster.btd.name} 进行攻击`);
