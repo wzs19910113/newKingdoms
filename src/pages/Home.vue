@@ -49,7 +49,7 @@
                     </a>
                 </div>
                 <!-- 酒馆 -->
-                <div class="pop-tarven" v-show="showTarven">
+                <div class="pop-tarven" v-if="showTarven">
                     <SwipeTabs class="tarven-tabs-wrap" ref="tarven-wrap" :tabs="[{label:`商人酒保·${(bartender||{}).nm}`,},{label:`大厅（${inmateList.length}）`},{label:`悬赏榜`,}]">
                         <!-- 商人酒保 -->
                         <template #tab-0>
@@ -1192,8 +1192,10 @@ export default {
             let oTo = getMatchList(this.game.allUnits,[['id',toUnit.id]])[0];
             let oFrom = getMatchList(this.game.allUnits,[['id',fromUnit.id]])[0];
             for(let equip of equipList){
-                oFrom.b = removeFromNumberList(equip.id,oFrom.b);
-                oTo.b.push(equip.id);
+                if(!equip.hl){
+                    oFrom.b = removeFromNumberList(equip.id,oFrom.b);
+                    oTo.b.push(equip.id);
+                }
             }
         },
 
@@ -1294,8 +1296,9 @@ export default {
                 this._alert(text);
             }
             else if(flag==4){ // 学习技能
-                this._confirm(`确定要复制技能 “${skill.n}” 吗？`,_=>{
-                    if(this.game.xp>0){
+                let cost = Math.ceil(skill.v*5);
+                this._confirm(`确定要复制技能 “${skill.n}” 吗？<br/>（消耗1点灵感，以及 <b style="color:gold">${common.moneyFormat(cost)} $</b>）`,_=>{
+                    if(this.game.xp>0&&this.me.g>=cost){
                         let oMe = getMatchList(this.game.allUnits,[['id',this.me.id]])[0];
                         let oSkill = getMatchList(this.game.allSkills,[['id',skill.id]])[0];
                         let newSkill = cloneObj(oSkill);
@@ -1303,6 +1306,7 @@ export default {
                         this.game.allSkills.push(newSkill);
                         oMe.ss.push(newSkill.id);
                         this.game.xp -= 1;
+                        oMe.g -= cost;
                         if(this.game.xp<=0){
                             this.showSkillCopy = false;
                         }
@@ -1310,9 +1314,23 @@ export default {
                         this.asynInmates();
                         this._alert(`${this.me.nm} 复制了技能 “${newSkill.n}”`,5);
                     }
-                    else{
+                    else if(this.game.xp<1){
                         this._alert(`灵感点数不够`);
                     }
+                    else if(this.me.g<cost){
+                        this._alert(`金币不够`);
+                    }
+                });
+            }
+            else if(flag==5){ // 删除技能
+                this._confirm(`确定永久删除技能 “${skill.n}” 吗？<br/>（可退还1点灵感）`,_=>{
+                    let oMe = getMatchList(this.game.allUnits,[['id',this.me.id]])[0];
+                    let oSkill = getMatchList(this.game.allSkills,[['id',skill.id]])[0];
+                    oMe.ss = removeFromNumberList(skill.id,oMe.ss);
+                    this.game.xp ++;
+                    this.asynTeam();
+                    this.asynInmates();
+                    this._alert(`技能已被删除，获得1点灵感`,5);
                 });
             }
         },
@@ -1419,13 +1437,20 @@ export default {
             // 生成敌人配置
             let enemyCount = Math.floor(cellCount/2);
             let enemyDistributionList = [];
+            let maxEnemyGroup = 4;
+            if(navi.level==1){
+                maxEnemyGroup = 2;
+            }
+            else if(navi.level==2){
+                maxEnemyGroup = 3;
+            }
             for(let i=0;i<cellCount;i++){
                 enemyDistributionList.push(i);
             }
             enemyDistributionList = shuffle(enemyDistributionList);
             for(let i=0;i<enemyCount;i++){
                 if(!cellList[enemyDistributionList[i]].core){
-                    cellList[enemyDistributionList[i]].enemy = r(1,(navi.level<3)?3:4);
+                    cellList[enemyDistributionList[i]].enemy = r(1,maxEnemyGroup);
                 }
             }
 
@@ -1659,7 +1684,7 @@ export default {
         },
         onTapRestButton(){ // 点击【住宿】
             if(this.banReactive) return;
-            this._confirm(`是否消耗 1 天的时间休息，完全恢复生命和精力？`,_=>{
+            this._confirm(`是否消耗 1 天的时间休息，完全恢复精力？`,_=>{
                 this.dayPass();
                 for(let unit of this.game.allUnits){
                     common.recoverUnit(unit,this.game);

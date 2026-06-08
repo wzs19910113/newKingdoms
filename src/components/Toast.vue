@@ -156,7 +156,7 @@ export default {
 <style scoped>
 .toast-container {
     position: absolute;
-    top: 1.8rem;
+    top: 2.1rem;
     left: 0;
     z-index: 9999;
     display: flex;

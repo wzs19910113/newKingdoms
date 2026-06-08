@@ -186,7 +186,7 @@ export default {
                 tms: 1,
                 rel: 3,
             });
-            let skill1Consume = 5+r(0,3);
+            let skill1Consume = 12+r(0,7);
             let skill2Consume = 10+r(0,6);
             let melee = unit.as[4]>unit.as[5];
             let skill2Attack;
@@ -239,7 +239,7 @@ export default {
             		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
             		// 减弱状态强度 7
             		d: 1,
-                },{ t: 5, d: { h:skill1Consume+5, rx:0, },},],
+                },{ t: 5, d: { h:Math.ceil(skill1Consume*1.2)+5, rx:0, },},],
             	c: skill1Consume, // 体力消耗
             	d: 1200, // 存在感
             	o: 1, // 顺位
@@ -260,8 +260,8 @@ export default {
             skill1.v = common.calcSkillValue(skill1);
             skill2.v = common.calcSkillValue(skill2);
 
-            unit.ss.push(skill1.id);
             unit.ss.push(skill2.id);
+            unit.ss.push(skill1.id);
             unit.g = 0;
             unit.nk = `穿越者`;
 

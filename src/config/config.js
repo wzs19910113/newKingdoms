@@ -452,8 +452,8 @@ module.exports = {
 			{
 				id:102, level:1, type:2, name:'活死人墓穴', links: [], size:4,
 				floors:[
-					{title:`流民`,thresGuard:0,guard:2,award:15,},
-					{title:`盗墓贼`,thresGuard:30,guard:5,award:50,},
+					{title:`流民`,thresGuard:0,guard:5,award:15,},
+					{title:`盗墓贼`,thresGuard:30,guard:10,award:50,},
 				],
 				bosses:[{
 					title: `祭品盗贼`, id: 51, inten: 4, expired: 30, gold: 10000,
@@ -462,9 +462,9 @@ module.exports = {
 			{
 				id:103, level:2, type:2, name:'非法森林', links: [102,], size:5,
 				floors:[
-					{title:`混混`,thresGuard:0,guard:1,award:30,},
-					{title:`悍匪`,thresGuard:20,guard:2,award:80,},
-					{title:`头目`,thresGuard:35,guard:3,award:200,},
+					{title:`混混`,thresGuard:0,guard:2,award:30,},
+					{title:`悍匪`,thresGuard:20,guard:4,award:80,},
+					{title:`头目`,thresGuard:35,guard:6,award:200,},
 				],
 				bosses:[{
 					title: `渡鸦`, id: 52, inten: 5, expired: 50, gold: 20000,

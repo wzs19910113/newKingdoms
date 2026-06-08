@@ -23,6 +23,7 @@
                 </div>
             </div>
             <a class="btn btn-copy" v-if="checkCopyBtn()" @click.stop="_onTapCopy">复制( <b class="x">{{x}}</b> )</a>
+            <a class="btn btn-delete" v-if="checkDeleteBtn()" @click.stop="_onTapDelete">删除</a>
         </div>
         <div class="skill-mode" :class="`${skill.t>2?'harm':'beni'}`" v-if="mode==2">
             <div class="row">
@@ -179,6 +180,13 @@ export default {
             }
             return res;
         },
+        checkDeleteBtn(){
+            let res = false;
+            if(this.me&&this.unit.id==101){
+                res = true;
+            }
+            return res;
+        },
         _onTap(){
             this.$emit('onTap',{flag:1,data:this.skill,ban:this.ban,});
         },
@@ -193,6 +201,9 @@ export default {
         },
         _onTapCopy(){
             this.$emit('onTap',{flag:4,skill:this.skill,});
+        },
+        _onTapDelete(){
+            this.$emit('onTap',{flag:5,skill:this.skill,});
         },
     },
     components: {
@@ -368,7 +379,7 @@ export default {
         border-color: #322;
     }
     /* 技能点数 */
-    .btn-copy{
+    .btn-copy,.btn-delete{
         position: absolute;
         top: .1rem;
         right: .1rem;
@@ -384,6 +395,8 @@ export default {
         overflow: hidden;
         border: .01rem solid #000;
         border-radius: .06rem;
+    }
+    .btn-copy{
         background-image: radial-gradient(closest-corner, #005 0%, #77c 100%);
         animation: .5s copyFlash ease-in-out alternate infinite;
     }
@@ -396,5 +409,8 @@ export default {
         to{
             box-shadow: 0 0 .3rem .1rem #816CBD;
         }
+    }
+    .btn-delete{
+        background-image: radial-gradient(closest-corner, #111 0%, #a82 100%);
     }
 </style>
