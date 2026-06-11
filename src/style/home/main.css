@@ -184,9 +184,10 @@
     text-shadow: 0 0 .08rem #000;
 }
 .btn-money-transfer-all{
-    width: .5rem;
-    height: .5rem;
-    line-height: .5rem;
+    width: 1.5rem;
+    height: 1rem;
+    line-height: 1rem;
+    font-size: .4rem;
 }
 
 .btn-bonfire{

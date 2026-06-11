@@ -330,13 +330,13 @@ module.exports = {
 			[70,656], // 18
 		],
 		weaponAtkRangeMap: [ // 武器等级和攻击力范围表
-			[5,15], // 1
-			[6,20], // 2
-			[7,25], // 3
-			[8,30], // 4
-			[10,40], // 5
-			[12,50], // 6
-			[15,60], // 7
+			[3,7], // 1
+			[4,10], // 2
+			[5,15], // 3
+			[7,22], // 4
+			[9,30], // 5
+			[12,40], // 6
+			[15,55], // 7
 			[18,70], // 8
 			[22,95], // 9
 			[25,110], // 10
@@ -427,9 +427,9 @@ module.exports = {
 		shopRefreshInterval: 10, // 酒保商品更新频率（天）
 		sellingRatio: .25, // 售卖价格比率
 		skillXLevelMap: [5000,8000,12500,20000,30000,42000,], // 技能经验升级阈值分布（6级之前）
-		skillXLevelRate: 1.5, // 技能经验升级阈值上涨比率（6级之后）
+		skillXLevelRate: 1.75, // 技能经验升级阈值上涨比率（6级之后）
 		fuseGuardConsume: 10, // 装备融合所需警戒值
-		upgradeGuardConsume: 10, // 技能升级所需警戒值
+		upgradeGuardConsume: 20, // 技能升级所需警戒值
 
 		figureConsumeMap: [ // 可塑性消耗等级映射表
 			5000, // 1级
@@ -452,8 +452,8 @@ module.exports = {
 			{
 				id:102, level:1, type:2, name:'活死人墓穴', links: [], size:4,
 				floors:[
-					{title:`流民`,thresGuard:0,guard:5,award:15,},
-					{title:`盗墓贼`,thresGuard:30,guard:10,award:50,},
+					{title:`流民`,thresGuard:0,guard:2,award:15,},
+					{title:`盗墓贼`,thresGuard:20,guard:5,award:50,},
 				],
 				bosses:[{
 					title: `祭品盗贼`, id: 51, inten: 4, expired: 30, gold: 10000,
@@ -548,7 +548,7 @@ module.exports = {
 				id:110, level:9, type:2, name:'漩涡', links: [109,], size:4,
 				floors:[
 					{title:`天选`,thresGuard:0,guard:2,award:1800,},
-					{title:`神话`,thresGuard:30,guard:5,award:4500,},
+					{title:`神话`,thresGuard:20,guard:5,award:4500,},
 				],
 				bosses:[{
 					title: `系统权限`, id: 63, inten: 7, expired: 200, gold: 1,

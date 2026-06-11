@@ -13,7 +13,7 @@ const BUFF_LIST = [...CONFIG.goodBuffs,...CONFIG.badBuffs];
 const BENI_SKILL_EFFECT_LIST = [2,5,7,8,9,];
 const HARM_SKILL_EFFECT_LIST = [1,2,7,8,9,];
 const SKILL_EFFECT_MAP = [ // 技能效果类型的数量分布【 1攻击 2添加状态 3减弱增益状态 4减弱减益状态 5恢复生命 6改变护甲 7改变潜能 8改变心防 9改变存在感 】
-    5, // 攻击
+    4, // 攻击
     5, // 添加状态
     1, // 减弱增益状态
     1, // 减弱负面状态
@@ -691,7 +691,7 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
             break;
             case 5: // 治疗
                 newEffect.d = { h:0, rx:0, };
-                newEffect.d.h = 15+exptr(1,cl(CONFIG.hpRangeMap[level-1][1]+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
+                newEffect.d.h = 15+exptr(CONFIG.hpRangeMap[level-1][1]*5,cl(CONFIG.hpRangeMap[level-1][1]*10+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
                 if(level>=2){ // 施法者的智力补正
                     newEffect.d.rx = genRx(level+5,3);
                 }
@@ -852,7 +852,7 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
             maxEl[3] = level+1;
         }
         else if(type==5){ // 治疗 { h:0, rx:0, }
-            maxEl[4].h = 35+CONFIG.hpRangeMap[level-1][1]+cl(pow(level,3.5));
+            maxEl[4].h = 35+CONFIG.hpRangeMap[level-1][1]*10+cl(pow(level,3.5));
             if(skill.l>=2){
                 maxEl[4].rx = cl(CONFIG.rxRangeMap[level+4][1]);
             }
@@ -1869,7 +1869,7 @@ export function calcPain({unit,dmg,}){ // 计算def和hp各自承受的伤害，
 export function calcCure({caster,target,data,}){ // 计算治疗值 data={h:100,rx:35}
     let res = 0;
     res += data.h;
-    res += cl(calcIntDeno(caster)*data.rx/100);
+    res += cl(calcIntDeno(caster)*data.rx/10);
 
     // 止痛bufff
     let relieveBuff = getBuff(target,1);

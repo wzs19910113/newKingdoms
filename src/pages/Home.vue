@@ -285,6 +285,7 @@
                         </div>
                     </div>
                 </div>
+                <a class="btn-confirm" v-if="!award.guard" @click="onTapCloseCheckout">确认</a>
             </div>
         </div>
         <!-- 作弊码选择遮罩 -->
