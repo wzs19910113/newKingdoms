@@ -20,6 +20,8 @@
     border-bottom: .02rem solid #134;
     border-right: .02rem solid #134;
     border-top: .02rem solid #acd;
+    white-space: nowrap;
+    word-break: keep-all;
 }
 .money{
     color: gold;
@@ -142,6 +144,8 @@
     font-weight: bold;
     text-align: center;
     z-index: 10;
+    white-space: nowrap;
+    word-break: keep-all;
     text-shadow: 0 0 .04rem #fff;
 }
 .beer-badge{

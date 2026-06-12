@@ -433,6 +433,7 @@ export default {
         },
         movementProcess(){ // 行动条进展，计算出本帧行动者数组
             let allAliveUnits;
+            let allAlivePlayerUnits = [];
             let fastest = 0; // 所有存活单位中的最快速度
             let speedFactor = 100; // 速度调整因素
             let tickCount = 0;
@@ -442,6 +443,7 @@ export default {
             if(this.isFleeing){ // 如果正在撤离
                 let allEnemyUnits = [...this.enemyTeam];
                 allAliveUnits = getSubMatchList(allEnemyUnits,[['out',0]],'btd');
+                allAlivePlayerUnits = getSubMatchList([...this.playerTeam],[['out',0]],'btd');
             }
             else{
                 allAliveUnits = this.getAllAliveUnits();
@@ -457,10 +459,10 @@ export default {
             speedFactor = 500/fastest;
 
             let tick = _ =>{
+                let endBattle = false; // 撤离成功，结束战斗的标识
                 // 每个存活单位行动力增长一次
                 for(let unit of allAliveUnits){
-                    if(this.isFleeing&&unit.btd.isPlayer){ // 如果正在撤离，且本单位是玩家单位
-
+                    if(this.isFleeing&&unit.btd.isPlayer){ // 如果正在撤离，且本单位是我方单位
                     }
                     else{
                         unit.btd.mov += common.getSpeed(unit)*speedFactor;
@@ -470,33 +472,34 @@ export default {
                         _curUnitList.push(unit);
                     }
                 }
-                // 根据超出行动力，对本帧行动者数组进行逆向排序
-                _curUnitList = bulbsort(_curUnitList,'overflowMove',1);
-                // 根据每个行动者的 roundTotal 进行复制
-                for(let unit of _curUnitList){
-                    for(let i=0;i<unit.btd.roundTotal;i++){
-                        curUnitList.push(unit);
+                // 如果正在撤离，则增加撤离进度
+                if(this.isFleeing){
+                    let fleeMoveIncresement = 0; // 所有存活我方单位的速度总和
+                    for(let unit of allAlivePlayerUnits){
+                        fleeMoveIncresement += common.getSpeed(unit);
                     }
-                }
-                // 如果有人的行动力达到最高值
-                if(curUnitList.length>0){
-                    clearInterval(this.ticker);
-                    this.ticker = null;
-                    this.curUnitList = curUnitList; // [{id:1,...},{id:1,...},{id:2,...},{id:3,...},{id:3,...},...]
-                    if(this.isFleeing){ // 如果正在撤离，则根据已过时间单位（tickCount）增加撤离进度
-                        let allPlayerUnits = [...this.playerTeam];
-                        let allAlivePlayerUnits = getSubMatchList(allPlayerUnits,[['out',0]],'btd');
-                        let fleeMoveIncresement = 0; // 所有存活我方单位的速度总和
-                        for(let unit of allAlivePlayerUnits){
-                            fleeMoveIncresement += common.getSpeed(unit);
-                        }
-                        this.fleeMove += Math.round(fleeMoveIncresement*tickCount*.01);
-                    }
-                    if(this.isFleeing&&this.fleeMove>=this.totalFleeMove){ // 如果撤离进度满，则撤离成功，结束战斗
+                    this.fleeMove += Math.ceil(fleeMoveIncresement*.01);
+                    if(this.fleeMove>=this.totalFleeMove){ // 如果撤离进度满，则撤离成功，结束战斗
                         this.fleeMove = this.totalFleeMove;
                         this.battleEnd(3);
+                        endBattle = true;
                     }
-                    else{ // 开始下一个 curUnitList 的第一个单位行动
+                }
+                if(!endBattle){
+                    // 根据超出行动力，对本帧行动者数组进行逆向排序
+                    _curUnitList = bulbsort(_curUnitList,'overflowMove',1);
+                    // 根据每个行动者的 roundTotal 进行复制
+                    for(let unit of _curUnitList){
+                        for(let i=0;i<unit.btd.roundTotal;i++){
+                            curUnitList.push(unit);
+                        }
+                    }
+                    // 如果有人的行动力达到最高值
+                    if(curUnitList.length>0){
+                        clearInterval(this.ticker);
+                        this.ticker = null;
+                        this.curUnitList = curUnitList; // [{id:1,...},{id:1,...},{id:2,...},{id:3,...},{id:3,...},...]
+                        // 开始下一个 curUnitList 的第一个单位行动
                         this.timerList.push(setTimeout(_=>{
                             // 所有本帧行动者行动条归零
                             for(let _unit of this.curUnitList){
@@ -575,7 +578,7 @@ export default {
                 for(let unit of allAlivePlayerUnits){
                     fleeMoveIncresement += common.getSpeed(unit);
                 }
-                this.fleeMove += Math.round(fleeMoveIncresement*tickCount*.01);
+                this.fleeMove += Math.ceil(fleeMoveIncresement*tickCount*.01);
             }
             if(this.isFleeing&&this.fleeMove>=this.totalFleeMove){ // 如果撤离进度满，则撤离成功，结束战斗
                 this.fleeMove = this.totalFleeMove;
@@ -2635,6 +2638,8 @@ export default {
         display: inline-block;
         text-align: right;
         width: 1.2rem;
+        white-space: nowrap;
+        word-break: keep-all;
     }
     .guide-menu-row .guide-desc{
         display: inline-block;

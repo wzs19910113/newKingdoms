@@ -255,6 +255,10 @@ export default {
         font-size: .27rem;
         background-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
     }
+    .guard-level >span{
+        white-space: nowrap;
+        word-break: keep-all;
+    }
     .guard-1{
 
     }
