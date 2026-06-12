@@ -442,6 +442,8 @@ export default {
     }
     .dungeon-ops .btn-leave-tip,
     .dungeon-ops .btn-leave{
+        white-space: nowrap;
+        word-break: keep-all;
     }
     .dungeon-ops .btn-leave-tip{
         border-bottom: .02rem solid orangeRed;

@@ -1845,10 +1845,10 @@ export function calcPain({unit,dmg,}){ // 计算def和hp各自承受的伤害，
     }
 
     // 破绽状态增伤
-    if(unit.btd.mov>=8950&&unit.btd.mov<9500){
+    if(unit.btd.mov>=8950&&unit.btd.mov<9450){
         dmg = cl(dmg*CONFIG.leakDmgRatio1);
     }
-    else if(unit.btd.mov>=9500){
+    else if(unit.btd.mov>=9450){
         dmg = cl(dmg*CONFIG.leakDmgRatio2);
     }
 
@@ -1926,7 +1926,7 @@ export function calcDodgeAlteration({target,data,}){ // 计算存在感增减值
         res = data.d;
     }
     else{ // 增益
-        let attrRate = target.btd.attrs[9]*100/target.btd.fixAwa;
+        let attrRate = target.btd.attrs[9]*250/target.btd.fixAwa;
         let skillRate = data.rx/100;
         if(attrRate>1){
             attrRate = 1;
@@ -2082,7 +2082,7 @@ export function calcVortexSpDmg({target,attack,}){ // 计算漩流带来的精�
 export function calcMentalSpDmg({caster,target,dmg,}){ // 计算攻心带来的心理伤害
     let res = 0,buff;
     let hr = hurtRate(target);
-    res = cl(calcIntDeno(caster)*dmg*hr);
+    res = cl(calcIntDeno(caster)*1000*hr);
 
     // 迷惑bufff
     if(buff=getBuff(target,120)){

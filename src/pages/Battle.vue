@@ -1069,23 +1069,23 @@ export default {
                     this.stealAction({ caster, target, gold:goldDmg, });
                 }
 
-                if(buff=common.getBuff(caster,8)){ // 架势bufff
+                if(buff=common.getBuff(target,8)){ // 架势bufff
                     let defRecover = common.calcPoseBuff({target,buff,});
                     target.btd.changes.def += defRecover;
                 }
 
-                if(buff=common.getBuff(caster,9)){ // 通畅bufff
+                if(buff=common.getBuff(target,9)){ // 通畅bufff
                     let phyRecover = common.calcAuraBuff({target,buff,});
                     target.btd.changes.phy += phyRecover;
                 }
 
-                if(buff=common.getBuff(caster,10)){ // 狂暴bufff
+                if(buff=common.getBuff(target,10)){ // 狂暴bufff
                     let movRecover = common.calcRageBuff({buff,});
                     target.btd.changes.mov += movRecover;
                     this.registerAniEffect(102,target);
                 }
 
-                if(buff=common.getBuff(caster,11)){ // 反伤bufff
+                if(buff=common.getBuff(target,11)){ // 反伤bufff
                     let rebounceDmg = common.calcRebounceBuff({buff,dmg,});
                     this.painAction({unit:caster,dmg:rebounceDmg,});
                 }
