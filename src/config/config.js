@@ -77,7 +77,7 @@ module.exports = {
 			},{
 				id: 2,name: '护盾',trend:1,good:1,
 				desc: '受到的攻击伤害减少',
-				construction: [.75, .72, .69, .66, .63, .6, .57, .54, .51, ],
+				construction: [.75, .71, .67, .63, .59, .55, .51, .47, .43, ],
 			},{
 				id: 3,name: '祝福',trend:1,good:1,
 				desc: '阻挡同级和低级的负面状态',
@@ -137,7 +137,7 @@ module.exports = {
 			},{
 				id: 17,name: '隐匿',trend:1,good:1,
 				desc: '回合结束时自动降低存在感',
-				construction: [1000, 1300, 1600, 1900, 2200, 2500, 2800, 3100, 3400,],
+				construction: [1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000,],
 			},{
 				id: 18,name: '战气',trend:2,good:1,
 				desc: '造成伤害的同时削弱体力',
@@ -157,7 +157,7 @@ module.exports = {
 			},{
 				id: 22,name: '疗愈',trend:1,good:1,
 				desc: '回合结束时自动恢复生命',
-				construction: [.02, .025, .03, .035, .04, .045, .05, .055, .06,],
+				construction: [10, 25, 50, 80, 130, 220, 350, 500, 800,],
 			},],
 		badBuffs : [{ // 倾向分值[保护,强化,伤害,弱化]
 				id: 101,name: '易伤',trend:3,good:0,
@@ -182,7 +182,7 @@ module.exports = {
 			},{
 				id: 106,name: '涣散',trend:4,good:0,
 				desc: '潜能累积速度下降',
-				construction: [.8, .75, .7, .65, .6, .55, .5, .45, .4,],
+				construction: [.5, .45, .4, .35, .3, .25, .2, .15, .1,],
 			},{
 				id: 107,name: '暴露',trend:3,good:0,
 				desc: '躲避和技能无法让存在感下降',
@@ -214,7 +214,7 @@ module.exports = {
 			},{
 				id: 114,name: '鲁莽',trend:3,good:0,
 				desc: '进行攻击时会损失防御力',
-				construction: [.4, .44, .48, .52, .56, .6, .64, .68, .72,],
+				construction: [.3, .37, .44, .51, .58, .65, .72, .79, .86,],
 			},{
 				id: 115,name: '破气',trend:4,good:0,
 				desc: '进行攻击时会损失潜能',
@@ -234,7 +234,7 @@ module.exports = {
 			},{
 				id: 119,name: '干毒',trend:4,good:0,
 				desc: '回合结束损失生命值（固定值）',
-				construction: [10, 20, 30, 50, 80, 130, 220, 350, 500, ],
+				construction: [10, 25, 50, 80, 130, 220, 350, 500, 800,],
 			},{
 				id: 120,name: '迷惑',trend:3,good:0,
 				desc: '受到话术和技能的心理伤害增加',
@@ -418,7 +418,7 @@ module.exports = {
 		enviorDamageBase: 100, // 战意流失基础伤害
 
 		dodgeupByTrace: 1000, // 追踪带来的存在感提升值
-		fleeTotalMoveFactor: 20, // 撤离需要的总撤离值倍数
+		fleeTotalMoveFactor: 1, // 撤离需要的总撤离值倍数
 
 		aiExpireTime: 150, // ai思考时间
 

@@ -239,7 +239,10 @@ export default {
             		// 潜能补正 { d:100, rx:35, }，存在感 { d:100, rx:35, }
             		// 减弱状态强度 7
             		d: 1,
-                },{ t: 5, d: { h:Math.ceil(skill1Consume*4)+5, rx:0, },},],
+                },
+                { t: 5, d: { h:Math.ceil(skill1Consume*4)+5, rx:0, },},
+                // { t: 2, d: { b:[22,104], bl:[2,2],},},
+                ],
             	c: skill1Consume, // 体力消耗
             	d: 1200, // 存在感
             	o: 1, // 顺位

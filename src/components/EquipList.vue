@@ -10,7 +10,7 @@
                     <a class="btn" v-if="showSell" @click.stop="onTapSellEquip(equip,unit)">
                         售卖 <b class="money" v-html="`${common.moneyFormat(common.getSellPrice(equip))} $`"></b>
                     </a>
-                    <a class="btn" v-if="(team&&team.length>1)||!team" @click.stop="onTapMoveEquip(equip,unit)">转移</a>
+                    <a class="btn" v-if="!selectingEquip.hl&&((team&&team.length>1)||!team)" @click.stop="onTapMoveEquip(equip,unit)">转移</a>
                     <a class="btn" v-if="selectingEquip.t!=1&&selectingEquip.t!=4" @click.stop="onTapEquipOn(equip,unit,0)">装上</a>
                     <a class="btn" v-if="selectingEquip.t==1||selectingEquip.t==4" @click.stop="onTapEquipOn(equip,unit,1)">装上1</a>
                     <a class="btn" v-if="selectingEquip.t==1||selectingEquip.t==4" @click.stop="onTapEquipOn(equip,unit,2)">装上2</a>

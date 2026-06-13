@@ -1884,7 +1884,7 @@ export default {
                         fleeMoveIncresement += common.getSpeed(unit);
                     }
                     this.isFleeing = 1;
-                    this.totalFleeMove = fleeMoveIncresement*CONFIG.fleeTotalMoveFactor;
+                    this.totalFleeMove = Math.ceil(fleeMoveIncresement*CONFIG.fleeTotalMoveFactor);
                     if(this.consumeAction({consume:CONFIG.baseConsumeList[7],unit:caster,})){ // 结算消耗
                         this.registerAniEffect(201,caster);
                     }

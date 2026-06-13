@@ -2141,7 +2141,7 @@ export function calcExcitedBuff({buff,}){ // 亢奋bufff
 }
 export function calcHideBuff({caster,buff,}){ // 隐匿bufff
     let res = 0;
-    res = cl(caster.btd.attrs[9]/CONFIG.dodgeDeno*5*buff.construction[buff.level-1]);
+    res = cl(caster.btd.attrs[9]/CONFIG.dodgeDeno*10*buff.construction[buff.level-1]);
     return res;
 }
 export function calcMoraleBuff({buff,}){ // 战气bufff
@@ -2161,8 +2161,20 @@ export function calcFocusBuff({dmg,buff,}){ // 专注bufff
     return res;
 }
 export function calcHealBuff({caster,buff,}){ // 疗愈bufff
-    let res = 0, rate = buff.construction[buff.level-1];
-    res = cl(caster.btd.hp[1]*rate);
+    let res = buff.construction[buff.level-1];
+
+    // 止痛bufff
+    let relieveBuff = getBuff(caster,1);
+    if(relieveBuff&&res>0){
+        res = cl(res*relieveBuff.construction[relieveBuff.level-1]);
+    }
+
+    // 剧痛bufff
+    let acheBuff = getBuff(caster,104);
+    if(acheBuff&&res>0){
+        res = cl(res*acheBuff.construction[acheBuff.level-1]);
+    }
+
     return res;
 }
 export function calcBleedBuff({caster,buff,}){ // 出血bufff
