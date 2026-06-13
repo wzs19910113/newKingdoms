@@ -426,6 +426,7 @@ module.exports = {
 
 		shopRefreshInterval: 10, // 酒保商品更新频率（天）
 		sellingRatio: .25, // 售卖价格比率
+		skillCopyCostRate: 2.2, // 技能复制价格比率
 		skillXLevelMap: [5000,8000,12500,20000,30000,42000,], // 技能经验升级阈值分布（6级之前）
 		skillXLevelRate: 1.75, // 技能经验升级阈值上涨比率（6级之后）
 		fuseGuardConsume: 10, // 装备融合所需警戒值

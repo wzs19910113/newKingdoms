@@ -1297,7 +1297,7 @@ export default {
                 this._alert(text);
             }
             else if(flag==4){ // 学习技能
-                let cost = Math.ceil(skill.v*5);
+                let cost = Math.ceil(skill.v*CONFIG.skillCopyCostRate);
                 this._confirm(`确定要复制技能 “${skill.n}” 吗？<br/>（消耗1点灵感，以及 <b style="color:gold">${common.moneyFormat(cost)} $</b>）`,_=>{
                     if(this.game.xp>0&&this.me.g>=cost){
                         let oMe = getMatchList(this.game.allUnits,[['id',this.me.id]])[0];
