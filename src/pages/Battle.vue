@@ -982,7 +982,6 @@ export default {
             let res;
             if(
                 (this.mode==1||this.mode==2)
-                &&this.curUnitList[this.curUnitListIndex].id==101
                 &&this.menuData.state>0
                 &&this.battle.map.tempGame.codeList.length>0
             ){

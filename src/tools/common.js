@@ -1868,8 +1868,9 @@ export function calcPain({unit,dmg,}){ // 计算def和hp各自承受的伤害，
 }
 export function calcCure({caster,target,data,}){ // 计算治疗值 data={h:100,rx:35}
     let res = 0;
+    let attrH = calcIntDeno(caster);
     res += data.h;
-    res += cl(calcIntDeno(caster)*data.rx/10);
+    res += cl(attrH*100*data.rx);
 
     // 止痛bufff
     let relieveBuff = getBuff(target,1);
