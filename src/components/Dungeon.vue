@@ -40,7 +40,7 @@
             </div>
         </div>
         <div class="dungeon-ops">
-            <a class="btn btn-leave-tip" v-if="calcFlagCount()<(map.size-1)">找齐 {{map.size-1}}（{{calcFlagCount()}}） 个<b>路标</b>方可离开</a>
+            <a class="btn btn-leave-tip" v-if="(calcFlagCount()<(map.size-1))&&!DEBUG">找齐 {{map.size-1}}（{{calcFlagCount()}}） 个<b>路标</b>方可离开</a>
             <a class="btn btn-leave" v-else @click.stop="onTapLeave">返回龙虾村</a>
             <a class="btn btn-core" v-if="calcCoreShow()||DEBUG" @click.stop="onTapCore">进入核心</a>
             <a class="btn btn-temple" v-if="calcTempleShow()||DEBUG" @click.stop="onTapTemple">参拜神庙</a>
@@ -133,7 +133,7 @@ export default {
             }
             return res;
         },
-        calcTempleShow(){ // 判断居民是否可见
+        calcTempleShow(){ // 判断神庙是否可见
             let res = true;
             for(let cell of this.map.cellList){
                 if(!cell.show){

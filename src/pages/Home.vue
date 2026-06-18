@@ -25,7 +25,7 @@
             <!-- 右上角系统菜单弹窗 -->
             <div class="pop-gear" v-show="showGearPop">
                 <div class="pop-gear-bg"></div>
-                <a class="btn btn-save" v-if="map.type==1" @click="onTapSave">存档</a>
+                <a class="btn btn-save" :class="checkCanSave()?'':'btn-save-ban'" @click="onTapSave">存档</a>
                 <a class="btn btn-guide" @click="onTapGuide">指引</a>
                 <a class="btn btn-restart" @click="onTapExit">退出</a>
                 <a class="btn btn-cheat" v-if="DEBUG" @click="onTapCheat">作弊</a>
@@ -43,8 +43,9 @@
                     <a class="btn-nav" v-for="navi of navis" @click="onTapNavi(navi)">
                         <!-- <img class="btn-nav-bg" :src="require(`../assets/bg-battle-${navi.id-101}.png`)" /> -->
                         <label class="btn-nav-title" :class="`${navi.coreDefeat?'btn-nav-title-defeat':''}`">
+                            <b class="nav-lv">Lv.{{navi.level}}</b>
                             {{navi.name}}
-                            {{navi.coreDefeat?'（核心已击败）':''}}
+                            {{navi.coreDefeat?'（已攻略）':''}}
                         </label>
                     </a>
                 </div>
@@ -98,7 +99,7 @@
             </div>
             <!-- 地牢页面 -->
             <div class="page" v-if="state==2">
-                <Dungeon class="bg-pic-fade" :map="map"
+                <Dungeon class="bg-pic-fade" :map="map" ref="dungeon"
                     :onTapGuard="onTapGuard"
                     :onTapCell="onTapCell"
                     :onTapLeave="onTapLeaveDungeon"
@@ -366,7 +367,7 @@
                 <div class="guide-row">
                     <label class="guide-title">战斗属性介绍</label>
                     <p class="guide-para">
-                        【生命】归零时退出战斗，可通过技能和住宿补充。<br/>
+                        【生命】归零时退出战斗，可通过技能补充。<br/>
                         【防御】受到伤害时替代生命的损失。<br/>
                         【精力】进行动作时消耗，只能通过住宿补充。<br/>
                         【体力】替代精力消耗。<br/>
@@ -555,10 +556,17 @@ export default {
         }
         else{
             let _storage = localStorage.getItem(CACHE.sto);
+            let _map = localStorage.getItem(CACHE.mds);
+            let _state = localStorage.getItem(CACHE.ste);
             if(_storage){
                 let storage = JSON.parse(_storage);
                 this.game = storage;
                 window.GLOBAL.game = this.game;
+                if(_map&&_state){
+                    let map = JSON.parse(_map);
+                    this.map = map;
+                    this.state = _state;
+                }
                 // let urls = Array.from(ASSETS.image_urls,url=>{
                 //     return require(url);
                 // });
@@ -599,8 +607,12 @@ export default {
         },
         save(showAlert){ // 保存数据到 local
             let storage = this.game;
+            let map = this.map;
+            let state = this.state;
             try{
                 localStorage.setItem(CACHE.sto,JSON.stringify(storage));
+                localStorage.setItem(CACHE.mds,JSON.stringify(map));
+                localStorage.setItem(CACHE.ste,JSON.stringify(state));
                 if(showAlert){
                     this._alert(`保存成功`);
                 }
@@ -613,6 +625,8 @@ export default {
         logout(callback){ // 删除 local 数据
             try{
                 localStorage.removeItem(CACHE.sto);
+                localStorage.removeItem(CACHE.mds);
+                localStorage.removeItem(CACHE.ste);
                 this._alert(`存档删除成功`);
                 callback&&callback();
             }
@@ -723,7 +737,7 @@ export default {
                 this.bartender.btd = common.getUnitBtd(this.bartender,this.game);
             });
         },
-        asynInmates(){ // 同步酒馆客人数据
+        asynInmates(){ // 同步酒馆过客数据
             this.inmateList = [];
             this.$nextTick(_=>{
                 let inmateList = [];
@@ -826,6 +840,22 @@ export default {
                 });
             });
         },
+        checkCanSave(){ // 检查是否可以存档
+            let res = true;
+            if(this.state==1){
+                res = true;
+            }
+            else{
+                let dungeonRef = this.$refs.dungeon;
+                if(dungeonRef){
+                    let showTemple = dungeonRef.calcTempleShow();
+                    if(!showTemple&&this.map.guard&&this.map.guard>=50){
+                        res = false;
+                    }
+                }
+            }
+            return res;
+        },
         dayPass(){ // 经历一天
             this.game.day++;
             this._alert(`一天过去了...`);
@@ -860,11 +890,11 @@ export default {
                 this.asynTeam();
                 this.asynBartender();
             }
-            // 第三天或者每隔十天，刷新酒馆客人
+            // 第三天或者每隔十天，刷新酒馆过客
             if(this.game.day==3||this.game.day%10==0){
                 // 注册 3 个客人
                 let tempUnitList = [], tempEquipList = [], tempSkillList = [];
-                let newGuestCount ;
+                let newGuestCount;
                 let level = Math.ceil(this.game.day/10);
                 level = setInRange(level,1,9);
                 if(this.game.day==3){
@@ -879,7 +909,7 @@ export default {
                             id: this.game.unitIndex++,
                             game: this.game,
                             level,
-                            nickname: `酒馆客人`,
+                            nickname: `酒馆过客`,
                             equipList: tempEquipList,
                             skillList: tempSkillList,
                             rel: 1,
@@ -901,9 +931,9 @@ export default {
                         common.recoverUnit(newUnit,this.game);
                     }
                 }
-                // 清空原来的酒馆客人（ID范围为2-50）
+                // 清空原来的酒馆过客（ID范围为2-50）
                 let removeUnitIdList = [];
-                let oUnitList = getMatchList(this.game.allUnits,[['nk','酒馆客人'],['rel',1]]);
+                let oUnitList = getMatchList(this.game.allUnits,[['nk','酒馆过客'],['rel',1]]);
                 for(let oUnit of oUnitList){
                     removeUnitIdList.push(oUnit.id);
                 }
@@ -1189,11 +1219,11 @@ export default {
             this.asynTeam();
             this.asynInmates();
         },
-        moveEquipList(toUnit,fromUnit,equipList){ // 转移装备数组
+        moveEquipList(toUnit,fromUnit,equipList,force=false){ // 转移装备数组
             let oTo = getMatchList(this.game.allUnits,[['id',toUnit.id]])[0];
             let oFrom = getMatchList(this.game.allUnits,[['id',fromUnit.id]])[0];
             for(let equip of equipList){
-                if(!equip.hl){
+                if(force||!equip.hl){
                     oFrom.b = removeFromNumberList(equip.id,oFrom.b);
                     oTo.b.push(equip.id);
                 }
@@ -1277,7 +1307,7 @@ export default {
                 this.setViewingUnit(unit,1);
             }
         },
-        onTapInmate(unit){ // 点击【酒馆客人】
+        onTapInmate(unit){ // 点击【酒馆过客】
             if(this.banReactive) return;
             let btd = common.getUnitBtd(unit,this.game);
             this.selectingUnit = unit;
@@ -1294,7 +1324,7 @@ export default {
                 this.onTapBuff(buffId,buffLevel);
             }
             else if(flag==3&&text){ // 发送说明弹窗
-                this._alert(text);
+                // this._alert(text);
             }
             else if(flag==4){ // 学习技能
                 let cost = Math.ceil(skill.v*CONFIG.skillCopyCostRate);
@@ -1547,7 +1577,7 @@ export default {
             let oSeller = getMatchList(this.game.allUnits,[['id',seller.id]])[0];
             let buyer = this.bartender;
             let price = common.getSellPrice(equip);
-            this.moveEquipList(buyer,seller,[equip]);
+            this.moveEquipList(buyer,seller,[equip],1); // 不管此装备是否高亮都直接转移给酒保
             oSeller.g += price;
             this.asynTeam();
             this.asynBartender();
@@ -1812,7 +1842,12 @@ export default {
         },
         onTapSave(){ // 点击【齿轮-存档】
             if(this.banReactive) return;
-            this.save(1);
+            if(this.checkCanSave()){
+                this.save(1);
+            }
+            else{
+                this._alert(`警戒值超过50，无法存档`);
+            }
         },
         onTapGuide(){ // 点击【齿轮-指引】
             if(this.banReactive) return;

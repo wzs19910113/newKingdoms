@@ -44,11 +44,12 @@
     width: 100%;
     height: 100%;
     text-align: center;
-    font-size: .4rem;
+    font-size: .35rem;
     font-weight: bold;
     text-shadow: 0 0 .08rem #000;
     color: #fff;
     z-index: 1;
+    padding-left: 1rem;
 }
 .nav-wrap .btn-nav .btn-nav-title-defeat{
     color: orangeRed;
@@ -61,4 +62,17 @@
     text-align: left;
     font-size: .22rem;
     text-shadow: 0 0 .1rem #000;
+}
+.nav-wrap .btn-nav-title .nav-lv{
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    height: 100%;
+    width: 1rem;
+    font-size: .24rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

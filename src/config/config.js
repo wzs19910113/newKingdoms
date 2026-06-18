@@ -2,6 +2,8 @@ module.exports = {
 	DEBUG: 0,
 	CACHE: {
 		sto: '_DS_RWD_L',
+		mds: '_DS_RWD_M',
+		ste: '_DS_RWD_S',
 		tm: '_DS_RWD_T',
 	},
 	ASSETS: {
@@ -291,23 +293,23 @@ module.exports = {
 		],
 		defRangeMap: [ // 等级和防御力范围表
 			[1,2], // 1
-			[1,3], // 2
-			[2,4], // 3
-			[3,5], // 4
-			[5,10], // 5
-			[10,20], // 6
-			[20,40], // 7
-			[30,60], // 8
-			[50,100], // 9
-			[80,160], // 10
-			[125,250], // 11
-			[200,400], // 12
-			[300,600], // 13
-			[450,900], // 14
-			[675,1350], // 15
-			[900,1800], // 16
-			[1200,2400], // 17
-			[1600,3200], // 18
+			[1,4], // 2
+			[2,6], // 3
+			[3,10], // 4
+			[5,20], // 5
+			[10,40], // 6
+			[20,60], // 7
+			[30,90], // 8
+			[50,120], // 9
+			[75,160], // 10
+			[120,250], // 11
+			[190,400], // 12
+			[280,600], // 13
+			[400,900], // 14
+			[600,1350], // 15
+			[800,1800], // 16
+			[1000,2400], // 17
+			[1200,3200], // 18
 		],
 		attrRangeMap: [ // 等级和属性值范围表
 			[6,12], // 1
@@ -350,15 +352,15 @@ module.exports = {
 			[65,410], // 18
 		],
 		skillAtkRangeMap: [ // 技能等级和攻击力范围表
-			[25,50], // 1
-			[30,80], // 2
-			[35,120], // 3
-			[40,180], // 4
-			[45,240], // 5
-			[55,280], // 6
-			[60,330], // 7
-			[65,370], // 8
-			[70,430], // 9
+			[10,20], // 1
+			[15,30], // 2
+			[20,55], // 3
+			[25,80], // 4
+			[30,120], // 5
+			[35,180], // 6
+			[40,270], // 7
+			[45,380], // 8
+			[50,500], // 9
 		],
 		rxRangeMap: [ // 等级和属性补正范围表
 			[2,25], // 1
@@ -396,10 +398,10 @@ module.exports = {
 			[5000,5500,6000,6500,7000,7500,8000,8500,9000,], // 0压制
 			[.300,.350,.400,.450,.500,.550,.600,.650,.700,], // 1破盾
 			[1000,1250,1500,1750,2000,2250,2500,2750,3000,], // 2气溃
-			[  20,  30,  40,  50,  60,  70,  80,  90, 100,], // 3漩流
+			[  10,  20,  30,  40,  50,  60,  70,  80,  90,], // 3漩流
 			[1000,1500,2000,2500,3000,3500,4000,4500,5000,], // 4锁敌
 			[1000,1500,2000,2500,3000,3500,4000,4500,5000,], // 5攻心
-			[30,50,80,120,180,250,350,500,750,], // 6摸金
+			[  30,  50, 100, 200, 300, 400, 600, 800,1000,], // 6摸金
 		],
 
 		dodgeDeno: 1000, // 存在感计算分母
@@ -453,8 +455,8 @@ module.exports = {
 			{
 				id:102, level:1, type:2, name:'活死人墓穴', links: [], size:4,
 				floors:[
-					{title:`流民`,thresGuard:0,guard:2,award:15,},
-					{title:`盗墓贼`,thresGuard:20,guard:5,award:50,},
+					{title:`流民`,thresGuard:0,guard:3,award:15,},
+					{title:`盗墓贼`,thresGuard:20,guard:6,award:50,},
 				],
 				bosses:[{
 					title: `祭品盗贼`, id: 51, inten: 4, expired: 30, gold: 10000,
@@ -476,19 +478,19 @@ module.exports = {
 				floors:[
 					{title:`学徒`,thresGuard:0,guard:1,award:60,},
 					{title:`匠人`,thresGuard:20,guard:2,award:160,},
-					{title:`铸剑师`,thresGuard:35,guard:3,award:500,},
+					{title:`铸剑师`,thresGuard:35,guard:4,award:500,},
 				],
 				bosses:[
-					{ title: `舞女剑`, id: 53, inten: 5, expired: 70, gold: 30000, },
-					{ title: `练星刀`, id: 54, inten: 5, expired: 70, gold: 30000, },
+					{ title: `舞女剑`, id: 53, inten: 5, expired: 80, gold: 30000, },
+					{ title: `练星刀`, id: 54, inten: 5, expired: 80, gold: 30000, },
 				],
 			},
 			{
 				id:105, level:4, type:2, name:'雪海', links: [103,], size:5,
 				floors:[
 					{title:`水手`,thresGuard:0,guard:1,award:150,},
-					{title:`海盗`,thresGuard:20,guard:2,award:350,},
-					{title:`船长`,thresGuard:35,guard:3,award:800,},
+					{title:`海盗`,thresGuard:15,guard:2,award:350,},
+					{title:`船长`,thresGuard:35,guard:4,award:800,},
 				],
 				bosses:[{
 					title: `极寒鬼影`, id: 55, inten: 5, expired: 90, gold: 50000,
@@ -498,9 +500,9 @@ module.exports = {
 				id:106, level:5, type:2, name:'落叶城', links: [105,], size:6,
 				floors:[
 					{title:`佣兵`,thresGuard:0,guard:1,award:250,},
-					{title:`佩剑士`,thresGuard:20,guard:2,award:550,},
-					{title:`副将`,thresGuard:35,guard:3,award:1000,},
-					{title:`大将`,thresGuard:50,guard:5,award:2000,},
+					{title:`佩剑士`,thresGuard:15,guard:2,award:550,},
+					{title:`副将`,thresGuard:35,guard:4,award:1000,},
+					{title:`大将`,thresGuard:50,guard:7,award:2000,},
 				],
 				bosses:[{
 					title: `主城太守`, id: 56, inten: 5, expired: 110, gold: 80000,
@@ -510,31 +512,31 @@ module.exports = {
 				id:107, level:6, type:2, name:'愚困密道', links: [106,], size:6,
 				floors:[
 					{title:`密探`,thresGuard:0,guard:1,award:400,},
-					{title:`信徒`,thresGuard:20,guard:2,award:800,},
-					{title:`邪师`,thresGuard:35,guard:3,award:1600,},
-					{title:`主教`,thresGuard:50,guard:5,award:3200,},
+					{title:`信徒`,thresGuard:15,guard:2,award:800,},
+					{title:`邪师`,thresGuard:35,guard:4,award:1600,},
+					{title:`主教`,thresGuard:50,guard:7,award:3200,},
 				],
 				bosses:[
-					{ title: `处刑人`, id: 57, inten: 5, expired: 130, gold: 100000, },
-					{ title: `替罪者`, id: 58, inten: 5, expired: 130, gold: 100000, },
+					{ title: `处刑人`, id: 57, inten: 5, expired: 140, gold: 100000, },
+					{ title: `替罪者`, id: 58, inten: 5, expired: 140, gold: 100000, },
 				],
 			},
 			{
 				id:108, level:7, type:2, name:'云观', links: [106,], size:5,
 				floors:[
 					{title:`门使`,thresGuard:0,guard:1,award:750,},
-					{title:`游仙`,thresGuard:20,guard:2,award:1500,},
-					{title:`破道者`,thresGuard:35,guard:3,award:3500,},
+					{title:`游仙`,thresGuard:15,guard:2,award:1500,},
+					{title:`破道者`,thresGuard:35,guard:4,award:3500,},
 				],
 				bosses:[{
-					title: `天体轨道护卫`, id: 59, inten: 6, expired: 150, gold: 250000,
+					title: `天体轨道护卫`, id: 59, inten: 6, expired: 160, gold: 250000,
 				}],
 			},
 			{
 				id:109, level:8, type:2, name:'终神宫', links: [107,108,], size:7,
 				floors:[
 					{title:`卫兵`,thresGuard:0,guard:1,award:1000,},
-					{title:`骑士`,thresGuard:20,guard:2,award:2000,},
+					{title:`骑士`,thresGuard:15,guard:2,award:2000,},
 					{title:`骑兵长`,thresGuard:35,guard:3,award:4000,},
 					{title:`副统帅`,thresGuard:50,guard:5,award:8000,},
 					{title:`统帅`,thresGuard:75,guard:8,award:18000,},
@@ -776,7 +778,7 @@ unit = {
 
 	as: [50,35,2,0, 20,14,16,17,14,25,13,], // 11维身体属性（4个外在，7个内在） [0血量,1精力,2体力,3防御, 4力量,5精准,6速度,7智力,8定力,9隐蔽,10爆发]
 
-	ba: [1000,500,], // Boss附加属性 [0血量,1精力,]
+	ba: [1000,500,100,], // Boss附加属性 [0血量,1精力,2防御]
 	st: [50,35,], // 当前状态 [0血量,1精力,]
 
 	ss: [1,], // 技能ID数组

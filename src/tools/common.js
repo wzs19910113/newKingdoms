@@ -331,8 +331,9 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     }
     let hp = exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],2); // 血量
     let eng = exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],2); // 精力
-    let ba = [0,0]; // Boss附加属性[血量，精力]
+    let ba = [0,0,0,]; // Boss附加属性[血量，精力，防御]
     let phy = exptr(level,level*2+1,1); // 体力
+    let def = 0; // 防御
     let fixStable = isBoss?.75:0;
     let innerAttrList = [
         genAttr(fixStable), // 力量
@@ -349,8 +350,9 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
     eng = cl(eng*pow(1.5,inten));
     phy = cl(phy*pow(1.5,inten));
     if(isBoss){
-        ba[0] = cl(hp*pow(1.5,inten));
+        ba[0] = cl(hp*pow(1.2,inten));
         ba[1] = cl(eng*pow(1.5,inten));
+        ba[2] = cl(hp*.1);
     }
 
     // 内在属性强化
@@ -385,7 +387,7 @@ export function genUnitData({id,game,name,nickname='',gender=r(0,1),age=genRando
         tms,
         rel,
         as: [
-            hp,eng,phy,0,
+            hp,eng,phy,def,
             ...innerAttrList,
         ],
         ba,
@@ -438,15 +440,15 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee=r(0,1),}){ 
         let intenRoot = 0;
         switch(attr){
             case 0: // 血量
-                res = cl(exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],2))+3;
-                intenRoot = 3.5;
+                res = cl(exptr(CONFIG.hpRangeMap[level-1][0],CONFIG.hpRangeMap[level-1][1],2)*.2)+3;
+                intenRoot = 2;
             break;
             case 1: // 精力
                 res = cl(exptr(CONFIG.engRangeMap[level-1][0],CONFIG.engRangeMap[level-1][1],2))+2;
                 intenRoot = 2;
             break;
             case 2: // 体力
-                res = cl(r(1,pow(level)+2));
+                res = cl(r(1,pow(level)+2)*.5);
                 intenRoot = 1.5;
             break;
             case 3: // 防御
@@ -466,7 +468,9 @@ export function genEquipData({id=1,game,level=1,inten=0,type=1,melee=r(0,1),}){ 
         }
         // 强化
         if(inten){
+            // if(attr==3)console.log(`强化`,res,intenRoot);
             res = res+cl(res*pow(intenRoot,inten))+r(inten,inten*level*2);
+            // if(attr==3)console.log(`强化`,res);
         }
         res = setInRange(res,0,Infinity);
         return res;
@@ -691,9 +695,9 @@ export function genSkillData({id,game,level=1,beni,melee,isBoss,isTrace,}){ // �
             break;
             case 5: // 治疗
                 newEffect.d = { h:0, rx:0, };
-                newEffect.d.h = 15+exptr(CONFIG.hpRangeMap[level-1][1]*5,cl(CONFIG.hpRangeMap[level-1][1]*10+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
+                newEffect.d.h = 15+exptr(CONFIG.hpRangeMap[level-1][1],cl(CONFIG.hpRangeMap[level-1][1]*2+20),2)+cl(pow(level,r(20,35)/10)); // 固定数值治疗
                 if(level>=2){ // 施法者的智力补正
-                    newEffect.d.rx = genRx(level+5,3);
+                    newEffect.d.rx = genRx(level+2,3);
                 }
             break;
             case 6: // 改变护甲
@@ -835,7 +839,7 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
                 }
             }
             maxEl[0] = {
-                d: CONFIG.skillAtkRangeMap[level-1][1],
+                d: cl(CONFIG.skillAtkRangeMap[level-1][0]*6),
                 r1: cl(CONFIG.rxRangeMap[level+4][1]*r1Ratio),
                 r2: cl(CONFIG.rxRangeMap[level+4][1]*r2Ratio),
             };
@@ -852,9 +856,9 @@ export function genUpgradeSkillData({skill,game,level=1,}){ // 生成升级后�
             maxEl[3] = level+1;
         }
         else if(type==5){ // 治疗 { h:0, rx:0, }
-            maxEl[4].h = 35+CONFIG.hpRangeMap[level-1][1]*10+cl(pow(level,3.5));
+            maxEl[4].h = 35+CONFIG.hpRangeMap[level-1][1]*2+cl(pow(level,3.5));
             if(skill.l>=2){
-                maxEl[4].rx = cl(CONFIG.rxRangeMap[level+4][1]);
+                maxEl[4].rx = cl(CONFIG.rxRangeMap[level+2][1]);
             }
         }
         else if(type==7){ // 潜能 { d:0, rx:0, }
@@ -1042,20 +1046,20 @@ export function genUnit({id,level=1,inten=0,rel,game,nickname='',equipList,skill
         equipList.push(newAccessroy);
     }
     // 配备装备·衣服
-    let newArmor = genEquipData({ id:id*10000+2000, type:3, level, melee, game, });
+    let newArmor = genEquipData({ id:id*10000+2000, type:3, level, inten, melee, game, });
     unit.es[4] = newArmor.id;
     equipList.push(newArmor);
     // 配备装备·头饰
     let newHelmet;
     if(r(1,100)<=70){
-        newHelmet = genEquipData({ id:id*10000+3000, type:2, level, melee, game, });
+        newHelmet = genEquipData({ id:id*10000+3000, type:2, level, inten, melee, game, });
         unit.es[5] = newHelmet.id;
         equipList.push(newHelmet);
     }
     // 配备装备·鞋子
     let newShoes;
     if(r(1,100)<=95){
-        newShoes = genEquipData({ id:id*10000+4000, type:5, level, melee, game, });
+        newShoes = genEquipData({ id:id*10000+4000, type:5, level, inten, melee, game, });
         unit.es[6] = newShoes.id;
         equipList.push(newShoes);
     }
@@ -1282,11 +1286,12 @@ export function getUnitBtd(unit,game){ // 获取单位战斗数据
     let maxHp = btd.attrs[0]+unit.ba[0];
     let maxEng = btd.attrs[1]+unit.ba[1];
     let curHp = maxHp;
+    let def = btd.attrs[3]+unit.ba[2];
     curHp = setInRange(curHp,0,maxHp);
     curEng = setInRange(curEng,0,maxEng);
 
     btd.hp = [curHp,maxHp,]; // 血
-    btd.def = [btd.attrs[3],btd.attrs[3],]; // 护甲
+    btd.def = [def,def,]; // 护甲
     btd.eng = [curEng,maxEng,], // 精力
     btd.phy = [btd.attrs[2],btd.attrs[2],]; // 体力
 
@@ -1496,20 +1501,20 @@ export function getSpeed(unit){ // 获取真实速度
 }
 
 export function calcAttackValue(atk){ // 计算攻击方式的价值
-    let score = 100, res = 0;
+    let score = 10, res = 0;
 
     // 伤害和补正
-    score += pow(atk.d,1.34)*33;
-    score += pow(atk.r1,1.34)*65;
-    score += pow(atk.r2,1.34)*65;
+    score += pow(atk.d,1.34)*3.3;
+    score += pow(atk.r1,1.34)*6.5;
+    score += pow(atk.r2,1.34)*6.5;
 
     // 附加buff等级
     for(let i=0;i<atk.bl.length;i++){
-        score += pow(atk.bl[i],1.34)*1500;
+        score += pow(atk.bl[i],1.14)*150;
     }
 
     // SP等级
-    score += pow(atk.sl,1.34)*2500;
+    score += pow(atk.sl,1.14)*250;
 
     // 全体攻击
     if(atk.a){
@@ -1561,13 +1566,13 @@ export function calcSkillValue(skill){ // 计算技能价值
         switch(t){ // 【 1攻击 2添加状态 3减弱一个状态 4恢复生命 5改变护甲 6改变潜能 7改变心防 8改变存在感 】
             case 1: // 攻击
                 if(d.d){
-                    res += cl(pow(d.d,1.15))*26;
+                    res += cl(pow(d.d,1.07))*26;
                 }
                 if(d.r1){
-                    res += cl(pow(d.r1,1.15))*22;
+                    res += cl(pow(d.r1,1.07))*32;
                 }
                 if(d.r2){
-                    res += cl(pow(d.r2,1.15))*22;
+                    res += cl(pow(d.r2,1.07))*32;
                 }
             break;
             case 2: // 添加状态
@@ -1581,8 +1586,8 @@ export function calcSkillValue(skill){ // 计算技能价值
                 res += 600 + cl(pow(d,1.25))*490;
             break;
             case 5: // 治疗
-                res += 100 + d.h*20; // 固定值
-                res += d.rx*75; // 补正
+                res += 100 + cl(pow(d.h,.9))*40; // 固定值
+                res += d.rx*150; // 补正
             break;
             case 6: // 护甲（弃用）
             break;
@@ -1598,19 +1603,19 @@ export function calcSkillValue(skill){ // 计算技能价值
             case 8: // 改变心防
                 res += cl(pow(Math.abs(d.d),1.39)*3); // 固定值
                 if(d.rx1){ // 技能倾向为利好
-                    res += cl(pow(Math.abs(d.rx1),1.44)*13); // 定力补正
+                    res += cl(pow(Math.abs(d.rx1),1.14)*13); // 定力补正
                 }
                 if(d.rx2){ // 技能倾向为伤害
-                    res += cl(pow(Math.abs(d.rx2),1.34)*45); // 智力补正
+                    res += cl(pow(Math.abs(d.rx2),1.14)*45); // 智力补正
                 }
             break;
             case 9: // 改变存在感
                 if(beni){ // 技能倾向为利好
                     // res += 100 + cl(pow(Math.abs(d.d)/1000,1.31)*650); // 固定值
-                    res += cl(pow(Math.abs(d.rx),1.28)*9); // 补正
+                    res += cl(pow(Math.abs(d.rx),1.18)*9); // 补正
                 }
                 else{ // 技能倾向为伤害
-                    res += 250+cl(pow(Math.abs(d.d)/1000,1.91)*87); // 固定值
+                    res += 250+cl(pow(Math.abs(d.d)/1000,1.31)*87); // 固定值
                 }
             break;
         }
@@ -1870,7 +1875,7 @@ export function calcCure({caster,target,data,}){ // 计算治疗值 data={h:100,
     let res = 0;
     let attrH = calcIntDeno(caster);
     res += data.h;
-    res += cl(attrH*100*data.rx);
+    res += cl(attrH*50*data.rx);
 
     // 止痛bufff
     let relieveBuff = getBuff(target,1);
@@ -1979,7 +1984,7 @@ export function calcConcentrate({caster,}){ // 计算集气值
     let res = 0,buff;
     res += cl(caster.btd.attrs[10]/CONFIG.ptcDeno*1250);
 
-    res = cl(res*1000/(res+1000));
+    res = cl(res*2000/(res+1000));
 
     // 涣散bufff
     if(buff=getBuff(caster,106)){
@@ -2396,6 +2401,9 @@ export function saveUnitOutState(unit){ // 结算 unit 的出局状态
     }
     else if(btd.hp[0]<=0){ // 战退
         btd.out = 1;
+    }
+    if(btd.out!=0){
+        btd.buffList = [];
     }
 }
 

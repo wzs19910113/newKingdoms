@@ -178,3 +178,11 @@
 .pop-gear .btn-restart{
 
 }
+.pop-gear .btn-save-ban{
+    background-image: linear-gradient(to right bottom, rgba(27,29,29,1)  0%, rgba(28,29,28,1) 100%);
+    color: #666;
+    border-left: .06rem solid #4a4a4a;
+    border-bottom: .06rem solid #333;
+    border-right: .06rem solid #333;
+    border-top: .06rem solid #4a4a4a;
+}

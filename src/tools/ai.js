@@ -434,8 +434,8 @@ function calcAttackScore(action,isFleeing,){ // 计算攻击行动的分数
             let fatal = painRatio>=1;
             painRatio = setInRange(.2,1);
             buffFactor = 1+buffFactor/5;
-            targetAttackScore += defPain*4;
-            targetAttackScore += hpPain*5*buffFactor*painRatio;
+            targetAttackScore += defPain*12;
+            targetAttackScore += hpPain*15*buffFactor*painRatio;
             targetAttackScore *= Math.sqrt(dodgeRatio);
             if(fatal){ // 如果此伤害致命
                 targetAttackScore *= 5;
@@ -473,8 +473,8 @@ function calcSkillScore(action,isFleeing,){ // 计算技能行动的分数
                 let painRatio = hpPain/target.btd.hp[0];
                 let fatal = painRatio>=1;
                 painRatio = setInRange(.2,1);
-                targetAttackScore += defPain*4;
-                targetAttackScore += hpPain*5*painRatio;
+                targetAttackScore += defPain*12;
+                targetAttackScore += hpPain*15*painRatio;
                 targetAttackScore *= Math.sqrt(dodgeRatio);
                 targetAttackScore *= consumeFactor;
                 if(isFleeing){ // 如果敌人正在逃跑

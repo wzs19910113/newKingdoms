@@ -115,6 +115,8 @@ export default {
                     let newStorage = this.game;
                     localStorage.setItem(CACHE.sto,JSON.stringify(newStorage));
                     localStorage.setItem(CACHE.tm,1);
+                    localStorage.removeItem(CACHE.mds);
+                    localStorage.removeItem(CACHE.ste);
                     this.$router.push('home');
                 }
                 catch(err){
@@ -187,7 +189,7 @@ export default {
                 rel: 3,
             });
             let skill1Consume = 12+r(0,7);
-            let skill2Consume = 10+r(0,6);
+            let skill2Consume = 7+r(0,6);
             let melee = unit.as[4]>unit.as[5];
             let skill2Attack;
             // unit.as[0] = 100000; // @test
@@ -195,7 +197,7 @@ export default {
             if(melee){
                 skill2Attack = {
         			n: '挥砍',
-        			d: 2+Math.ceil(skill2Consume*2.1), // 基础伤害
+        			d: 2+Math.ceil(skill2Consume*1.4), // 基础伤害
         			r1: 0, // 力量补正
         			r2: 0, // 精准补正
         			b: [], // buff制造表（buff id）
@@ -212,7 +214,7 @@ export default {
             else{
                 skill2Attack = {
         			n: '射击',
-        			d: 2+Math.ceil(skill2Consume*2.1), // 基础伤害
+        			d: 2+Math.ceil(skill2Consume*1.4), // 基础伤害
         			// d: 33, // 基础伤害
         			r1: 0, // 力量补正
         			r2: 0, // 精准补正
@@ -240,7 +242,7 @@ export default {
             		// 减弱状态强度 7
             		d: 1,
                 },
-                { t: 5, d: { h:Math.ceil(skill1Consume*4)+5, rx:0, },},
+                { t: 5, d: { h:Math.ceil(skill1Consume*2)+5, rx:0, },},
                 // { t: 2, d: { b:[22,104], bl:[2,2],},},
                 ],
             	c: skill1Consume, // 体力消耗
